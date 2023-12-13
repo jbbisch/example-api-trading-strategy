@@ -8,7 +8,8 @@ const { getSocket, getMdSocket, getReplaySocket, connectSockets } = require("./w
 const { askForReplay } = require("./utils/askForReplay")
 const { PriceDisplayStrategy } = require("./strategies/priceDisplay/priceDisplayStrategy")
 const { PriceDisplayStrategyFP } = require("./strategies/priceDisplayFP/priceDisplayStrategyFP")
-const { RsiStrategy } = require("./strategies/rsiStrategy/rsiStrategy")
+const { RsiStrategy } = require("./strategies/rsiStrategyFP/rsiStrategy")
+const { placeOCO } = require("./standardMiddleware/placeOCO")
 
 //ENVIRONMENT VARIABLES ---------------------------------------------------------------------------------------
 
@@ -25,10 +26,10 @@ process.env.HTTP_URL    = 'https://demo.tradovateapi.com/v1'
 process.env.WS_URL      = 'wss://demo.tradovateapi.com/v1/websocket'
 process.env.MD_URL      = 'wss://md.tradovateapi.com/v1/websocket'
 process.env.REPLAY_URL  = 'wss://replay.tradovateapi.com/v1/websocket'
-process.env.USER        = ''    
-process.env.PASS        = '' 
-process.env.SEC         = ''
-process.env.CID         = 0
+process.env.USER        = 'a'    
+process.env.PASS        = 'a' 
+process.env.SEC         = 'a'
+process.env.CID         = 'a'
 
 //END ENVIRONMENT VARIABLES -----------------------------------------------------------------------------------
 
@@ -39,16 +40,16 @@ const ALL_STRATEGIES = {
 }
 
 //Replay times must be JSON strings!
-const REPLAY_TIMES = [
-    {
-        start: new Date(`2021-07-28T22:30`).toJSON(), //use your local time, .toJSON will transform it to universal
-        stop: new Date(`2021-07-28T22:31`).toJSON()
-    },
-    {
-        start: new Date(`2021-07-28T22:31`).toJSON(),
-        stop: new Date(`2021-07-28T22:32`).toJSON(),
-    }
-]
+// const REPLAY_TIMES = [
+//     {
+//         start: new Date(`2023-10-15T22:30`).toJSON(), //use your local time, .toJSON will transform it to universal
+//         stop: new Date(`2023-10-19T22:31`).toJSON()
+//     },
+//     {
+//         start: new Date(`2023-10-22T22:31`).toJSON(),
+//         stop: new Date(`2023-10-26T22:32`).toJSON(),
+//    }
+// ]
 
 /**
  * Program entry point.
@@ -65,12 +66,12 @@ async function main() {
     // Configuration Section                     //
     // // // // // // // // // // // // // // // //
 
-    const maybeReplayString = await askForReplay(REPLAY_TIMES)
+    // const maybeReplayString = await askForReplay(REPLAY_TIMES)
 
-    if(maybeReplayString) {
-        const replaySocket = getReplaySocket()
-        await replaySocket.connect(process.env.REPLAY_URL)
-    } else {
+    // if(maybeReplayString) {
+    //     const replaySocket = getReplaySocket()
+    //     await replaySocket.connect(process.env.REPLAY_URL)
+    // } else {
         const socket = getSocket()
         const mdSocket = getMdSocket()
 
@@ -78,10 +79,11 @@ async function main() {
             socket.connect(process.env.WS_URL),
             mdSocket.connect(process.env.MD_URL)
         ])
-    }
+    // }
     
-    const Strategy = await configureRobot(ALL_STRATEGIES, REPLAY_TIMES)
-    
+    const Strategy = await configureRobot(ALL_STRATEGIES)
+    Strategy.init()
+        
     //COMMENT ABOVE, UNCOMMENT BELOW you want to parameterize the strategy here instead of via console.
     
     // let contract1 = await askForContract()
@@ -107,11 +109,11 @@ async function main() {
     // const display = new PriceDisplayStrategyFP({
     //     contract: contract1,
     //     barType: 'MinuteBar',
-    //     barInterval: 1,
+    //     barInterval: 5,
     //     elementSizeUnit: 'UnderlyingUnits',
     //     histogram: false,
     //     timeRangeType: 'asMuchAsElements',
-    //     timeRangeValue: 1,
+    //     timeRangeValue: 20,
     //     dev_mode: !!maybeReplayString,
     //     replay_periods: REPLAY_TIMES
     // })    
