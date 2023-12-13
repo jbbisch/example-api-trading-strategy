@@ -18,16 +18,16 @@ const onChart = (prevState, {data, props}) => {
 
     const longBracket = {
         qty: orderQuantity,
-        profitTarget: round_s(variance/1.33),
-        stopLoss: round_s(-variance/5),
-        trailingStop: true
+        profitTarget: round_s(variance/1.33),//200 (for tick count)
+        stopLoss: round_s(-variance/5),//-80 (for tick count)
+        trailingStop: true //false?
     }
       
     const shortBracket = {
         qty: orderQuantity,
-        profitTarget: round_s(-variance/1.33),
-        stopLoss: round_s(variance/5),
-        trailingStop: true
+        profitTarget: round_s(-variance/1.33),//200 (for tick count)
+        stopLoss: round_s(variance/5),//-80 (for tick count)
+        trailingStop: true //false?
     }
 
     const entryVersion = {
@@ -42,6 +42,15 @@ const onChart = (prevState, {data, props}) => {
                 mode: LongShortMode.Short,
             },
             effects: [
+                //liquidates any existing position
+                //{
+                    //url: 'order/liquidatePosition',
+                    //data: {
+                        //accountId: parseInt(process.env.ID, 10),
+                        //contractId: contract.id,
+                        //admin: true
+                    //}
+                //},
                 {
                     url: 'orderStrategy/startOrderStrategy',
                     data: {
@@ -63,6 +72,15 @@ const onChart = (prevState, {data, props}) => {
                 mode: LongShortMode.Long,
             },
             effects: [
+                //liquidates any existing position
+                //{
+                    //url: 'order/liquidatePosition',
+                    //data: {
+                        //accountId: parseInt(process.env.ID, 10),
+                        //contractId: contract.id,
+                        //admin: true
+                    //}
+                //},
                 {
                     url: 'orderStrategy/startOrderStrategy',
                     data: {
