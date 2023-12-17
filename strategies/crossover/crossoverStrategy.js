@@ -29,8 +29,8 @@ class CrossoverStrategy extends Strategy {
         return {
             mode:       LongShortMode.Watch,
             buffer:     new DataBuffer(barType === 'Bars' ? BarsTransformer : TicksTransformer),
-            tlc:        twoLineCrossover(5, 10),
-            hlv:        highLowVariance(20),
+            tlc:        twoLineCrossover(props.shortPeriod, props.longPeriod),
+            hlv:        highLowVariance(props.variancePeriod),
             product:    null,
             position:   null,
             realizedPnL: 0
