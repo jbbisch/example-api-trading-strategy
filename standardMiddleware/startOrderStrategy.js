@@ -4,7 +4,7 @@ const startOrderStrategy = (state, action) => {
 
     const [event, payload] = action
 
-    if(event === 'orderStrategy/startOrderStrategy') {
+    if(event === 'crossover/draw') {
         const { data, props } = payload
         const { dev_mode } = props
         const { contract, action, brackets, entryVersion } = data
