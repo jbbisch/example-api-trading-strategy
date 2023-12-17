@@ -43,6 +43,65 @@ const onChart = (prevState, {data, props}) => {
             },
             effects: [
                 //liquidates any existing position
+                {
+                    url: 'order/liquidatePosition',
+                    data: {
+                        accountId: parseInt(process.env.ID, 10),
+                        contractId: contract.id,
+                        admin: true
+                    }
+                },
+                //{
+                    //url: 'orderStrategy/startOrderStrategy',
+                    //data: {
+                        //contract,
+                        //action: 'Sell',
+                        //brackets: [shortBracket],
+                        //entryVersion,
+                    //}
+                //},
+                { event: 'crossover/draw' }
+            ]
+        }
+    }
+    if(mode === LongShortMode.Long && negativeCrossover) {
+        return {
+            state: {
+                ...prevState,
+                mode: LongShortMode.Short,
+            },
+            effects: [
+                //liquidates any existing position
+                {
+                    url: 'order/liquidatePosition',
+                    data: {
+                        accountId: parseInt(process.env.ID, 10),
+                        contractId: contract.id,
+                        admin: true
+                    }
+                },
+                //{
+                    //url: 'orderStrategy/startOrderStrategy',
+                    //data: {
+                        //contract,
+                        //action: 'Sell',
+                        //brackets: [shortBracket],
+                        //entryVersion,
+                    //}
+                //},
+                { event: 'crossover/draw' }
+            ]
+        }
+    }
+    
+    if(mode === LongShortMode.Watch && positiveCrossover) {
+        return {
+            state: {
+                ...prevState,
+                mode: LongShortMode.Long,
+            },
+            effects: [
+                //liquidates any existing position
                 //{
                     //url: 'order/liquidatePosition',
                     //data: {
@@ -55,9 +114,9 @@ const onChart = (prevState, {data, props}) => {
                     url: 'orderStrategy/startOrderStrategy',
                     data: {
                         contract,
-                        action: 'Sell',
-                        brackets: [shortBracket],
-                        entryVersion,
+                        action: 'Buy',
+                        brackets: [longBracket],
+                        entryVersion
                     }
                 },
                 { event: 'crossover/draw' }
@@ -65,7 +124,7 @@ const onChart = (prevState, {data, props}) => {
         }
     }
 
-    if(mode === LongShortMode.Watch && positiveCrossover) {
+    if(mode === LongShortMode.Short && positiveCrossover) {
         return {
             state: {
                 ...prevState,
