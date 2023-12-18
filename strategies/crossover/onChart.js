@@ -51,7 +51,8 @@ const onChart = (prevState, {data, props}) => {
                 //        admin: true
                 //    }
                 //},
-                {    url: 'orderStrategy/startOrderStrategy',
+                {    
+                    url: 'orderStrategy/startOrderStrategy',
                     data: {
                         contract,
                         action: 'Sell',

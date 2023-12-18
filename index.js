@@ -26,10 +26,10 @@ process.env.HTTP_URL    = 'https://demo.tradovateapi.com/v1'
 process.env.WS_URL      = 'wss://demo.tradovateapi.com/v1/websocket'
 process.env.MD_URL      = 'wss://md.tradovateapi.com/v1/websocket'
 process.env.REPLAY_URL  = 'wss://replay.tradovateapi.com/v1/websocket'
-process.env.USER        = 'a'    
-process.env.PASS        = 'a' 
-process.env.SEC         = 'a'
-process.env.CID         = 'a'
+process.env.USER        = 'JudeRufus'    
+process.env.PASS        = 'Rufusdufus18$' 
+process.env.SEC         = '59cafc50-d93f-49ff-931f-12d70e8de41a'
+process.env.CID         = 2162
 
 //END ENVIRONMENT VARIABLES -----------------------------------------------------------------------------------
 
