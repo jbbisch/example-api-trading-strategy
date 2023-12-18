@@ -6,14 +6,15 @@ const startOrderStrategy = (state, action) => {
 
     if(event === 'crossover/draw') {
         const { data, props } = payload
-        const { dev_mode } = props
-        const { contract, action, brackets, entryVersion } = data
-        
+        const { dev_mode, dispatcher } = props
+        const { effects} = dispatcher
+        const { contract, action, brackets, entryVersion } = effects
+
         const socket = dev_mode ? getReplaySocket() : getSocket()
 
         const orderData = {
             entryVersion,
-            brackets
+            brackets,
         }
 
         console.log(JSON.stringify(orderData, null, 2))
@@ -22,7 +23,7 @@ const startOrderStrategy = (state, action) => {
             accountId: parseInt(process.env.ID, 10),
             accountSpec: process.env.SPEC,
             symbol: contract.name,
-            action,
+            action: action,
             orderStrategyTypeId: 2,
             params: JSON.stringify(orderData)
         }
