@@ -4,12 +4,14 @@ const onChart = (prevState, {data, props}) => {
 
     const { mode, buffer, hlv, tlc, } = prevState
     const { contract, orderQuantity } = props
-    
+
     buffer.push(data)        
     const bufferData = buffer.getData()
 
     const lastHlv = hlv.state
+    console.log('[onChart] Last HLV:', lastHlv)
     const lastTlc = tlc.state
+    console.log('[onChart] Last TLC:', lastTlc)
 
     const { variance } = hlv(lastHlv, bufferData)
     const { negativeCrossover, positiveCrossover } = tlc(lastTlc, bufferData)
@@ -18,15 +20,15 @@ const onChart = (prevState, {data, props}) => {
 
     const longBracket = {
         qty: orderQuantity,
-        profitTarget: round_s(variance/1.33),//200 (for tick count)
-        stopLoss: round_s(-variance/5),//-80 (for tick count)
+        profitTarget: round_s(variance/1.33), // 200 (for tick count)
+        stopLoss: round_s(-variance/5), //-80 (for tick count) 
         trailingStop: true //false?
     }
       
     const shortBracket = {
         qty: orderQuantity,
-        profitTarget: round_s(-variance/1.33),//200 (for tick count)
-        stopLoss: round_s(variance/5),//-80 (for tick count)
+        profitTarget: round_s(-variance/1.33), // 200 (for tick count)
+        stopLoss: round_s(variance/5), //-80 (for tick count)
         trailingStop: true //false?
     }
 
@@ -42,28 +44,30 @@ const onChart = (prevState, {data, props}) => {
                 mode: LongShortMode.Short,
             },
             effects: [
-                //liquidates any existing position
+                // Liquidates any existing position
                 {
-                    url: 'order/liquidatePosition',
+                    url: 'order/liquidatePosition', 
                     data: {
                         accountId: parseInt(process.env.ID, 10),
                         contractId: contract.id,
-                        admin: true
-                    }
+                        admin: true,
+                        action: 'Sell',
+                    }  
                 },
-                //{
-                    //url: 'orderStrategy/startOrderStrategy',
-                    //data: {
-                        //contract,
-                        //action: 'Sell',
-                        //brackets: [shortBracket],
-                        //entryVersion,
-                    //}
+                //{    
+                //    url: 'orderStrategy/startOrderStrategy',
+                //    data: {
+                //        contract,
+                //        action: 'Sell',
+                //        brackets: [shortBracket],
+                //        entryVersion,
+                //    }
                 //},
                 { event: 'crossover/draw' }
             ]
         }
     }
+
     if(mode === LongShortMode.Long && negativeCrossover) {
         return {
             state: {
@@ -71,29 +75,30 @@ const onChart = (prevState, {data, props}) => {
                 mode: LongShortMode.Short,
             },
             effects: [
-                //liquidates any existing position
+                // Liquidates any existing position
                 {
                     url: 'order/liquidatePosition',
                     data: {
                         accountId: parseInt(process.env.ID, 10),
                         contractId: contract.id,
-                        admin: true
+                        admin: true,
+                        action: 'Sell',
                     }
                 },
                 //{
-                    //url: 'orderStrategy/startOrderStrategy',
-                    //data: {
-                        //contract,
-                        //action: 'Sell',
-                        //brackets: [shortBracket],
-                        //entryVersion,
-                    //}
+                //    url: 'orderStrategy/startOrderStrategy',
+                //    data: {
+                //        contract,
+                //        action: 'Sell',
+                //        brackets: [shortBracket],
+                //        entryVersion,
+                //    }
                 //},
                 { event: 'crossover/draw' }
             ]
         }
     }
-    
+
     if(mode === LongShortMode.Watch && positiveCrossover) {
         return {
             state: {
@@ -101,14 +106,14 @@ const onChart = (prevState, {data, props}) => {
                 mode: LongShortMode.Long,
             },
             effects: [
-                //liquidates any existing position
+                // Liquidates any existing position
                 //{
-                    //url: 'order/liquidatePosition',
-                    //data: {
-                        //accountId: parseInt(process.env.ID, 10),
-                        //contractId: contract.id,
-                        //admin: true
-                    //}
+                //    url: 'order/liquidatePosition',
+                //    data: {
+                //        accountId: parseInt(process.env.ID, 10),
+                //        contractId: contract.id,
+                //        admin: true
+                //    }
                 //},
                 {
                     url: 'orderStrategy/startOrderStrategy',
@@ -117,7 +122,7 @@ const onChart = (prevState, {data, props}) => {
                         action: 'Buy',
                         brackets: [longBracket],
                         entryVersion
-                    }
+                    }   
                 },
                 { event: 'crossover/draw' }
             ]
@@ -131,14 +136,14 @@ const onChart = (prevState, {data, props}) => {
                 mode: LongShortMode.Long,
             },
             effects: [
-                //liquidates any existing position
+                // Liquidates any existing position
                 //{
-                    //url: 'order/liquidatePosition',
-                    //data: {
-                        //accountId: parseInt(process.env.ID, 10),
-                        //contractId: contract.id,
-                        //admin: true
-                    //}
+                //    url: 'order/liquidatePosition',
+                //    data: {
+                //        accountId: parseInt(process.env.ID, 10),
+                //        contractId: contract.id,
+                //        admin: true
+                //    }
                 //},
                 {
                     url: 'orderStrategy/startOrderStrategy',
