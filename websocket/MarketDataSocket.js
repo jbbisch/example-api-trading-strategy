@@ -1,3 +1,4 @@
+const { BarsTransformer } = require('../utils/dataBuffer')
 const { TradovateSocket } = require('./TradovateSocket')
 
 /**
@@ -85,7 +86,7 @@ MarketDataSocket.prototype.subscribeDOM = function({symbol, contractId: cid, cal
         
 }
 
-MarketDataSocket.prototype.subscribeHistorgram = function({symbol, contractId: cid, callback}) {
+MarketDataSocket.prototype.subscribeHistogram = function({symbol, contractId: cid, callback}) {
     const isHistogram = data => data.e && data.e === 'md' && data.d && data.d.histograms
 
     const subscription = this.request({
@@ -125,7 +126,12 @@ MarketDataSocket.prototype.getChart = function({symbol, chartDescription, timeRa
         url: 'md/getChart',
         body: {
             symbol,
-            chartDescription,
+            chartDescription: {
+                underlyingType: 'MinuteBar',
+                elementSize: chartDescription.elementSize,
+                elementSizeUnit: chartDescription.elementSizeUnit,
+                withHistograms: chartDescription.withHistograms,
+            },
             timeRange
         },
         callback: (id, item) => {
@@ -139,7 +145,7 @@ MarketDataSocket.prototype.getChart = function({symbol, chartDescription, timeRa
 
             item.d.charts
                 .filter(({id}) => id === realtimeId || id === historicalId)
-                .forEach(callback)            
+                .forEach(BarsTransformer)            
         },
         disposer: () => {
             let d = this.request({
