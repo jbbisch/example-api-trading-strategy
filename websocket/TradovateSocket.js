@@ -82,39 +82,39 @@ TradovateSocket.prototype.synchronize = function(callback) {
 // /**
 //  * Set a function to be called when the socket synchronizes.
 //  */
-// TradovateSocket.prototype.onSync = function(callback) {
-//     this.ws.addEventListener('message', async msg => {
-//         const { data } = msg
-//         const kind = data.slice(0,1)
-//         switch(kind) {
-//             case 'a':
-//                 const  parsedData = JSON.parse(msg.data.slice(1))
-//                 // console.log(parsedData)
-//                 let schemaOk = {}
-//                 const schemafields = ['users']
-//                 parsedData.forEach(data => {
-//                     schemafields.forEach(k => {
-//                         if(schemaOk && !schemaOk.value) {
-//                             return
-//                         }
-//                         if(Object.keys(data.d).includes(k) && Array.isArray(data.d[k])) {
-//                             schemaOk = { value: true }
-//                         } 
-//                         // else {
-//                         //     schemaOk = { value: false }
-//                         // }
-//                     })
+TradovateSocket.prototype.onSync = function(callback) {
+    this.ws.addEventListener('message', async msg => {
+        const { data } = msg
+        const kind = data.slice(0,1)
+        switch(kind) {
+            case 'a':
+                const  parsedData = JSON.parse(msg.data.slice(1))
+                // console.log(parsedData)
+                let schemaOk = {}
+                const schemafields = ['users']
+                parsedData.forEach(data => {
+                    schemafields.forEach(k => {
+                        if(schemaOk && !schemaOk.value) {
+                            return
+                        }
+                        if(Object.keys(data.d).includes(k) && Array.isArray(data.d[k])) {
+                            schemaOk = { value: true }
+                        } 
+                        else {
+                            schemaOk = { value: false }
+                        }
+                    })
                     
-//                     if(schemaOk.value) {
-//                         callback(data.d)
-//                     }
-//                 })
-//                 break
-//             default:
-//                 break
-//         }
-//     })
-// }
+                    if(schemaOk.value) {
+                        callback(data.d)
+                    }
+                })
+                break
+            default:
+                break
+        }
+    })
+}
 
 TradovateSocket.prototype.connect = async function(url) {
 
