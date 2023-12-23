@@ -174,8 +174,8 @@ class Strategy {
             symbol: contract.name,
             chartDescription: {
                 underlyingType: barType,
-                elementSize: barType === 'Tick' ? 1 : barInterval,
-                elementSizeUnit,
+                elementSize: barType === 'MinuteBar' ? 1 : barInterval,
+                elementSizeUnit: elementSizeUnit,
                 withHistogram: histogram === 'true'
             },
             timeRange: {
