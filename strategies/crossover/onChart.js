@@ -1,40 +1,39 @@
 const { LongShortMode } = require("../common/longShortMode")
 
 const onChart = (prevState, {data, props}) => {
-
     const { mode, buffer, hlv, tlc, } = prevState
     const { contract, orderQuantity } = props
+    console.log('[onChart] props:', props)
 
     buffer.push(data)        
     const bufferData = buffer.getData()
-
-    const lastHlv = hlv.state
-    console.log('[onChart] Last HLV:', lastHlv)
+    
+    //const lastHlv = hlv.state
     const lastTlc = tlc.state
     console.log('[onChart] Last TLC:', lastTlc)
 
-    const { variance } = hlv(lastHlv, bufferData)
+    //const { variance } = hlv(lastHlv, bufferData)
     const { negativeCrossover, positiveCrossover } = tlc(lastTlc, bufferData)
 
     const round_s = num => Math.round((num + Number.EPSILON) * 100) / 100
 
     const longBracket = {
         qty: orderQuantity,
-        profitTarget: round_s(variance/1.33), // 200 (for tick count)
-        stopLoss: round_s(-variance/5), //-80 (for tick count) 
-        trailingStop: true //false?
+        profitTarget: 200, //round_s(variance/1.33), // 200 (for tick count)
+        stopLoss: -80, //round_s(-variance/5), //-80 (for tick count) 
+        trailingStop: false //true //false?
     }
       
     const shortBracket = {
         qty: orderQuantity,
-        profitTarget: round_s(-variance/1.33), // 200 (for tick count)
-        stopLoss: round_s(variance/5), //-80 (for tick count)
-        trailingStop: true //false?
+        profitTarget: 100, //round_s(-variance/1.33), // 200 (for tick count)
+        stopLoss: -40, //round_s(variance/5), //-80 (for tick count)
+        trailingStop: false //true //false?
     }
 
     const entryVersion = {
         orderQty: orderQuantity,
-        orderType: 'Market',
+        orderType: "Market",
     }
     
     if(mode === LongShortMode.Watch && negativeCrossover) {
@@ -50,8 +49,11 @@ const onChart = (prevState, {data, props}) => {
                     data: {
                         accountId: parseInt(process.env.ID, 10),
                         contractId: contract.id,
+                        accountSpec: process.env.SPEC,
                         admin: true,
-                        action: 'Sell',
+                        symbol: contract.name,
+                        action: "Sell",
+                        orderQuantity: orderQuantity,
                     }  
                 },
                 //{    
@@ -63,7 +65,7 @@ const onChart = (prevState, {data, props}) => {
                 //        entryVersion,
                 //    }
                 //},
-                { event: 'crossover/draw' }
+                
             ]
         }
     }
@@ -81,8 +83,11 @@ const onChart = (prevState, {data, props}) => {
                     data: {
                         accountId: parseInt(process.env.ID, 10),
                         contractId: contract.id,
+                        accountSpec: process.env.SPEC,
                         admin: true,
-                        action: 'Sell',
+                        symbol: contract.name,
+                        action: "Sell",
+                        orderQuantity: orderQuantity,
                     }
                 },
                 //{
@@ -94,7 +99,7 @@ const onChart = (prevState, {data, props}) => {
                 //        entryVersion,
                 //    }
                 //},
-                { event: 'crossover/draw' }
+                
             ]
         }
     }
@@ -118,13 +123,17 @@ const onChart = (prevState, {data, props}) => {
                 {
                     url: 'orderStrategy/startOrderStrategy',
                     data: {
-                        contract,
-                        action: 'Buy',
+                        accountId: parseInt(process.env.ID, 10),
+                        accountSpec: process.env.SPEC,
+                        symbol: contract.name,
+                        orderStrategyTypeId: 2,
+                        action: "Buy",
+                        orderQuantity: orderQuantity,
+                        entryVersion: entryVersion,
                         brackets: [longBracket],
-                        entryVersion
                     }   
                 },
-                { event: 'crossover/draw' }
+                
             ]
         }
     }
@@ -148,18 +157,21 @@ const onChart = (prevState, {data, props}) => {
                 {
                     url: 'orderStrategy/startOrderStrategy',
                     data: {
-                        contract,
-                        action: 'Buy',
+                        accountId: parseInt(process.env.ID, 10),
+                        accountSpec: process.env.SPEC,
+                        symbol: contract.name,
+                        orderStrategyTypeId: 2,
+                        action: "Buy",
+                        orderQuantity: orderQuantity,
+                        entryVersion: entryVersion,
                         brackets: [longBracket],
-                        entryVersion
                     }
                 },
-                { event: 'crossover/draw' }
+                
             ]
         }
-    }
-
-    return { state: prevState }
+    }//console.log('onChart result', data)
+    return { state: prevState, effects: [] }
 }
 
 module.exports = { onChart }
