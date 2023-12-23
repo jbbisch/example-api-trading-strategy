@@ -1,5 +1,6 @@
 const { getSocket, getReplaySocket } = require("../websocket/utils")
 const { onChart } = require("../strategies/crossover/onChart")
+const { logger } = require("../utils/globalErrorHandler")
 
 const startOrderStrategy = (state, action) => {
     try {
@@ -12,13 +13,13 @@ const startOrderStrategy = (state, action) => {
             const { dev_mode } = props
             const { accountId, accountSpec, symbol, action, brackets, entryVersion, orderQuantity } = data
             console.log('Payload', payload)
+            //console.log('accountID', accountId)
+            //console.log('accountSpec', accountSpec)
             //console.log('symbol', symbol)
             //console.log('action', action)
             //console.log('brackets', brackets)
             //console.log('entryVersion', entryVersion)
             //console.log('orderQuantity', orderQuantity)
-
-            const socket = dev_mode ? getReplaySocket() : getSocket()
         
             const orderData = {
                 entryVersion: entryVersion,
@@ -26,32 +27,29 @@ const startOrderStrategy = (state, action) => {
             }
             console.log('orderData', orderData)
             console.log(JSON.stringify(orderData, null, 2))
-
-            const config = {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${process.env.ACCESS_TOKEN}`
-                }
-            }
         
             const body = {
-                config: config,
                 accountId: accountId,
                 accountSpec: accountSpec,
                 symbol: symbol,
-                action: action,
-                orderQuantity: orderQuantity,
                 orderStrategyTypeId: 2,
+                action: action,
+                params: [JSON.stringify(orderData)],
+                orderQuantity: orderQuantity,
                 isAutomated: true,
-                params: JSON.stringify(orderData),
             }
+            
+            const URL = process.env.WS_URL
+            //const mySocket = new TradovateSocket(URL)
+            const mySocket = dev_mode ? getReplaySocket() : getSocket()
+
+            mySocket.onOpen = function() {
+                mySocket.request(`authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
+            }
+//            socket.request(`/orderstrategy/startorderstrategy\n4\n\n${JSON.stringify(body)}`)
         
-            let dispose = socket.request({
-                config: config, 
-                url: `/orderstrategy/startorderstrategy`,
-                body: body,
-                authorization: `Bearer ${process.env.ACCESS_TOKEN}`,
+            let dispose = mySocket.request({
+                URL: `orderstrategy/startorderstrategy\n4\n\n${JSON.stringify(body)}`,
                 callback: (id, r) => {
                     if (id === r.i) {
                         switch (r.s) {
@@ -68,7 +66,7 @@ const startOrderStrategy = (state, action) => {
                                 console.error(JSON.stringify('Forbidden 444444444440000000000000033333333333333', r.d, null, 2))
                                 break
                             case 404:
-                                console.error(JSON.stringify('Not found 4444444444440000000000000044444444444', r.d, null, 2))
+                                console.error(JSON.stringify('Not found 444444444444000000000000004444444444444444444444400000000000000444444444444444444444440000000000000044444444444444444444444000000000000004444444444444444444444400000000000000444444444444444444444440000000000000044444444444444444444444000000000000004444444444444444444444400000000000000444444444444444444444440000000000000044444444444444444444444000000000000004444444444444444444444400000000000000444444444444444444444440000000000000044444444444444444444444000000000000004444444444444444444444400000000000000444444444444444444444440000000000000044444444444', r.d, null, 2))
                                 break
                             case 500:
                                 console.error(JSON.stringify('Internal server error 5555555555555500000000000000000000000000', r.d, null, 2))
@@ -78,9 +76,9 @@ const startOrderStrategy = (state, action) => {
                                 break
                         }
                         if (r.s === 200) {
-                            console.log(JSON.stringify('Order placed for buy', r.s, null, 2))
+                            console.log(JSON.stringify('Order placed for buy PLACED PLACED PLACED SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS', r.s, null, 2))
                         } else {
-                            console.error(JSON.stringify('Failed to place buy order', r.d, null, 2))
+                            console.error(JSON.stringify('Failed to place the order FAILED FAILED FAILED FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF', r.d, null, 2))
                         }
                         dispose()
                     }    
