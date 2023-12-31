@@ -78,7 +78,7 @@ async function main() {
             socket.connect(process.env.WS_URL),
             mdSocket.connect(process.env.MD_URL)
         ])
-    }
+    //}
     
     const Strategy = await configureRobot(ALL_STRATEGIES)
     Strategy.init()
