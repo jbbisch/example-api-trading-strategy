@@ -6,6 +6,9 @@
 function DataBuffer(transformer = null, data = []) {
     this.buffer = [...data]
     let lastTs
+    let lastInterval
+    const intervalDuration = 5 * 60 * 1000 // decide minute interval here (replace the current 5)
+
     this.push = tick => {
         let results
         if(transformer && typeof transformer === 'function') {
@@ -13,16 +16,21 @@ function DataBuffer(transformer = null, data = []) {
         } else {
             results = tick
         }
-        console.log('Raw Data Incoming Through DataBuffer:', results)
+        //console.log('Raw Data Incoming Through DataBuffer:', results)
+        results = results.map(result => ({
+            ...result,
+            timestamp: new Date(result.timestamp)
+        
+        }))
 
         results = results.sort((a, b) => a.timestamp - b.timestamp)
         
         results.forEach(result => {
-            const currentMinute = result.timestamp.getMinutes()
-            if (this.buffer.length === 0 || currentMinute !== lastMinute) {
+            const currentInterval = Math.floor(result.timestamp / intervalDuration) * intervalDuration
+            if (this.buffer.length === 0 || currentInterval !== lastInterval) {
                 // Start a new minute bar
                 this.buffer.push({
-                    timestamp: result.timestamp,
+                    timestamp: new Date(currentInterval),
                     open: result.open,
                     high: result.high,
                     low: result.low,
@@ -30,7 +38,8 @@ function DataBuffer(transformer = null, data = []) {
                     volume: result.volume
                     // any other properties
                 })
-                lastMinute = currentMinute
+                console.log('New currentInterval Data:', this.buffer[this.buffer.length - 1])
+                lastInterval = currentInterval
             } else {
                 //Update the current MinureBar
                 const currentBar = this.buffer[this.buffer.length - 1]
@@ -39,7 +48,7 @@ function DataBuffer(transformer = null, data = []) {
                 currentBar.close = result.close
                 currentBar.volume += result.volume
                 //update any other properties
-                //console.log('currentBar data:', currentBar)
+                //console.log('New currentBar Data:', currentBar)
             }
 
             if(this.buffer.length === 0 || result.timestamp > lastTs) {
