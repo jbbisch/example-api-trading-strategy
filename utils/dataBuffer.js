@@ -3,7 +3,7 @@
  * is provided, keeps raw data.
  * @param {*} param0 
  */
- function DataBuffer(transformer = null, data = []) {
+function DataBuffer(transformer = null, data = []) {
     this.buffer = [...data]
     let lastTs
     this.push = tick => {
@@ -13,10 +13,35 @@
         } else {
             results = tick
         }
+        console.log('Raw Data Incoming Through DataBuffer:', results)
 
         results = results.sort((a, b) => a.timestamp - b.timestamp)
         
         results.forEach(result => {
+            const currentMinute = result.timestamp.getMinutes()
+            if (this.buffer.length === 0 || currentMinute !== lastMinute) {
+                // Start a new minute bar
+                this.buffer.push({
+                    timestamp: result.timestamp,
+                    open: result.open,
+                    high: result.high,
+                    low: result.low,
+                    close: result.close,
+                    volume: result.volume
+                    // any other properties
+                })
+                lastMinute = currentMinute
+            } else {
+                //Update the current MinureBar
+                const currentBar = this.buffer[this.buffer.length - 1]
+                currentBar.high = Math.max(currentBar.high, result.high)
+                currentBar.low = Math.min(currentBar.low, result.low)
+                currentBar.close = result.close
+                currentBar.volume += result.volume
+                //update any other properties
+                //console.log('currentBar data:', currentBar)
+            }
+
             if(this.buffer.length === 0 || result.timestamp > lastTs) {
                 this.buffer.push(result)
                 if(this.maxLength && this.buffer.length > this.maxLength) {
@@ -27,53 +52,6 @@
                 this.buffer[this.buffer.length-1] = {...result}
             }
         })
-
-        const minuteBars = transformToMinuteBars(results)
-
-        minuteBars.forEach(result => {
-            if(this.buffer.length === 0 || result.timestamp > lastTs) {
-                this.buffer.push(result)
-                if(this.maxLength && this.buffer.length > this.maxLength) {
-                    this.buffer.shift()
-                }
-                lastTs = result.timestamp
-            } else if(result.timestamp === lastTs) {
-                this.buffer[this.buffer.length-1] = {...result}
-            }
-        })
-    }
-
-    function transformToMinuteBars(tick) {
-        const minuteBars = []
-        const minuteGroups = groupTicksByMinute(tick)
-        minuteGroups.forEach(group => {
-            const open = group[0].price
-            const close = group[group.length-1].price
-            const high = Math.max(...group.map(tick => tick.price))
-            const low = Math.min(...group.map(tick => tick.price))
-            const timestamp = new Date(group[0].timestamp)
-            const minuteBar = {
-                timestamp,
-                open,
-                close,
-                high,
-                low,
-            }
-            minuteBars.push(minuteBar)
-        }); console.log('MINUTE BARS', minuteBars)
-        return minuteBars
-    }
-
-    function groupTicksByMinute(tick) {
-        const groups = {}
-        tick.forEach(tick => {
-            const minuteKey = tick.timestamp.toISOString().substring(0, 16)
-            if (!groups[minuteKey]) {
-                groups[minuteKey] = []
-            }
-            groups[minuteKey].push(tick)
-        })
-        return Object.values(groups)
     }
 
     this.setMaxLength = max => {
@@ -121,88 +99,6 @@ Object.defineProperty(DataBuffer.prototype, 'length', {
 })
 
 /**
- * Transforms the incoming tick stream into usable minute bar data.
- * @param {*} response
- * @returns {Array<{timestamp: Date, open: number, high: number, low: number, close: number, upVolume: number, downVolume: number, upTicks: number, downTicks: number, bidVolume: number, offerVolume: number}>}
- */
-const MinuteBarsTransformer = (response) => {
-    const {tick} = response
-    const minuteBars = []
-
-    if(tick) {
-        let currentMinute = null
-        let open = null
-        let high = null
-        let low = null
-        let close = null
-        let upVolume = 0
-        let downVolume = 0
-        let upTicks = 0
-        let downTicks = 0
-        let bidVolume = 0
-        let offerVolume = 0
-
-        tick.forEach(tick => {
-            const { timestamp, price, volume: tickVolume} = tick
-            const minute = new Date(timestamp).getMinutes()
-
-            if (currentMinute === null) {
-                currentMinute = minute
-                open = price
-                high = price
-                low = price
-                close = price            
-            } else if (currentMinute === minute) {
-                high = Math.max(high, price)
-                low = Math.min(low, price)
-                close = price
-            } else {
-                minuteBars.push({
-                    timestamp: new Date(timestamp),
-                    open,
-                    high,
-                    low,
-                    close,
-                    upVolume,
-                    downVolume,
-                    upTicks,
-                    downTicks,
-                    bidVolume,
-                    offerVolume,
-                })
-                currentMinute = minute
-                open = price
-                high = price
-                low = price
-                close = price
-                upVolume = 0
-                downVolume = 0
-                upTicks = 0
-                downTicks = 0
-                bidVolume = 0
-                offerVolume = 0
-            }
-            volume += tickVolume  
-        })
-
-        minuteBars.push({
-            timestamp: new Date(ticks[ticks.length-1].timestamp),
-            open,
-            high,
-            low,
-            close,
-            upVolume,
-            downVolume,
-            upTicks,
-            downTicks,
-            bidVolume,
-            offerVolume,
-        })
-    }
-    return minuteBars
-}
-
-/**
  * Transforms the incoming tick stream into usable bar data.
  * @param {*} bar 
  * @returns {Array<{timestamp: Date, open: number, high: number, low: number, close: number, upVolume: number, downVolume: number, upTicks: number, downTicks: number, bidVolume: number, offerVolume: number}>} 
@@ -216,9 +112,8 @@ const BarsTransformer = (response) => {
             results.push(result)
         })
     }
-//    console.log(response)
-//    console.log('BAR XFORM RESULT')
-//    console.log(results)
+    // console.log('BAR XFORM RESULT')
+    // console.log(results)
     return results
 }
 
@@ -233,6 +128,9 @@ const TicksTransformer = response => {
     let result = []
     if(tks) { 
         tks.forEach(({t, p, s, b, a, bs, as: asks, id}) => {
+            const timestamp = new Date(bt + t)
+            const currentMinute = timestamp.getMinutes()
+
             result.push({
                 subscriptionId: subId,
                 id,
@@ -250,4 +148,4 @@ const TicksTransformer = response => {
     return result
 }
 
-module.exports = { DataBuffer, BarsTransformer, TicksTransformer, MinuteBarsTransformer }
+module.exports = { DataBuffer, BarsTransformer, TicksTransformer }
