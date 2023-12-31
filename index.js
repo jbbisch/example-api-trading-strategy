@@ -1,3 +1,5 @@
+const { logger } = require("./utils/globalErrorHandler")
+require('dotenv').config()
 const { acquireAccess } = require("./utils/acquireAccess")
 const { configureRobot } = require("./utils/configureRobot")
 const { CrossoverStrategy } = require("./strategies/crossover/crossoverStrategy")
@@ -8,7 +10,12 @@ const { getSocket, getMdSocket, getReplaySocket, connectSockets } = require("./w
 const { askForReplay } = require("./utils/askForReplay")
 const { PriceDisplayStrategy } = require("./strategies/priceDisplay/priceDisplayStrategy")
 const { PriceDisplayStrategyFP } = require("./strategies/priceDisplayFP/priceDisplayStrategyFP")
-const { RsiStrategy } = require("./strategies/rsiStrategy/rsiStrategy")
+const { RsiStrategy } = require("./strategies/rsiStrategyFP/rsiStrategy")
+const { placeOrder } = require("./endpoints/placeOrder")
+const { startOrderStrategy } = require("./standardMiddleware/startOrderStrategy")
+const { strategy } = require("./strategies/strategy/strategy")
+const { onChart } = require("./strategies/crossover/onChart")
+
 
 //ENVIRONMENT VARIABLES ---------------------------------------------------------------------------------------
 
@@ -39,50 +46,54 @@ const ALL_STRATEGIES = {
 }
 
 //Replay times must be JSON strings!
-//const REPLAY_TIMES = [
-    //{
-        //start: new Date(`2021-07-28T22:30`).toJSON(), //use your local time, .toJSON will transform it to universal
-        //stop: new Date(`2021-07-28T22:31`).toJSON()
-    //},
-    //{
-        //start: new Date(`2021-07-28T22:31`).toJSON(),
-        //stop: new Date(`2021-07-28T22:32`).toJSON(),
-    //}
-//]
+// const REPLAY_TIMES = [
+//     {
+//         start: new Date(`2023-10-15T22:30`).toJSON(), //use your local time, .toJSON will transform it to universal
+//         stop: new Date(`2023-10-19T22:31`).toJSON()
+//     },
+//     {
+//         start: new Date(`2023-10-22T22:31`).toJSON(),
+//         stop: new Date(`2023-10-26T22:32`).toJSON(),
+//    }
+// ]
 
 /**
  * Program entry point.
  */
 async function main() {
-
+    try {
+        
     // // // // // // // // // // // // // // // //
     // Login Section                             //
     // // // // // // // // // // // // // // // //
 
-    await acquireAccess()
+        await acquireAccess()
 
     // // // // // // // // // // // // // // // //
     // Configuration Section                     //
     // // // // // // // // // // // // // // // //
 
-    //const maybeReplayString = await askForReplay(REPLAY_TIMES)
+    // const maybeReplayString = await askForReplay(REPLAY_TIMES)
 
-    //if(maybeReplayString) {
-        //const replaySocket = getReplaySocket()
-        //await replaySocket.connect(process.env.REPLAY_URL)
-    //} else {
-        const socket = getSocket()
-        const mdSocket = getMdSocket()
+    // if(maybeReplayString) {
+    //     const replaySocket = getReplaySocket()
+    //     await replaySocket.connect(process.env.REPLAY_URL)
+    // } else {
+            const socket = getSocket()
+            const mdSocket = getMdSocket()
 
-        await Promise.all([
-            socket.connect(process.env.WS_URL),
-            mdSocket.connect(process.env.MD_URL)
-        ])
-    //}
+            await Promise.all([
+                socket.connect(process.env.WS_URL),
+                mdSocket.connect(process.env.MD_URL)
+            ])
+    // }
     
-    const Strategy = await configureRobot(ALL_STRATEGIES)
-    Strategy.init()
-    
+        const Strategy = await configureRobot(ALL_STRATEGIES)
+        Strategy.init()
+    } catch (error) {
+        logger.error({message: error.message, stack: error.stack, error})
+    }
+        
     //COMMENT ABOVE, UNCOMMENT BELOW you want to parameterize the strategy here instead of via console.
     
     // let contract1 = await askForContract()
@@ -108,11 +119,11 @@ async function main() {
     // const display = new PriceDisplayStrategyFP({
     //     contract: contract1,
     //     barType: 'MinuteBar',
-    //     barInterval: 1,
+    //     barInterval: 5,
     //     elementSizeUnit: 'UnderlyingUnits',
     //     histogram: false,
     //     timeRangeType: 'asMuchAsElements',
-    //     timeRangeValue: 1,
+    //     timeRangeValue: 20,
     //     dev_mode: !!maybeReplayString,
     //     replay_periods: REPLAY_TIMES
     // })    
