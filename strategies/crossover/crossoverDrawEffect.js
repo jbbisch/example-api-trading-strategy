@@ -6,6 +6,7 @@ const drawEffect = (state, action) => {
 
     if(event === 'crossover/draw') {
         const { props } = payload
+        //console.log('crossoverDrawEffect called', payload)
         const { contract } = props
         const { product, position, mode, buffer, tlc, realizedPnL } = state
         const { distance, shortSma, longSma } = tlc.state  
