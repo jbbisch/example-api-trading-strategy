@@ -1,7 +1,7 @@
 const highLowVariance = require("../../utils/highLowVariance")
 const twoLineCrossover = require("../../utils/twoLineCrossover")
 
-const { DataBuffer, BarsTransformer, TicksTransformer, MinuteBarsTransformer } = require("../../utils/dataBuffer")
+const { DataBuffer, BarsTransformer, TicksTransformer } = require("../../utils/dataBuffer")
 const { Strategy } = require("../strategy/strategy")
 const { onUserSync } = require("./onUserSync")
 const { onProps } = require("./onProps")
@@ -24,13 +24,13 @@ class CrossoverStrategy extends Strategy {
     }
 
     init(props) {
-        console.log('CrossoverStrategy init() called', props)
+        //console.log('CrossoverStrategy init() called', props)
         const { barType } = props || {};
         this.addMiddleware(drawEffect)
         return {
             mode:       LongShortMode.Watch,
-            buffer:     new DataBuffer(barType === 'Bars' ? BarsTransformer : MinuteBarsTransformer),
-            tlc:        twoLineCrossover(props.shortPeriod, props.longPeriod),
+            buffer:     new DataBuffer(barType === 'MinuteBar' ? BarsTransformer : TicksTransformer),
+            tlc:        twoLineCrossover(5, 10),
             //hlv:        highLowVariance(20),
             product:    null,
             position:   null,
@@ -39,6 +39,7 @@ class CrossoverStrategy extends Strategy {
     }
     
     next(prevState, [event, payload]) {
+        //console.log('CrossoverStrategy next() called', event, payload)
 
         switch(event) {
             case TdEvent.Chart: {
