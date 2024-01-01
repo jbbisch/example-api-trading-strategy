@@ -29,8 +29,8 @@ const startOrderStrategy = (state, action) => {
             console.log(JSON.stringify(orderData, null, 2))
         
             const body = {
-                accountId: accountId,
-                accountSpec: accountSpec,
+                accountId: parseInt(process.env.ID, 10),
+                accountSpec: process.env.SPEC,
                 symbol: symbol,
                 orderStrategyTypeId: 2,
                 action: action,
@@ -39,7 +39,7 @@ const startOrderStrategy = (state, action) => {
                 isAutomated: true,
             }
             
-            const URL = process.env.WS_URL
+            const URL = process.env.HTTP_URL
             //const mySocket = new TradovateSocket(URL)
             const mySocket = dev_mode ? getReplaySocket() : getSocket()
 
@@ -49,7 +49,7 @@ const startOrderStrategy = (state, action) => {
 //            socket.request(`/orderstrategy/startorderstrategy\n4\n\n${JSON.stringify(body)}`)
         
             let dispose = mySocket.request({
-                URL: `orderstrategy/startorderstrategy\n4\n\n${JSON.stringify(body)}`,
+                URL: `/orderStrategy/startOrderStrategy\n4\n\n${JSON.stringify(body)}`,
                 callback: (id, r) => {
                     if (id === r.i) {
                         switch (r.s) {
@@ -66,7 +66,7 @@ const startOrderStrategy = (state, action) => {
                                 console.error(JSON.stringify('Forbidden 444444444440000000000000033333333333333', r.d, null, 2))
                                 break
                             case 404:
-                                console.error(JSON.stringify('Not found 444444444444000000000000004444444444444444444444400000000000000444444444444444444444440000000000000044444444444444444444444000000000000004444444444444444444444400000000000000444444444444444444444440000000000000044444444444444444444444000000000000004444444444444444444444400000000000000444444444444444444444440000000000000044444444444444444444444000000000000004444444444444444444444400000000000000444444444444444444444440000000000000044444444444444444444444000000000000004444444444444444444444400000000000000444444444444444444444440000000000000044444444444', r.d, null, 2))
+                                console.error(JSON.stringify('Not found 44444444444400000000000000444444444444444', r.d, null, 2))
                                 break
                             case 500:
                                 console.error(JSON.stringify('Internal server error 5555555555555500000000000000000000000000', r.d, null, 2))
