@@ -3,14 +3,14 @@ const { LongShortMode } = require("../common/longShortMode")
 const onChart = (prevState, {data, props}) => {
     const { mode, buffer, hlv, tlc, } = prevState
     const { contract, orderQuantity } = props
-    console.log('[onChart] props:', props)
+    //console.log('[onChart] props:', props)
 
     buffer.push(data)        
     const bufferData = buffer.getData()
     
     //const lastHlv = hlv.state
     const lastTlc = tlc.state
-    console.log('[onChart] Last TLC:', lastTlc)
+    //console.log('[onChart] Last TLC:', lastTlc)
 
     //const { variance } = hlv(lastHlv, bufferData)
     const { negativeCrossover, positiveCrossover } = tlc(lastTlc, bufferData)
@@ -170,7 +170,7 @@ const onChart = (prevState, {data, props}) => {
                 
             ]
         }
-    }//console.log('onChart result', data)
+    }//console.log('[onChart] result', prevState)
     return { state: prevState, effects: [] }
 }
 
