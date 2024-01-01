@@ -6,26 +6,26 @@ const startOrderStrategy = (state, action) => {
     try {
 
         const [event, payload] = action
-        //console.log('entry action', action)
+        //console.log('[startOrderStrategy] entry payload', payload)
 
         if(event === 'orderStrategy/startOrderStrategy') {
             const { data, props } = payload
             const { dev_mode } = props
             const { accountId, accountSpec, symbol, action, brackets, entryVersion, orderQuantity } = data
-            console.log('Payload', payload)
-            //console.log('accountID', accountId)
-            //console.log('accountSpec', accountSpec)
-            //console.log('symbol', symbol)
-            //console.log('action', action)
-            //console.log('brackets', brackets)
-            //console.log('entryVersion', entryVersion)
-            //console.log('orderQuantity', orderQuantity)
+            //console.log('[startOrderStrategy] Payload', payload)
+            //console.log('[startOrderStrategy] accountID', accountId)
+            //console.log('[startOrderStrategy] accountSpec', accountSpec)
+            //console.log('[startOrderStrategy] symbol', symbol)
+            //console.log('[startOrderStrategy] action', action)
+            //console.log('[startOrderStrategy] brackets', brackets)
+            //console.log('[startOrderStrategy] entryVersion', entryVersion)
+            //console.log('[startOrderStrategy] orderQuantity', orderQuantity)
         
             const orderData = {
                 entryVersion: entryVersion,
                 brackets: brackets,
             }
-            console.log('orderData', orderData)
+            //console.log('[startOrderStrategy] orderData', orderData)
             console.log(JSON.stringify(orderData, null, 2))
         
             const body = {
@@ -34,7 +34,7 @@ const startOrderStrategy = (state, action) => {
                 symbol: symbol,
                 orderStrategyTypeId: 2,
                 action: action,
-                params: [JSON.stringify(orderData)],
+                params: orderData,
                 orderQuantity: orderQuantity,
                 isAutomated: true,
             }
