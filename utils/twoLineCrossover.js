@@ -1,11 +1,12 @@
 const { calculateSma } = require("./helpers")
 
 module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
-    console.log('TLC function called', shortPeriod, longPeriod)
+    //console.log('TLC function called', shortPeriod, longPeriod)
     function nextTLC(prevState, data) {
         console.log('TLC RECEIVED DATA', data)
-        const shortSma = data.slice(data.length - shortPeriod).reduce((a, b) => a + b.close || b.close, 0)/shortPeriod
-        const longSma = data.slice(data.length - longPeriod).reduce((a, b) => a + b.close || b.close, 0)/longPeriod
+        const { timestamp, open, high, low, close } = data
+        const shortSma = data.slice(data.length - shortPeriod).reduce((a, b) => a + b.close || b.price, 0)/shortPeriod
+        const longSma = data.slice(data.length - longPeriod).reduce((a, b) => a + b.close || b.price, 0)/longPeriod
         const distance = shortSma - longSma
 
         next = {
