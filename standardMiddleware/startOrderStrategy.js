@@ -34,22 +34,21 @@ const startOrderStrategy = (state, action) => {
                 symbol: symbol,
                 orderStrategyTypeId: 2,
                 action: action,
-                params: orderData,
+                params: JSON.stringify(orderData),
                 orderQuantity: orderQuantity,
                 isAutomated: true,
             }
             
-            const URL = process.env.HTTP_URL
+            const URL = process.env.HTTP_URL + '/orderStrategy/startOrderStrategy'
             //const mySocket = new TradovateSocket(URL)
             const mySocket = dev_mode ? getReplaySocket() : getSocket()
 
             mySocket.onOpen = function() {
-                mySocket.request(`authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
+                mySocket.request(`/authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
             }
-//            socket.request(`/orderstrategy/startorderstrategy\n4\n\n${JSON.stringify(body)}`)
         
             let dispose = mySocket.request({
-                URL: `/orderStrategy/startOrderStrategy\n4\n\n${JSON.stringify(body)}`,
+                url: `/orderStrategy/startOrderStrategy\n4\n\n${JSON.stringify(body)}`,
                 callback: (id, r) => {
                     if (id === r.i) {
                         switch (r.s) {
@@ -66,7 +65,7 @@ const startOrderStrategy = (state, action) => {
                                 console.error(JSON.stringify('Forbidden 444444444440000000000000033333333333333', r.d, null, 2))
                                 break
                             case 404:
-                                console.error(JSON.stringify('Not found 44444444444400000000000000444444444444444', r.d, null, 2))
+                                console.error(JSON.stringify('Not found 44444444444400000000000000444444444444444444444444444000000000000004444444444444444444444444440000000000000044444444444444444444444444400000000000000444444444444444444444444444000000000000004444444444444444444444444440000000000000044444444444444444444444444400000000000000444444444444444444444444444000000000000004444444444444444444444444440000000000000044444444444444444444444444400000000000000444444444444444444444444444000000000000004444444444444444444444444440000000000000044444444444444444444444444400000000000000444444444444444', r.d, null, 2))
                                 break
                             case 500:
                                 console.error(JSON.stringify('Internal server error 5555555555555500000000000000000000000000', r.d, null, 2))
@@ -86,8 +85,8 @@ const startOrderStrategy = (state, action) => {
             })
         }
     } catch (error) {
-        console.error('Error in startOrderStrategy', error.message)
-        logger.error('Error in startOrderStrategy', error.message)
+        console.error('Error in startOrderStrategy', error.message, error.stack, error)
+        logger.error('Error in startOrderStrategy', error.message, error.stack, error)
     }
     return action
 }
