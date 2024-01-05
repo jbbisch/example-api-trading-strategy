@@ -4,12 +4,14 @@ const onChart = (prevState, {data, props}) => {
 
     const { mode, buffer, hlv, tlc, } = prevState
     const { contract, orderQuantity } = props
-    
+
     buffer.push(data)        
     const bufferData = buffer.getData()
 
     const lastHlv = hlv.state
+    console.log('[onChart] Last HLV:', lastHlv)
     const lastTlc = tlc.state
+    console.log('[onChart] Last TLC:', lastTlc)
 
     const { variance } = hlv(lastHlv, bufferData)
     const { negativeCrossover, positiveCrossover } = tlc(lastTlc, bufferData)
@@ -43,6 +45,68 @@ const onChart = (prevState, {data, props}) => {
             },
             effects: [
                 // Liquidates any existing position
+                {
+                    url: 'order/liquidatePosition', 
+                    data: {
+                        accountId: parseInt(process.env.ID, 10),
+                        contractId: contract.id,
+                        admin: true,
+                        action: 'Sell',
+                    }  
+                },
+                //{    
+                //    url: 'orderStrategy/startOrderStrategy',
+                //    data: {
+                //        contract,
+                //        action: 'Sell',
+                //        brackets: [shortBracket],
+                //        entryVersion,
+                //    }
+                //},
+                { event: 'crossover/draw' }
+            ]
+        }
+    }
+
+    if(mode === LongShortMode.Long && negativeCrossover) {
+        return {
+            state: {
+                ...prevState,
+                mode: LongShortMode.Short,
+            },
+            effects: [
+                // Liquidates any existing position
+                {
+                    url: 'order/liquidatePosition',
+                    data: {
+                        accountId: parseInt(process.env.ID, 10),
+                        contractId: contract.id,
+                        admin: true,
+                        action: 'Sell',
+                    }
+                },
+                //{
+                //    url: 'orderStrategy/startOrderStrategy',
+                //    data: {
+                //        contract,
+                //        action: 'Sell',
+                //        brackets: [shortBracket],
+                //        entryVersion,
+                //    }
+                //},
+                { event: 'crossover/draw' }
+            ]
+        }
+    }
+
+    if(mode === LongShortMode.Watch && positiveCrossover) {
+        return {
+            state: {
+                ...prevState,
+                mode: LongShortMode.Long,
+            },
+            effects: [
+                // Liquidates any existing position
                 //{
                 //    url: 'order/liquidatePosition',
                 //    data: {
@@ -51,21 +115,21 @@ const onChart = (prevState, {data, props}) => {
                 //        admin: true
                 //    }
                 //},
-                {    
+                {
                     url: 'orderStrategy/startOrderStrategy',
                     data: {
                         contract,
-                        action: 'Sell',
-                        brackets: [shortBracket],
-                        entryVersion,
-                    }
+                        action: 'Buy',
+                        brackets: [longBracket],
+                        entryVersion
+                    }   
                 },
                 { event: 'crossover/draw' }
             ]
         }
     }
 
-    if(mode === LongShortMode.Watch && positiveCrossover) {
+    if(mode === LongShortMode.Short && positiveCrossover) {
         return {
             state: {
                 ...prevState,

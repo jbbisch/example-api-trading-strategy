@@ -1,0 +1,88 @@
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: accounts.forEach is not a function {"error":{},"stack":"TypeError: accounts.forEach is not a function\n    at acquireAccess (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\utils\\acquireAccess.js:20:14)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:66:9)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: accounts.forEach is not a function {"error":{},"stack":"TypeError: accounts.forEach is not a function\n    at acquireAccess (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\utils\\acquireAccess.js:20:14)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:66:9)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Uncaught Exception:
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Uncaught Exception:
+error: Cannot read properties of undefined (reading 'shortPeriod') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'shortPeriod')\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:32:48)\n    at main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:88:18)"}
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: MESH4 is not defined {"error":{},"stack":"ReferenceError: MESH4 is not defined\n    at CrossoverStrategy.init (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:34:25)\n    at new Strategy (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\strategy\\strategy.js:29:33)\n    at new CrossoverStrategy (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:23:9)\n    at configureRobot (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\utils\\configureRobot.js:84:30)\n    at async main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:87:26)"}
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:

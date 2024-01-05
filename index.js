@@ -1,3 +1,5 @@
+const { logger } = require("./utils/globalErrorHandler")
+require('dotenv').config()
 const { acquireAccess } = require("./utils/acquireAccess")
 const { configureRobot } = require("./utils/configureRobot")
 const { CrossoverStrategy } = require("./strategies/crossover/crossoverStrategy")
@@ -55,12 +57,13 @@ const ALL_STRATEGIES = {
  * Program entry point.
  */
 async function main() {
-
+    try {
+        
     // // // // // // // // // // // // // // // //
     // Login Section                             //
     // // // // // // // // // // // // // // // //
 
-    await acquireAccess()
+        await acquireAccess()
 
     // // // // // // // // // // // // // // // //
     // Configuration Section                     //
@@ -72,17 +75,20 @@ async function main() {
     //     const replaySocket = getReplaySocket()
     //     await replaySocket.connect(process.env.REPLAY_URL)
     // } else {
-        const socket = getSocket()
-        const mdSocket = getMdSocket()
+            const socket = getSocket()
+            const mdSocket = getMdSocket()
 
-        await Promise.all([
-            socket.connect(process.env.WS_URL),
-            mdSocket.connect(process.env.MD_URL)
-        ])
+            await Promise.all([
+                socket.connect(process.env.WS_URL),
+                mdSocket.connect(process.env.MD_URL)
+            ])
     // }
     
-    const Strategy = await configureRobot(ALL_STRATEGIES)
-    Strategy.init()
+        const Strategy = await configureRobot(ALL_STRATEGIES)
+        Strategy.init()
+    } catch (error) {
+        logger.error({message: error.message, stack: error.stack, error})
+    }
         
     //COMMENT ABOVE, UNCOMMENT BELOW you want to parameterize the strategy here instead of via console.
     
