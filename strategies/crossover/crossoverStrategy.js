@@ -24,13 +24,14 @@ class CrossoverStrategy extends Strategy {
     }
 
     init(props) {
+        //console.log('CrossoverStrategy init() called', props)
         const { barType } = props || {};
         this.addMiddleware(drawEffect)
         return {
             mode:       LongShortMode.Watch,
-            buffer:     new DataBuffer(barType === 'Bars' ? BarsTransformer : TicksTransformer),
+            buffer:     new DataBuffer(barType === 'MinuteBar' ? BarsTransformer : TicksTransformer),
             tlc:        twoLineCrossover(5, 10),
-            hlv:        highLowVariance(20),
+            //hlv:        highLowVariance(20),
             product:    null,
             position:   null,
             realizedPnL: 0
@@ -38,6 +39,7 @@ class CrossoverStrategy extends Strategy {
     }
     
     next(prevState, [event, payload]) {
+        //console.log('CrossoverStrategy next() called', event, payload)
 
         switch(event) {
             case TdEvent.Chart: {
@@ -75,7 +77,7 @@ class CrossoverStrategy extends Strategy {
         ...super.params,
         longPeriod:     10,
         shortPeriod:    5,
-        variancePeriod: 20,
+        //variancePeriod: 20,
         orderQuantity:  1,
     }
 }

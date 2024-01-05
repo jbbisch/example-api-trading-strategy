@@ -1,45 +1,94 @@
 const { getSocket, getReplaySocket } = require("../websocket/utils")
+const { logger } = require("../utils/globalErrorHandler")
 
 const startOrderStrategy = (state, action) => {
+    //console.log('startOrderStrategy FUNCTION called')
 
-    const [event, payload] = action
+    try {
 
-    if(event === 'crossover/draw') {
-        const { data, props } = payload
-        const { dev_mode, dispatcher } = props
-        const { effects} = dispatcher
-        const { contract, action, brackets, entryVersion } = effects
+        const [event, payload] = action
+        //console.log('[startOrderStrategy] entry payload', payload)
 
-        const socket = dev_mode ? getReplaySocket() : getSocket()
+        if(event === 'orderStrategy/startOrderStrategy') {
+            console.log('HANDLING startOrderStrategy EVENT')
 
-        const orderData = {
-            entryVersion,
-            brackets,
-        }
-
-        console.log(JSON.stringify(orderData, null, 2))
+            const { data, props } = payload
+            const { dev_mode } = props
+            const { symbol, action, brackets, entryVersion, deviceId } = data
+            //console.log('[startOrderStrategy] Payload', payload)
         
-        const body = {
-            accountId: parseInt(process.env.ID, 10),
-            accountSpec: process.env.SPEC,
-            symbol: contract.name,
-            action: action,
-            orderStrategyTypeId: 2,
-            params: JSON.stringify(orderData)
-        }
-
-        let dispose = socket.request({
-            url: 'orderStrategy/startOrderStrategy',
-            body,
-            callback: (id, r) => {
-                if(id === r.i) {
-                    console.log(JSON.stringify(r, null, 2))
-                    dispose()
-                }
+            const params = {
+                entryVersion: entryVersion,
+                brackets: brackets,
             }
-        })
-    }
+            //console.log('[startOrderStrategy] orderData', orderData)
+            console.log(JSON.stringify(params, null, 2))
+        
+            const body = {
+                accountId: parseInt(process.env.ID, 10),
+                accountSpec: process.env.SPEC,
+                deviceId: deviceId,
+                symbol: symbol,
+                action: action,
+                orderStrategyTypeId: 2,
+                params: JSON.stringify(params, null, 2),
+                isAutomated: true,
+            }
+            
+            const URL = process.env.WS_URL + `/orderStrategy/startOrderStrategy`
+            //const mySocket = new TradovateSocket(URL)
+            const mySocket = dev_mode ? getReplaySocket() : getSocket()
 
+            mySocket.onOpen = function() {
+                mySocket.request(`/authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
+            }
+        
+            let dispose = mySocket.request({
+                url: process.env.WS_URL + `/orderStrategy/startOrderStrategy\n4\n\n${JSON.stringify(body)}`,
+                callback: (id, r) => {
+                    console.log('[startOrderStrategy] Response from trying to place the order RSSS:', r.s)
+                    console.log('[startOrderStrategy] Response from trying to place the order RIII:', r.i)
+                    console.log('[startOrderStrategy] Response from trying to place the order RDDD:', r.d)
+                    console.log('[startOrderStrategy] Response from trying to place the order RRRR:', r)
+                                        
+                    if (id === r.i) {
+                        switch (r.s) {
+                            case 200:
+                                console.log(JSON.stringify('Order placed 22222222222222200000000000000000 for buy', r.s, null, 2))
+                                break
+                            case 400:
+                                console.error(JSON.stringify('Failed to place44444444444444440000000000000000000000000000 buy order', r.d, null, 2))
+                                break
+                            case 401:
+                                console.error(JSON.stringify('Unauthorized 4444444444444444000000000000001111111111111', r.d, null, 2))
+                                break
+                            case 403:
+                                console.error(JSON.stringify('Forbidden 444444444440000000000000033333333333333', r.d, null, 2))
+                                break
+                            case 404:
+                                console.error(JSON.stringify('Not found 44444444444400000000000000444444444444444444444444444000000000000004444444444444444444444444440000000000000044444444444444444444444444400000000000000444444444444444444444444444000000000000004444444444444444444444444440000000000000044444444444444444444444444400000000000000444444444444444444444444444000000000000004444444444444444444444444440000000000000044444444444444444444444444400000000000000444444444444444444444444444000000000000004444444444444444444444444440000000000000044444444444444444444444444400000000000000444444444444444', r.d, null, 2))
+                                break
+                            case 500:
+                                console.error(JSON.stringify('Internal server error 5555555555555500000000000000000000000000', r.d, null, 2))
+                                break
+                            default:
+                                console.error(JSON.stringify('Unknown error', r.d, null, 2))
+                                break
+                        }
+                        if (r.s === 200) {
+                            console.log(JSON.stringify('Order placed for buy PLACED PLACED PLACED SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS', r.s, null, 2))
+                        } else {
+                            console.error(JSON.stringify('Failed to place the order FAILED FAILED FAILED FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF', r.d, null, 2))
+                        }
+                        dispose()
+                    }    
+                }
+            })
+        }
+    } catch (error) {
+        console.error('Error in startOrderStrategy', error.message, error.stack, error)
+        logger.error('Error in startOrderStrategy', error.message, error.stack, error)
+    }
     return action
 }
 

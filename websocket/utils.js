@@ -8,10 +8,10 @@ const replaySocket = new ReplaySocket()
 
 const replaySessionResults = {}
 
-const connectSockets = () => 
+const connectSockets = async () => 
 {
     try{
-        Promise.all([
+        await Promise.all([
             socket.connect(process.env.WS_URL),
             mdSocket.connect(process.env.MD_URL),
             replaySocket.connect(process.env.REPLAY_URL)

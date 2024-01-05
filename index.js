@@ -11,7 +11,11 @@ const { askForReplay } = require("./utils/askForReplay")
 const { PriceDisplayStrategy } = require("./strategies/priceDisplay/priceDisplayStrategy")
 const { PriceDisplayStrategyFP } = require("./strategies/priceDisplayFP/priceDisplayStrategyFP")
 const { RsiStrategy } = require("./strategies/rsiStrategyFP/rsiStrategy")
-const { placeOCO } = require("./standardMiddleware/placeOCO")
+const { placeOrder } = require("./endpoints/placeOrder")
+const { startOrderStrategy } = require("./standardMiddleware/startOrderStrategy")
+const { strategy } = require("./strategies/strategy/strategy")
+const { onChart } = require("./strategies/crossover/onChart")
+
 
 //ENVIRONMENT VARIABLES ---------------------------------------------------------------------------------------
 

@@ -7,6 +7,8 @@ module.exports = async function({
     orderType,
     price
 }) {
+    console.log('placeOrder ENDPOINT is being called')
+    
     const URL = process.env.HTTP_URL + '/order/placeOrder'
 
     const config = {
@@ -32,8 +34,9 @@ module.exports = async function({
     let result
     try {
         result = await axios.post(URL, order, config)
+        console.log('placeOrder RESPONSE:', result.data)
     } catch (err) {
-        console.error(err)
+        console.error('Error in placeOrder:', err)
     }
 
     return result.data

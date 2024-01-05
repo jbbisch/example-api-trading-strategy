@@ -28,7 +28,7 @@ module.exports = async function requestAccessToken() {
         password: process.env.PASS,
         appId: 'AutoTrade',
         appVersion: '1.0',
-        deviceId,
+        deviceId: deviceId,
         cid: parseInt(process.env.CID, 10),
         sec: process.env.SEC
     }
