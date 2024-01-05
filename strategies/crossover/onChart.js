@@ -1,5 +1,4 @@
 const { LongShortMode } = require("../common/longShortMode")
-const { startingOrderStrategy } = require("../endpoints/startingOrderStrategy")
 
 const onChart = (prevState, {data, props}) => {
     const { mode, buffer, hlv, tlc, } = prevState
@@ -38,7 +37,6 @@ const onChart = (prevState, {data, props}) => {
     }
     
     if(mode === LongShortMode.Watch && negativeCrossover) {
-        startingOrderStrategy()
         return {
             state: {
                 ...prevState,
@@ -74,7 +72,6 @@ const onChart = (prevState, {data, props}) => {
     }
 
     if(mode === LongShortMode.Long && negativeCrossover) {
-        startingOrderStrategy()
         return {
             state: {
                 ...prevState,
@@ -110,7 +107,6 @@ const onChart = (prevState, {data, props}) => {
     }
 
     if(mode === LongShortMode.Watch && positiveCrossover) {
-        startingOrderStrategy()
         return {
             state: {
                 ...prevState,
@@ -145,7 +141,6 @@ const onChart = (prevState, {data, props}) => {
     }
 
     if(mode === LongShortMode.Short && positiveCrossover) {
-        startingOrderStrategy()
         return {
             state: {
                 ...prevState,
