@@ -1,48 +1,70 @@
-//import { getAccessToken } from "./getAccessToken"
-
-//import { URL, credentials, params, WS_DEMO_URL } from './data'
-//import { TradovateSocket } from "./socket/tvSocket"
-//import { tvGet } from "./socket/services"
-const { getSocket } = require('./websocket/utils')
-const { requestAccessToken } = require('./endpoints/requestAccessToken')
-const { TradovateSocket } = require('./websocket/TradovateSocket')
-const { accountList } = require('./endpoints/accountList')
-const { onChart } = require('./strategies/crossover/onChart') 
-
-const syncSocket = new TradovateSocket({debugLabel: 'sync data'})
-
-const main = async () => {
-
-    const { accessToken } = await requestAccessToken(
-        process.env.HTTP_URL, 
-        process.env.USER, 
-        process.env.PASS,
-        process.env.SEC,
-        process.env.CID,
-    )
-
-    const accounts = await accountList(process.env.HTTP_URL + '/account/list')
-
-    await syncSocket.connect(process.env.WS_URL, accessToken)
-
-    const button = document.createElement('button')
-    button.innerText = 'Start order.'
-    button.addEventListener('click', async () => {
-        const response = await syncSocket.send({
-            url: 'orderStrategy/startOrderStrategy',
-            body: {
-                symbol: "MESH4",
-                accountId: accounts[0].id,
-                action: "Buy",
-                orderStrategyTypeId: 2,
-                params: JSON.stringify(onChart, null, 2),
-            }
-        })
-    
-        console.log(response)
-    })
-    
-    document.body.append(button)    
+function getQuotes(symbol){
+    qouteId = increment()
+    websocket.send(`md/subscribeQuote\n ${qouteId}\n""\n${JSON.stringify({ symbol })}`)
+    return
 }
-
-main()
+    
+async function openWebSocketConnection(symbol,mode) {
+    try {
+        let token = await getAccessToken(mode)
+        let prevTimestamp,prevPrice;
+        let marketDataAuthCred = {
+            url: `authorize`,
+            id: increment(),
+            body: token.mdAccessToken,
+        };
+    
+        await new Promise((resolve) => {
+            websocket = new WebSocket(mdwsUrl);
+    
+            websocket.on('open', () => {
+                resolve();
+            });
+        });
+    
+        websocket.addEventListener('message', async (msg) => {
+            setCurTime(checkHeartbeats(websocket, getCurTime()));
+            let [type, data] = parseMessage(msg.data);
+                if (type === 'o') {
+                    websocket.send(
+                        `${marketDataAuthCred.url}\n${marketDataAuthCred.id}\n""\n${JSON.stringify( marketDataAuthCred.body )}`
+                    );
+                } else if (type === 'a') {
+                if (data != null && data[0].i === marketDataAuthCred.id) {
+                    getQuotes(symbol);
+                    return;
+                }
+                if (data != null && data[0]?.e === 'md') {
+                    let currentTimestamp = new Date(data[0]?.d?.quotes[0]?.timestamp)
+                    if(prevTimestamp == null){
+                        prevTimestamp = currentTimestamp.getTime();
+                        prevPrice = data[0]?.d?.quotes[0]?.entries.Trade.price
+                        tradePriceDatabase.unshift(prevPrice)
+                        lastMessageTime = Date.now(); // Update the last received message time
+                        writeFileSync(path.join(__dirname, '…/output','tradePrices.json'), JSON.stringify(tradePriceDatabase, null, 2), 'utf-8')
+                        return;
+                    }
+                    if (prevTimestamp != currentTimestamp.getTime()) {
+                        //console.log(data[0]?.d?.quotes[0]?.entries)
+                        tradePriceDatabase = '';
+                        prevTimestamp = currentTimestamp.getTime();
+                        prevPrice = data[0]?.d?.quotes[0]?.entries.Trade.price
+                        tradePriceDatabase.unshift(prevPrice)
+                        lastMessageTime = Date.now(); // Update the last received message time
+                        writeFileSync(path.join(__dirname, '…/output','tradePrices.json'),JSON.stringify(tradePriceDatabase, null, 2), 'utf-8')
+                        return;
+                    }
+                }
+            } else if (type === 'h') {
+                return;
+            }
+        });
+    
+        websocket.on('error', (error) => {
+        console.log(error)
+    
+        });
+    } catch (err) {
+    //console.log(err.message)
+    }
+    }
