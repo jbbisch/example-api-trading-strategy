@@ -1,55 +1,63 @@
 const { getSocket, getReplaySocket } = require("../websocket/utils")
-const { onChart } = require("../strategies/crossover/onChart")
 const { logger } = require("../utils/globalErrorHandler")
+const { TradovateSocket } = require("../websocket/TradovateSocket")
 
 const startOrderStrategy = (state, action) => {
+    //console.log('startOrderStrategy FUNCTION called')
+
     try {
 
         const [event, payload] = action
         //console.log('[startOrderStrategy] entry payload', payload)
 
         if(event === 'orderStrategy/startOrderStrategy') {
+            console.log('HANDLING startOrderStrategy EVENT')
+
             const { data, props } = payload
             const { dev_mode } = props
-            const { accountId, accountSpec, symbol, action, brackets, entryVersion, orderQuantity } = data
+            const { symbol, action, brackets, entryVersion, deviceId } = data
             //console.log('[startOrderStrategy] Payload', payload)
-            //console.log('[startOrderStrategy] accountID', accountId)
-            //console.log('[startOrderStrategy] accountSpec', accountSpec)
             //console.log('[startOrderStrategy] symbol', symbol)
             //console.log('[startOrderStrategy] action', action)
             //console.log('[startOrderStrategy] brackets', brackets)
             //console.log('[startOrderStrategy] entryVersion', entryVersion)
-            //console.log('[startOrderStrategy] orderQuantity', orderQuantity)
-        
-            const orderData = {
+            //console.log('[startOrderStrategy] deviceId', deviceId)
+                    
+            const params = {
                 entryVersion: entryVersion,
                 brackets: brackets,
             }
             //console.log('[startOrderStrategy] orderData', orderData)
-            console.log(JSON.stringify(orderData, null, 2))
+            console.log(JSON.stringify(params, null, 2))
         
             const body = {
                 accountId: parseInt(process.env.ID, 10),
                 accountSpec: process.env.SPEC,
+                deviceId: deviceId,
                 symbol: symbol,
-                orderStrategyTypeId: 2,
                 action: action,
-                params: JSON.stringify(orderData),
-                orderQuantity: orderQuantity,
+                orderStrategyTypeId: 2,
+                params: JSON.stringify(params, null, 2),
                 isAutomated: true,
             }
             
-            const URL = process.env.HTTP_URL + '/orderStrategy/startOrderStrategy'
-            //const mySocket = new TradovateSocket(URL)
-            const mySocket = dev_mode ? getReplaySocket() : getSocket()
+            const URL = process.env.WS_URL + `/orderStrategy/startOrderStrategy`
+            const mySocket = new TradovateSocket(URL)
+            
+            //const mySocket = dev_mode ? getReplaySocket() : getSocket()
 
             mySocket.onOpen = function() {
                 mySocket.request(`/authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
             }
         
             let dispose = mySocket.request({
-                url: `/orderStrategy/startOrderStrategy\n4\n\n${JSON.stringify(body)}`,
+                url: process.env.WS_URL + `/order/startOrderStrategy\n4\n\n${JSON.stringify(body)}`,
                 callback: (id, r) => {
+                    console.log('[startOrderStrategy] Response from trying to place the order RSSS:', r.s)
+                    console.log('[startOrderStrategy] Response from trying to place the order RIII:', r.i)
+                    console.log('[startOrderStrategy] Response from trying to place the order RDDD:', r.d)
+                    console.log('[startOrderStrategy] Response from trying to place the order RRRR:', r)
+                                        
                     if (id === r.i) {
                         switch (r.s) {
                             case 200:
