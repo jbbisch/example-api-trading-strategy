@@ -115,6 +115,14 @@ TradovateSocket.prototype.onSync = function(callback) {
         }
     })
 }
+TradovateSocket.prototype.setupHeartbeat = function() {
+    const heartbeatInterval = 2500
+    this.heartbeatInterval = setInterval(() => {
+        if(this.isConnected()) {
+            this.ws.send('[]')
+        }
+    }, heartbeatInterval)
+}
 
 TradovateSocket.prototype.connect = async function(url) {
 
@@ -124,7 +132,29 @@ TradovateSocket.prototype.connect = async function(url) {
     
     let interval
 
-    return new Promise((res, rej) => {
+    await new Promise((res, rej) => {
+        if(!this.ws) {
+            rej('no websocket connection available')
+            return
+        }
+        this.ws.addEventListener('open', () => {
+            this.ws.send(`authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
+            interval = setInterval(() => {
+                if(this.ws.readyState == 0 || this.ws.readyState == 3 || this.ws.readyState == 2) {
+                    clearInterval(interval)
+                    return
+                }
+                this.ws.send('[]')
+            }, 2500)
+            res()
+        })
+
+        this.ws.addEventListener('error', err => {
+            console.error('Websocket error: ' + err)
+            rej(err)
+        })
+
+
         this.ws.addEventListener('message', async msg => {
             const { type, data } = msg
 
@@ -149,6 +179,8 @@ TradovateSocket.prototype.connect = async function(url) {
                     }, 2500)
                     break
                 case 'h':
+                    this.setupHeartbeat()
+                    res()
                     break
                 case 'a':
                     const parsedData = JSON.parse(msg.data.slice(1))
@@ -175,6 +207,7 @@ TradovateSocket.prototype.disconnect = function() {
     this.ws.removeAllListeners('message')
     this.ws.close(1000, `Client initiated disconnect.`)
     this.ws = null
+    clearInterval(this.heartbeatInterval)
 }
 
 TradovateSocket.prototype.isConnected = function() {
