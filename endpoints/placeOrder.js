@@ -5,6 +5,7 @@ module.exports = async function({
     symbol,
     orderQty,
     orderType,
+    deviceId,
     price
 }) {
     console.log('placeOrder ENDPOINT is being called')
@@ -27,6 +28,7 @@ module.exports = async function({
         orderQty,
         orderType,
         price,
+        deviceId,
         timeInForce: 'Day',
         isAutomated: true
     }
@@ -36,7 +38,7 @@ module.exports = async function({
         result = await axios.post(URL, order, config)
         console.log('placeOrder RESPONSE:', result.data)
     } catch (err) {
-        console.error('Error in placeOrder:', err)
+        console.error('Error in placeOrder ENDPOINT:', err)
     }
 
     return result.data

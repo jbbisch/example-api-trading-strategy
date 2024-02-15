@@ -82,39 +82,48 @@ TradovateSocket.prototype.synchronize = function(callback) {
 // /**
 //  * Set a function to be called when the socket synchronizes.
 //  */
-// TradovateSocket.prototype.onSync = function(callback) {
-//     this.ws.addEventListener('message', async msg => {
-//         const { data } = msg
-//         const kind = data.slice(0,1)
-//         switch(kind) {
-//             case 'a':
-//                 const  parsedData = JSON.parse(msg.data.slice(1))
-//                 // console.log(parsedData)
-//                 let schemaOk = {}
-//                 const schemafields = ['users']
-//                 parsedData.forEach(data => {
-//                     schemafields.forEach(k => {
-//                         if(schemaOk && !schemaOk.value) {
-//                             return
-//                         }
-//                         if(Object.keys(data.d).includes(k) && Array.isArray(data.d[k])) {
-//                             schemaOk = { value: true }
-//                         } 
-//                         // else {
-//                         //     schemaOk = { value: false }
-//                         // }
-//                     })
+TradovateSocket.prototype.onSync = function(callback) {
+    this.ws.addEventListener('message', async msg => {
+        const { data } = msg
+        const kind = data.slice(0,1)
+        switch(kind) {
+            case 'a':
+                const  parsedData = JSON.parse(msg.data.slice(1))
+                // console.log(parsedData)
+                let schemaOk = {}
+                const schemafields = ['users']
+                parsedData.forEach(data => {
+                    schemafields.forEach(k => {
+                        if(schemaOk && !schemaOk.value) {
+                            return
+                        }
+                        if(Object.keys(data.d).includes(k) && Array.isArray(data.d[k])) {
+                            schemaOk = { value: true }
+                        } 
+                        else {
+                            schemaOk = { value: false }
+                        }
+                    })
                     
-//                     if(schemaOk.value) {
-//                         callback(data.d)
-//                     }
-//                 })
-//                 break
-//             default:
-//                 break
-//         }
-//     })
-// }
+                    if(schemaOk.value) {
+                        callback(data.d)
+                    }
+                })
+                break
+            default:
+                break
+        }
+    })
+}
+TradovateSocket.prototype.setupHeartbeat = function() {
+    const heartbeatInterval = 2500
+    this.heartbeatInterval = setInterval(() => {
+        if(this.isConnected()) {
+            this.ws.send('[]')
+            //console.log('INTERVAL heartbeat sent to server')
+        }
+    }, heartbeatInterval)
+}
 
 TradovateSocket.prototype.connect = async function(url) {
 
@@ -124,7 +133,32 @@ TradovateSocket.prototype.connect = async function(url) {
     
     let interval
 
-    return new Promise((res, rej) => {
+    await new Promise((res, rej) => {
+        if(!this.ws) {
+            rej('no websocket connection available')
+            return
+        }
+        this.ws.addEventListener('open', () => {
+            console.log('Websocket connection opened. Sending auth request...')
+            this.ws.send(`authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
+            const interval = setInterval(() => {
+                if(this.ws.readyState === WebSocket.OPEN) {
+                this.ws.send('[]')
+                //console.log('heartbeat sent to server on OPEN')
+                } else {
+                    console.warn('Websocket is not open. Not sending HeartBeat.')
+                }
+            }, 2500)
+            this.setupHeartbeat()
+            res()
+        })
+
+        this.ws.addEventListener('error', err => {
+            console.error('Websocket error: ' + err)
+            rej(err)
+        })
+
+
         this.ws.addEventListener('message', async msg => {
             const { type, data } = msg
 
@@ -149,6 +183,8 @@ TradovateSocket.prototype.connect = async function(url) {
                     }, 2500)
                     break
                 case 'h':
+                    this.setupHeartbeat()
+                    res()
                     break
                 case 'a':
                     const parsedData = JSON.parse(msg.data.slice(1))
@@ -175,6 +211,7 @@ TradovateSocket.prototype.disconnect = function() {
     this.ws.removeAllListeners('message')
     this.ws.close(1000, `Client initiated disconnect.`)
     this.ws = null
+    clearInterval(this.heartbeatInterval)
 }
 
 TradovateSocket.prototype.isConnected = function() {

@@ -7,7 +7,9 @@ const placeOrder = (state, action) => {
     try {
         const [event, payload] = action
 
-        if(event === 'order/placeOrder') {
+        if(event === 'order/liquidatePosition') {
+            console.log('HANDLING liquidatePosition EVENT:')
+
             const { data, props } = payload
             const { dev_mode } = props
             const { contract, orderType, action, orderQty, price } = data
@@ -31,7 +33,7 @@ const placeOrder = (state, action) => {
             }
 
             let dispose = socket.request({
-                url: process.env.WS_URL + `/order/placeOrder\n4\n\n${JSON.stringify(body)}`,
+                url: process.env.WS_URL + `/order/liquidatePosition\n4\n\n${JSON.stringify(body)}`,
                 callback: (id, r) => {
                     console.log('[placeOrder] Response from trying to place the order RSSS:', r.s)
                     console.log('[placeOrder] Response from trying to place the order RIII:', r.i)
