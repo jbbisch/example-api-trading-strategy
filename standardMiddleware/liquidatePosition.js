@@ -2,8 +2,8 @@ const { getSocket, getReplaySocket } = require("../websocket/utils")
 const { logger } = require("../utils/globalErrorHandler")
 
 
-const placeOrder = (state, action) => {
-        //console.log('placeOrder FUNCTION called')
+const liquidatePosition = (state, action) => {
+        //console.log('liquidatePosition FUNCTION called')
     try {
         const [event, payload] = action
 
@@ -12,7 +12,7 @@ const placeOrder = (state, action) => {
 
             const { data, props } = payload
             const { dev_mode } = props
-            const { contract, orderType, action, orderQty, price } = data
+            const { contract, action, orderQty } = data
 
             const socket = dev_mode ? getReplaySocket() : getSocket()
 
@@ -21,13 +21,15 @@ const placeOrder = (state, action) => {
             }
 
             const body = {
-                symbol: contract,
-                orderQty: orderQty,
-                accountSpec: process.env.SPEC,
                 accountId: parseInt(process.env.ID, 10),
+                contractId: contract.id,
+                admin: true,
+                accountSpec: process.env.SPEC,
+                deviceId: process.env.DEVICE_ID,
+                symbol: contract.name,
+                action: "Sell",
+                orderQty: orderQty,
                 action: action,
-                //price,
-                orderType: orderType,
                 isAutomated: true
 
             }
@@ -35,10 +37,10 @@ const placeOrder = (state, action) => {
             let dispose = socket.request({
                 url: process.env.WS_URL + `/order/liquidatePosition\n4\n\n${JSON.stringify(body)}`,
                 callback: (id, r) => {
-                    console.log('[placeOrder] Response from trying to place the order RSSS:', r.s)
-                    console.log('[placeOrder] Response from trying to place the order RIII:', r.i)
-                    console.log('[placeOrder] Response from trying to place the order RDDD:', r.d)
-                    console.log('[placeOrder] Response from trying to place the order RRRR:', r)
+                    console.log('[liquidatePosition] Response from trying to liquidate the Position RSSS:', r.s)
+                    console.log('[liquidatePosition] Response from trying to liquidate the Position RIII:', r.i)
+                    console.log('[liquidatePosition] Response from trying to liquidate the Position RDDD:', r.d)
+                    console.log('[liquidatePosition] Response from trying to liquidate the Position RRRR:', r)
                                     
                     if (id === r.i) {
                         switch (r.s) {
@@ -65,9 +67,9 @@ const placeOrder = (state, action) => {
                                 break
                         }
                         if (r.s === 200) {
-                            console.log(JSON.stringify('Order placed for buy PLACED PLACED PLACED SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS', r.s, null, 2))
+                            console.log(JSON.stringify('liquidate Position placed for sell PLACED PLACED PLACED SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS', r.s, null, 2))
                         } else {
-                            console.error(JSON.stringify('Failed to place the order FAILED FAILED FAILED FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF', r.d, null, 2))
+                            console.error(JSON.stringify('Failed to liquidate Position FAILED FAILED FAILED FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF', r.d, null, 2))
                         }
                         dispose()
                     }    
@@ -75,10 +77,10 @@ const placeOrder = (state, action) => {
             })
         }
     } catch (error) {
-        console.error('Error in placeOrder', error.message, error.stack, error)
-        logger.error('Error in placeOrder', error.message, error.stack, error)
+        console.error('Error in liquidatePosition', error.message, error.stack, error)
+        logger.error('Error in liquidatePosition', error.message, error.stack, error)
     }
     return action
 }
 
-module.exports = { placeOrder }
+module.exports = { liquidatePosition }
