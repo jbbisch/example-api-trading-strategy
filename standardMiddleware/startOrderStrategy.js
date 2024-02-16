@@ -11,7 +11,7 @@ const startOrderStrategy = (state, action) => {
         //console.log('[startOrderStrategy] entry payload', payload)
 
         if(event === 'orderStrategy/startOrderStrategy') {
-            console.log('HANDLING startOrderStrategy EVENT')
+            console.log('HANDLING startOrderStrategy EVENT:')
 
             const { data, props } = payload
             const { dev_mode } = props
@@ -28,7 +28,7 @@ const startOrderStrategy = (state, action) => {
                 brackets: brackets,
             }
             //console.log('[startOrderStrategy] orderData', orderData)
-            console.log(JSON.stringify(params, null, 2))
+            console.log('[startOrderStrategy] params:', JSON.stringify(params, null, 2))
         
             const body = {
                 accountId: parseInt(process.env.ID, 10),
@@ -41,17 +41,27 @@ const startOrderStrategy = (state, action) => {
                 isAutomated: true,
             }
             
-            const URL = process.env.WS_URL + `/orderStrategy/startOrderStrategy`
-            const mySocket = new TradovateSocket(URL)
-            
-            //const mySocket = dev_mode ? getReplaySocket() : getSocket()
+            const URL = process.env.WS_URL + `/orderstrategy/startorderstrategy`
+            console.log('[startOrderStrategy] URL:', URL)
+            console.log('[startOrderStrategy] order request payload:', `/orderstrategy/startorderstrategy\n4\n\n${JSON.stringify(body)}`)
+            console.log('[startOrderStrategy] authorization payload:', `/authorize\n2\n\n${process.env.ACCESS_TOKEN}`)
+            //const mySocket = new TradovateSocket(URL)
+            const mySocket = dev_mode ? getReplaySocket() : getSocket()
 
             mySocket.onOpen = function() {
-                mySocket.request(`/authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
+                mySocket.request({
+                    url: `/authorize\n2\n\n${process.env.ACCESS_TOKEN}`,
+                    callback: (id, response) => {
+                        console.log('[startOrderStrategy] Response from trying to authorize:', response)
+                        console.log('[startOrderStrategy] Response from trying to authorize:', response.s)
+                        console.log('[startOrderStrategy] Response from trying to authorize:', response.i)
+                        console.log('[startOrderStrategy] Response from trying to authorize:', response.d)
+                    }
+                })
             }
         
             let dispose = mySocket.request({
-                url: process.env.WS_URL + `/order/startOrderStrategy\n4\n\n${JSON.stringify(body)}`,
+                url: process.env.WS_URL + `/orderstrategy/startorderstrategy\n4\n\n${JSON.stringify(body)}`,
                 callback: (id, r) => {
                     console.log('[startOrderStrategy] Response from trying to place the order RSSS:', r.s)
                     console.log('[startOrderStrategy] Response from trying to place the order RIII:', r.i)
