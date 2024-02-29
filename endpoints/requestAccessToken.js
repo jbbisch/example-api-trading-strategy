@@ -28,7 +28,7 @@ module.exports = async function requestAccessToken() {
         password: process.env.PASS,
         appId: 'AutoTrade',
         appVersion: '1.0',
-        deviceId,
+        deviceId: deviceId,
         cid: parseInt(process.env.CID, 10),
         sec: process.env.SEC
     }
@@ -57,6 +57,7 @@ module.exports = async function requestAccessToken() {
     //worry about this data hanging out on our machine.
     process.env.ACCESS_TOKEN = result.data.accessToken
     process.env.MD_ACCESS_TOKEN = result.data.mdAccessToken
+    process.env.DEVICE_ID = deviceId
 
     return result.data
 } 
