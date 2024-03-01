@@ -4,6 +4,7 @@ const { TradovateSocket } = require("../websocket/TradovateSocket")
 
 const startOrderStrategy = (state, action) => {
     //console.log('startOrderStrategy FUNCTION called')
+    //console.log('[startOrderStrategy] state:', state)
 
     try {
 
@@ -16,7 +17,7 @@ const startOrderStrategy = (state, action) => {
             const { data, props } = payload
             const { dev_mode } = props
             const { symbol, action, brackets, entryVersion, deviceId } = data
-            console.log('[startOrderStrategy] Payload', payload, 'symbol:', symbol, 'action:', action, 'brackets:', brackets, 'entryVersion:', entryVersion, 'deviceId:', deviceId, 'accountSpec:', process.env.SPEC, 'accountId:', process.env.ID, 'isAutomated:', true)
+            //console.log('[startOrderStrategy] Payload', payload, 'symbol:', symbol, 'action:', action, 'brackets:', brackets, 'entryVersion:', entryVersion, 'deviceId:', deviceId, 'accountSpec:', process.env.SPEC, 'accountId:', process.env.ID, 'isAutomated:', true)
                  
             const params = {
                 entryVersion: entryVersion,
@@ -28,7 +29,7 @@ const startOrderStrategy = (state, action) => {
             const body = {
                 accountId: parseInt(process.env.ID),
                 accountSpec: process.env.SPEC,
-                deviceId: process.env.DEVICE_ID,
+                deviceId: deviceId,
                 symbol: symbol,
                 action: action,
                 params: JSON.stringify(params),
@@ -36,16 +37,16 @@ const startOrderStrategy = (state, action) => {
                 isAutomated: true,
             }
             
-            const URL = process.env.WS_URL + `/orderstrategy/startorderstrategy`
+            const URL = process.env.WS_URL
             console.log('[startOrderStrategy] URL:', URL)
-            console.log('[startOrderStrategy] order request payload:', body)
+            console.log('[startOrderStrategy] order request payload:', JSON.stringify(body))
             console.log('[startOrderStrategy] authorization payload:', process.env.ACCESS_TOKEN)
             //const mySocket = new TradovateSocket(URL)
             const mySocket = dev_mode ? getReplaySocket() : getSocket()
 
             mySocket.onOpen = function() {
                 mySocket.request({
-                    url: `/authorize\n1\n\n${process.env.ACCESS_TOKEN}`,
+                    url: URL + `/authorize\n1\n\n${process.env.ACCESS_TOKEN}`,
                     callback: (id, response) => {
                         console.log('[startOrderStrategy] Response from trying to authorize:', response)
                         console.log('[startOrderStrategy] Response from trying to authorize:', response.s)
@@ -56,7 +57,7 @@ const startOrderStrategy = (state, action) => {
             }
         
             let dispose = mySocket.request({
-                url: process.env.WS_URL + `/orderstrategy/startorderstrategy\n4\n\n${JSON.stringify(body)}`,
+                url: URL + `/orderstrategy/startorderstrategy\n4\n\n${JSON.stringify(body)}`,
                 callback: (id, r) => {
                     console.log('[startOrderStrategy] Response from trying to place the order RSSS:', r.s)
                     console.log('[startOrderStrategy] Response from trying to place the order RIII:', r.i)
