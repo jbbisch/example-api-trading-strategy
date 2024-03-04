@@ -1,7 +1,8 @@
 const { LongShortMode } = require("../common/longShortMode")
 const { placeOrder } = require("../../endpoints/placeOrder")
 
-const onChart = (prevState, {data, props}) => {
+const onChart = async (prevState, {data, props}) => {
+    console.log('[onChart] prevState:', prevState)
     const { mode, buffer, hlv, tlc, } = prevState
     const { contract, orderQuantity } = props
     //console.log('[onChart] props:', props)
@@ -38,6 +39,30 @@ const onChart = (prevState, {data, props}) => {
     }
     
     if(mode === LongShortMode.Watch && negativeCrossover) {
+        const submitOrder = async () => {
+            try {
+                const response = await placeOrder({
+                    accountId: parseInt(process.env.ID),
+                    contractId: contract.id,
+                    admin: true,
+                    accountSpec: process.env.SPEC,
+                    deviceId: process.env.DEVICE_ID,
+                    symbol: contract.name,
+                    action: "Sell",
+                    orderQuantity: orderQuantity,
+                }).then(response => {
+                console.log('[onChart] response:', response)
+                }).catch(err => {
+                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
+                throw err
+                })
+            }
+            catch (err) {
+                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
+                throw err
+            }
+        submitOrder()
+        }    
         return {
             state: {
                 ...prevState,
@@ -45,19 +70,19 @@ const onChart = (prevState, {data, props}) => {
             },
             effects: [
                 // Liquidates any existing position
-                {
-                    url: 'order/liquidatePosition', 
-                    data: {
-                        accountId: parseInt(process.env.ID),
-                        contractId: contract.id,
-                        admin: true,
-                        accountSpec: process.env.SPEC,
-                        deviceId: process.env.DEVICE_ID,
-                        symbol: contract.name,
-                        action: "Sell",
-                        orderQuantity: orderQuantity,
-                    }   
-                },
+                //{
+                //    url: 'order/liquidatePosition', 
+                //    data: {
+                //        accountId: parseInt(process.env.ID),
+                //        contractId: contract.id,
+                //        admin: true,
+                //        accountSpec: process.env.SPEC,
+                //        deviceId: process.env.DEVICE_ID,
+                //        symbol: contract.name,
+                //        action: "Sell",
+                //        orderQuantity: orderQuantity,
+                //    }   
+                //},
                 { event: 'crossover/draw' },
                 //{    
                 //    url: 'orderStrategy/startOrderStrategy',
@@ -87,6 +112,30 @@ const onChart = (prevState, {data, props}) => {
     }
  
     if(mode === LongShortMode.Long && negativeCrossover) {
+        const submitOrder = async () => {
+            try {
+                const response = await placeOrder({
+                    accountId: parseInt(process.env.ID),
+                    contractId: contract.id,
+                    admin: true,
+                    accountSpec: process.env.SPEC,
+                    deviceId: process.env.DEVICE_ID,
+                    symbol: contract.name,
+                    action: "Sell",
+                    orderQuantity: orderQuantity,
+                }).then(response => {
+                console.log('[onChart] response:', response)
+                }).catch(err => {
+                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
+                throw err
+                })
+            }
+            catch (err) {
+                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
+                throw err
+            }
+        submitOrder()
+        }
         return {
             state: {
                 ...prevState,
@@ -94,19 +143,19 @@ const onChart = (prevState, {data, props}) => {
             },
             effects: [
                 // Liquidates any existing position
-                {
-                    url: 'order/liquidatePosition',
-                    data: {
-                        accountId: parseInt(process.env.ID),
-                        contractId: contract.id,
-                        admin: true,
-                        accountSpec: process.env.SPEC,
-                        deviceId: process.env.DEVICE_ID,
-                        symbol: contract.name,
-                        action: "Sell",
-                        orderQuantity: orderQuantity,
-                    }
-                },
+                //{
+                //    url: 'order/liquidatePosition',
+                //    data: {
+                //        accountId: parseInt(process.env.ID),
+                //        contractId: contract.id,
+                //        admin: true,
+                //        accountSpec: process.env.SPEC,
+                //        deviceId: process.env.DEVICE_ID,
+                //        symbol: contract.name,
+                //        action: "Sell",
+                //        orderQuantity: orderQuantity,
+                //    }
+                //},
                 { event: 'crossover/draw' },
                 //{
                 //    url: 'orderStrategy/startOrderStrategy',
@@ -135,7 +184,31 @@ const onChart = (prevState, {data, props}) => {
 //        })
     }
 
-    if(mode === LongShortMode.Watch && positiveCrossover) {        
+    if(mode === LongShortMode.Watch && positiveCrossover) {   
+        const submitOrder = async () => {
+            try {
+                const response = await placeOrder({
+                    accountId: parseInt(process.env.ID),
+                    contractId: contract.id,
+                    admin: true,
+                    accountSpec: process.env.SPEC,
+                    deviceId: process.env.DEVICE_ID,
+                    symbol: contract.name,
+                    action: "Buy",
+                    orderQuantity: orderQuantity,
+                }).then(response => {
+                console.log('[onChart] response:', response)
+                }).catch(err => {
+                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
+                throw err
+                })            
+            }
+            catch (err) {
+                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
+                throw err
+            }
+        submitOrder()
+        }     
         return {
             state: {
                 ...prevState,
@@ -151,18 +224,18 @@ const onChart = (prevState, {data, props}) => {
                 //        admin: true
                 //    }
                 //},
-                {
-                    url: 'orderStrategy/startOrderStrategy',
-                    data: {
-                        accountId: parseInt(process.env.ID),
-                        accountSpec: process.env.SPEC,
-                        symbol: contract.id,
-                        action: "Buy",
-                        orderStrategyTypeId: 2,
-                        entryVersion: JSON.stringify(entryVersion),
-                        brackets: JSON.stringify(longBracket),
-                    }   
-                },
+                //{
+                //    url: 'orderStrategy/startOrderStrategy',
+                //    data: {
+                //        accountId: parseInt(process.env.ID),
+                //        accountSpec: process.env.SPEC,
+                //        symbol: contract.id,
+                //        action: "Buy",
+                //        orderStrategyTypeId: 2,
+                //        entryVersion: JSON.stringify(entryVersion),
+                //        brackets: JSON.stringify(longBracket),
+                //    }   
+                //},
                 { event: 'crossover/draw' },    
             ]
         }
@@ -181,7 +254,31 @@ const onChart = (prevState, {data, props}) => {
 //        })
     }
 
-    if(mode === LongShortMode.Short && positiveCrossover) {        
+    if(mode === LongShortMode.Short && positiveCrossover) {   
+        const submitOrder = async () => {
+            try {
+                const response = await placeOrder({
+                    accountId: parseInt(process.env.ID),
+                    contractId: contract.id,
+                    admin: true,
+                    accountSpec: process.env.SPEC,
+                    deviceId: process.env.DEVICE_ID,
+                    symbol: contract.name,
+                    action: "Buy",
+                    orderQuantity: orderQuantity,
+                }).then(response => {
+                console.log('[onChart] response:', response)
+                }).catch(err => {
+                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
+                throw err
+                })            
+            }
+            catch (err) {
+                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
+                throw err
+            }
+        submitOrder()
+        }     
         return {
             state: {
                 ...prevState,
@@ -197,18 +294,18 @@ const onChart = (prevState, {data, props}) => {
                 //        admin: true
                 //    }
                 //},
-                {
-                    url: 'orderStrategy/startOrderStrategy',
-                    data: {
-                        accountId: parseInt(process.env.ID),
-                        accountSpec: process.env.SPEC,
-                        symbol: contract.id,
-                        action: "Buy",
-                        orderStrategyTypeId: 2,
-                        entryVersion: JSON.stringify(entryVersion),
-                        brackets: JSON.stringify(longBracket),
-                    }
-                },
+                //{
+                //    url: 'orderStrategy/startOrderStrategy',
+                //    data: {
+                //        accountId: parseInt(process.env.ID),
+                //        accountSpec: process.env.SPEC,
+                //        symbol: contract.id,
+                //        action: "Buy",
+                //        orderStrategyTypeId: 2,
+                //        entryVersion: JSON.stringify(entryVersion),
+                //        brackets: JSON.stringify(longBracket),
+                //    }
+                //},
                 { event: 'crossover/draw' },
             ]
         }
