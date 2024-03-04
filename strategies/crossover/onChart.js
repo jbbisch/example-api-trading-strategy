@@ -2,7 +2,6 @@ const { LongShortMode } = require("../common/longShortMode")
 const { placeOrder } = require("../../endpoints/placeOrder")
 
 const onChart = async (prevState, {data, props}) => {
-    console.log('[onChart] prevState:', prevState)
     const { mode, buffer, hlv, tlc, } = prevState
     const { contract, orderQuantity } = props
     //console.log('[onChart] props:', props)
@@ -39,30 +38,28 @@ const onChart = async (prevState, {data, props}) => {
     }
     
     if(mode === LongShortMode.Watch && negativeCrossover) {
-        const submitOrder = async () => {
-            try {
-                const response = await placeOrder({
-                    accountId: parseInt(process.env.ID),
-                    contractId: contract.id,
-                    admin: true,
-                    accountSpec: process.env.SPEC,
-                    deviceId: process.env.DEVICE_ID,
-                    symbol: contract.name,
-                    action: "Sell",
-                    orderQuantity: orderQuantity,
-                }).then(response => {
-                console.log('[onChart] response:', response)
-                }).catch(err => {
-                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
-                throw err
-                })
-            }
-            catch (err) {
-                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
-                throw err
-            }
-        submitOrder()
-        }    
+        try {
+            const response = await placeOrder({
+                accountId: parseInt(process.env.ID),
+                contractId: contract.id,
+                admin: true,
+                accountSpec: process.env.SPEC,
+                deviceId: process.env.DEVICE_ID,
+                symbol: contract.name,
+                action: "Sell",
+                orderQuantity: orderQuantity,
+            }).then(response => {
+            console.log('[onChart] response:', response)
+            }).catch(err => {
+            console.error('[onChart] Error in placeOrder then/catch FUNCTION CALL:', err)
+            throw err
+            })
+            console.log('[onChart] response:', response)
+        }
+        catch (err) {
+            console.error('[onChart] Error in placeOrder (IF block) FUNCTION CALL:', err)
+            throw err
+        }
         return {
             state: {
                 ...prevState,
@@ -112,29 +109,27 @@ const onChart = async (prevState, {data, props}) => {
     }
  
     if(mode === LongShortMode.Long && negativeCrossover) {
-        const submitOrder = async () => {
-            try {
-                const response = await placeOrder({
-                    accountId: parseInt(process.env.ID),
-                    contractId: contract.id,
-                    admin: true,
-                    accountSpec: process.env.SPEC,
-                    deviceId: process.env.DEVICE_ID,
-                    symbol: contract.name,
-                    action: "Sell",
-                    orderQuantity: orderQuantity,
-                }).then(response => {
-                console.log('[onChart] response:', response)
-                }).catch(err => {
-                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
-                throw err
-                })
-            }
-            catch (err) {
-                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
-                throw err
-            }
-        submitOrder()
+        try {
+            const response = await placeOrder({
+                accountId: parseInt(process.env.ID),
+                contractId: contract.id,
+                admin: true,
+                accountSpec: process.env.SPEC,
+                deviceId: process.env.DEVICE_ID,
+                symbol: contract.name,
+                action: "Sell",
+                orderQuantity: orderQuantity,
+            }).then(response => {
+            console.log('[onChart] response:', response)
+            }).catch(err => {
+            console.error('[onChart] Error in placeOrder then/catch FUNCTION CALL:', err)
+            throw err
+            })
+            console.log('[onChart] response:', response)
+        }
+        catch (err) {
+            console.error('[onChart] Error in placeOrder (IF block) FUNCTION CALL:', err)
+            throw err
         }
         return {
             state: {
@@ -185,29 +180,27 @@ const onChart = async (prevState, {data, props}) => {
     }
 
     if(mode === LongShortMode.Watch && positiveCrossover) {   
-        const submitOrder = async () => {
-            try {
-                const response = await placeOrder({
-                    accountId: parseInt(process.env.ID),
-                    contractId: contract.id,
-                    admin: true,
-                    accountSpec: process.env.SPEC,
-                    deviceId: process.env.DEVICE_ID,
-                    symbol: contract.name,
-                    action: "Buy",
-                    orderQuantity: orderQuantity,
-                }).then(response => {
-                console.log('[onChart] response:', response)
-                }).catch(err => {
-                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
-                throw err
-                })            
-            }
-            catch (err) {
-                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
-                throw err
-            }
-        submitOrder()
+        try {
+            const response = await placeOrder({
+                accountId: parseInt(process.env.ID),
+                contractId: contract.id,
+                admin: true,
+                accountSpec: process.env.SPEC,
+                deviceId: process.env.DEVICE_ID,
+                symbol: contract.name,
+                action: "Buy",
+                orderQuantity: orderQuantity,
+            }).then(response => {
+            console.log('[onChart] response:', response)
+            }).catch(err => {
+            console.error('[onChart] Error in placeOrder then/catch FUNCTION CALL:', err)
+            throw err
+            })
+            console.log('[onChart] response:', response)            
+        }
+        catch (err) {
+            console.error('[onChart] Error in placeOrder (IF block) FUNCTION CALL:', err)
+            throw err
         }     
         return {
             state: {
@@ -255,29 +248,27 @@ const onChart = async (prevState, {data, props}) => {
     }
 
     if(mode === LongShortMode.Short && positiveCrossover) {   
-        const submitOrder = async () => {
-            try {
-                const response = await placeOrder({
-                    accountId: parseInt(process.env.ID),
-                    contractId: contract.id,
-                    admin: true,
-                    accountSpec: process.env.SPEC,
-                    deviceId: process.env.DEVICE_ID,
-                    symbol: contract.name,
-                    action: "Buy",
-                    orderQuantity: orderQuantity,
-                }).then(response => {
-                console.log('[onChart] response:', response)
-                }).catch(err => {
-                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
-                throw err
-                })            
-            }
-            catch (err) {
-                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
-                throw err
-            }
-        submitOrder()
+        try {
+            const response = await placeOrder({
+                accountId: parseInt(process.env.ID),
+                contractId: contract.id,
+                admin: true,
+                accountSpec: process.env.SPEC,
+                deviceId: process.env.DEVICE_ID,
+                symbol: contract.name,
+                action: "Buy",
+                orderQuantity: orderQuantity,
+            }).then(response => {
+            console.log('[onChart] response:', response)
+            }).catch(err => {
+            console.error('[onChart] Error in placeOrder then/catch FUNCTION CALL:', err)
+            throw err
+            })
+            console.log('[onChart] response:', response)            
+        }
+        catch (err) {
+            console.error('[onChart] Error in placeOrder (IF block) FUNCTION CALL:', err)
+            throw err
         }     
         return {
             state: {
