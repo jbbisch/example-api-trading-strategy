@@ -1,6 +1,6 @@
 const { LongShortMode } = require("../common/longShortMode")
 const { placeOrder } = require("../../endpoints/placeOrder")
-console.log('[onChart] placeOrder:', {placeOrder})
+console.log('[onChart] placeOrder:', placeOrder)
 
 const onChart = async (prevState, {data, props}) => {
     const { mode, buffer, hlv, tlc, } = prevState
@@ -39,12 +39,42 @@ const onChart = async (prevState, {data, props}) => {
     }
     
     if(mode === LongShortMode.Watch && negativeCrossover) {
+        console.log('[onChart] placeOrder:', placeOrder)
         return {
             state: {
                 ...prevState,
                 mode: LongShortMode.Short,
             },
             effects: [
+                (async function() {
+                    try {
+                        const response = await placeOrder({
+                            accountId: parseInt(process.env.ID),
+                            contractId: contract.id,
+                            admin: true,
+                            accountSpec: process.env.SPEC,
+                            deviceId: process.env.DEVICE_ID,
+                            symbol: contract.name,
+                            action: "Sell",
+                            orderQuantity: orderQuantity,
+                        })
+                        console.log('[onChart] response:', response)
+                    } catch (err) {
+                        console.error('[onChart] Error in placeOrder (IF block) FUNCTION CALL:', err)
+                        throw err
+                    }
+        //            try {
+        //                const response = await placeOrder({
+        //                    action: 'Sell',
+        //                    symbol: contract.id,
+        //                    orderQty: orderQuantity,
+        //                    orderType: 'Market',
+        //                })
+        //                console.log('[onChart] response:', response)
+        //            } catch (err) {
+        //                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
+        //            }
+                })(),
                 // Liquidates any existing position
                 //{
                 //    url: 'order/liquidatePosition', 
@@ -72,44 +102,45 @@ const onChart = async (prevState, {data, props}) => {
                     
             ]
         }
-        (async () => {
-            try {
-                const response = await placeOrder({
-                    accountId: parseInt(process.env.ID),
-                    contractId: contract.id,
-                    admin: true,
-                    accountSpec: process.env.SPEC,
-                    deviceId: process.env.DEVICE_ID,
-                    symbol: contract.name,
-                    action: "Sell",
-                    orderQuantity: orderQuantity,
-                })
-                console.log('[onChart] response:', response)
-            } catch (err) {
-                console.error('[onChart] Error in placeOrder (IF block) FUNCTION CALL:', err)
-                throw err
-            }
-//            try {
-//                const response = await placeOrder({
-//                    action: 'Sell',
-//                    symbol: contract.id,
-//                    orderQty: orderQuantity,
-//                    orderType: 'Market',
-//                })
-//                console.log('[onChart] response:', response)
-//            } catch (err) {
-//                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
-//            }
-        })
     }
  
     if(mode === LongShortMode.Long && negativeCrossover) {
+        console.log('[onChart] placeOrder:', placeOrder)
         return {
             state: {
                 ...prevState,
                 mode: LongShortMode.Short,
             },
             effects: [
+                (async function() {
+                    try {
+                        const response = await placeOrder({
+                            accountId: parseInt(process.env.ID),
+                            contractId: contract.id,
+                            admin: true,
+                            accountSpec: process.env.SPEC,
+                            deviceId: process.env.DEVICE_ID,
+                            symbol: contract.name,
+                            action: "Sell",
+                            orderQuantity: orderQuantity,
+                        })
+                        console.log('[onChart] response:', response)
+                    } catch (err) {
+                        console.error('[onChart] Error in placeOrder (IF block) FUNCTION CALL:', err)
+                        throw err
+                    }
+        //            try {
+        //                const response = await placeOrder({
+        //                    action: 'Sell',
+        //                    symbol: contract.id,
+        //                    orderQty: orderQuantity,
+        //                    orderType: 'Market',
+        //                })
+        //                console.log('[onChart] response:', response)
+        //            } catch (err) {
+        //                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
+        //            }    
+                })(),
                 // Liquidates any existing position
                 //{
                 //    url: 'order/liquidatePosition',
@@ -137,44 +168,45 @@ const onChart = async (prevState, {data, props}) => {
                     
             ]
         }
-        (async () => {
-            try {
-                const response = await placeOrder({
-                    accountId: parseInt(process.env.ID),
-                    contractId: contract.id,
-                    admin: true,
-                    accountSpec: process.env.SPEC,
-                    deviceId: process.env.DEVICE_ID,
-                    symbol: contract.name,
-                    action: "Sell",
-                    orderQuantity: orderQuantity,
-                })
-                console.log('[onChart] response:', response)
-            } catch (err) {
-                console.error('[onChart] Error in placeOrder (IF block) FUNCTION CALL:', err)
-                throw err
-            }
-//            try {
-//                const response = await placeOrder({
-//                    action: 'Sell',
-//                    symbol: contract.id,
-//                    orderQty: orderQuantity,
-//                    orderType: 'Market',
-//                })
-//                console.log('[onChart] response:', response)
-//            } catch (err) {
-//                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
-//            }    
-        })
     }
 
-    if(mode === LongShortMode.Watch && positiveCrossover) {        
+    if(mode === LongShortMode.Watch && positiveCrossover) {   
+        console.log('[onChart] placeOrder:', placeOrder)     
         return {
             state: {
                 ...prevState,
                 mode: LongShortMode.Long,
             },
             effects: [
+                (async function() {
+                    try {
+                        const response = await placeOrder({
+                            accountId: parseInt(process.env.ID),
+                            contractId: contract.id,
+                            admin: true,
+                            accountSpec: process.env.SPEC,
+                            deviceId: process.env.DEVICE_ID,
+                            symbol: contract.name,
+                            action: "Buy",
+                            orderQuantity: orderQuantity,
+                        })
+                        console.log('[onChart] response:', response)
+                    } catch (err) {
+                        console.error('[onChart] Error in placeOrder (IF block) FUNCTION CALL:', err)
+                        throw err
+                    }
+        //            try {
+        //                const response = await placeOrder({
+        //                    action: 'Buy',
+        //                    symbol: contract.id,
+        //                    orderQty: orderQuantity,
+        //                    orderType: 'Market',
+        //                })
+        //                console.log('[onChart] response:', response)
+        //            } catch (err) {
+        //                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
+        //            }    
+                })(),
                 // Liquidates any existing position
                 //{
                 //    url: 'order/liquidatePosition',
@@ -199,44 +231,45 @@ const onChart = async (prevState, {data, props}) => {
                 { event: 'crossover/draw' },    
             ]
         }
-        (async () => {
-            try {
-                const response = await placeOrder({
-                    accountId: parseInt(process.env.ID),
-                    contractId: contract.id,
-                    admin: true,
-                    accountSpec: process.env.SPEC,
-                    deviceId: process.env.DEVICE_ID,
-                    symbol: contract.name,
-                    action: "Buy",
-                    orderQuantity: orderQuantity,
-                })
-                console.log('[onChart] response:', response)
-            } catch (err) {
-                console.error('[onChart] Error in placeOrder (IF block) FUNCTION CALL:', err)
-                throw err
-            }
-//            try {
-//                const response = await placeOrder({
-//                    action: 'Buy',
-//                    symbol: contract.id,
-//                    orderQty: orderQuantity,
-//                    orderType: 'Market',
-//                })
-//                console.log('[onChart] response:', response)
-//            } catch (err) {
-//                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
-//            }    
-        })
     }
 
-    if(mode === LongShortMode.Short && positiveCrossover) {        
+    if(mode === LongShortMode.Short && positiveCrossover) {   
+        console.log('[onChart] placeOrder:', placeOrder)     
         return {
             state: {
                 ...prevState,
                 mode: LongShortMode.Long,
             },
             effects: [
+                (async function() {
+                    try {
+                        const response = await placeOrder({
+                            accountId: parseInt(process.env.ID),
+                            contractId: contract.id,
+                            admin: true,
+                            accountSpec: process.env.SPEC,
+                            deviceId: process.env.DEVICE_ID,
+                            symbol: contract.name,
+                            action: "Buy",
+                            orderQuantity: orderQuantity,
+                        })
+                        console.log('[onChart] response:', response)
+                    } catch (err) {
+                        console.error('[onChart] Error in placeOrder (IF block) FUNCTION CALL:', err)
+                        throw err
+                    }
+        //            try {
+        //                const response = await placeOrder({
+        //                    action: 'Buy',
+        //                    symbol: contract.id,
+        //                    orderQty: orderQuantity,
+        //                    orderType: 'Market',
+        //                })
+        //                console.log('[onChart] response:', response)
+        //            } catch (err) {
+        //                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
+        //            }    
+                })(),
                 // Liquidates any existing position
                 //{
                 //    url: 'order/liquidatePosition',
@@ -261,35 +294,6 @@ const onChart = async (prevState, {data, props}) => {
                 { event: 'crossover/draw' },
             ]
         }
-        (async () => {
-            try {
-                const response = await placeOrder({
-                    accountId: parseInt(process.env.ID),
-                    contractId: contract.id,
-                    admin: true,
-                    accountSpec: process.env.SPEC,
-                    deviceId: process.env.DEVICE_ID,
-                    symbol: contract.name,
-                    action: "Buy",
-                    orderQuantity: orderQuantity,
-                })
-                console.log('[onChart] response:', response)
-            } catch (err) {
-                console.error('[onChart] Error in placeOrder (IF block) FUNCTION CALL:', err)
-                throw err
-            }
-//            try {
-//                const response = await placeOrder({
-//                    action: 'Buy',
-//                    symbol: contract.id,
-//                    orderQty: orderQuantity,
-//                    orderType: 'Market',
-//                })
-//                console.log('[onChart] response:', response)
-//            } catch (err) {
-//                console.error('[onChart] Error in placeOrder FUNCTION CALL:', err)
-//            }    
-        })
     }//console.log('[onChart] result', prevState)
     return { state: prevState, effects: [] }
 }
