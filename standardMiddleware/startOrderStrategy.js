@@ -17,19 +17,19 @@ const startOrderStrategy = (state, action) => {
             const { data, props } = payload
             const { dev_mode } = props
             const { symbol, action, brackets, entryVersion, deviceId } = data
-            //console.log('[startOrderStrategy] Payload', payload, 'symbol:', symbol, 'action:', action, 'brackets:', brackets, 'entryVersion:', entryVersion, 'deviceId:', deviceId, 'accountSpec:', process.env.SPEC, 'accountId:', process.env.ID, 'isAutomated:', true)
+            //console.log('[startOrderStrategy] data:', data, 'accountSpec:', process.env.SPEC, 'accountId:', process.env.ID, 'isAutomated:', true)
                  
             const params = {
                 entryVersion: entryVersion,
                 brackets: brackets,
             }
             //console.log('[startOrderStrategy] orderData', orderData)
-            console.log('[startOrderStrategy] params:', JSON.stringify(params))
+            //console.log('[startOrderStrategy] params:', JSON.stringify(params))
         
             const body = {
-                accountId: parseInt(process.env.ID),
+                accountId: process.env.ID,
                 accountSpec: process.env.SPEC,
-                deviceId: deviceId,
+                deviceId: process.env.DEVICE_ID,
                 symbol: symbol,
                 action: action,
                 params: JSON.stringify(params),
@@ -38,9 +38,8 @@ const startOrderStrategy = (state, action) => {
             }
             
             const URL = process.env.WS_URL
-            console.log('[startOrderStrategy] URL:', URL)
-            console.log('[startOrderStrategy] order request payload:', JSON.stringify(body))
-            console.log('[startOrderStrategy] authorization payload:', process.env.ACCESS_TOKEN)
+            console.log('[startOrderStrategy] baseURL:', URL)
+
             //const mySocket = new TradovateSocket(URL)
             const mySocket = dev_mode ? getReplaySocket() : getSocket()
 
@@ -55,6 +54,9 @@ const startOrderStrategy = (state, action) => {
                     }
                 })
             }
+            console.log('[startOrderStrategy] authorization payload:', process.env.ACCESS_TOKEN)
+
+            console.log('[startOrderStrategy] order request payload:', [body])
         
             let dispose = mySocket.request({
                 url: URL + `/orderstrategy/startorderstrategy\n4\n\n${JSON.stringify(body)}`,
