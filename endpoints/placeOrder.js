@@ -1,6 +1,6 @@
-const { default: axios } = require("axios")
+const { axios } = require("axios")
 
-module.exports = async function({
+async function placeOrder({
     action,
     symbol,
     orderQty,
@@ -33,13 +33,13 @@ module.exports = async function({
         isAutomated: true
     }
 
-    let result
-    try {
-        result = await axios.post(URL, order, config)
-        console.log('placeOrder RESPONSE:', result.data)
-    } catch (err) {
+    axios.post(URL, order, config)
+    .then(response => {
+        console.log('placeOrder RESPONSE:', response.data)
+    }).catch (err => {
         console.error('Error in placeOrder ENDPOINT:', err)
-    }
+    })
 
-    return result.data
+    return response.data
 }
+module.exports = { placeOrder }
