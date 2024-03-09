@@ -50,7 +50,7 @@ const onChart = (prevState, {data, props}) => {
             deviceId: process.env.DEVICE_ID,
             symbol: contract.name,
             action: "Sell",
-            orderQty: orderQuantity,
+            orderQty: 6,
             orderType: "Market"
             }).then(response => {
                 console.log('[onChart] response 1:', response)
