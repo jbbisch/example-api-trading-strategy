@@ -5,7 +5,7 @@ console.log('[onChart] placeOrder:', placeOrder)
 const onChart = async (prevState, {data, props}) => {
     const { mode, buffer, hlv, tlc, } = prevState
     const { contract, orderQuantity } = props
-    //console.log('[onChart] props:', props)
+    console.log('[onChart] mode deconstructed:', mode)
 
     buffer.push(data)        
     const bufferData = buffer.getData()
@@ -40,6 +40,7 @@ const onChart = async (prevState, {data, props}) => {
     
     if(mode === LongShortMode.Watch && negativeCrossover) {
         console.log('[onChart] placeOrder 1:', placeOrder)
+        console.log('[onChart] mode 1:', mode)
         try {
             const response = await placeOrder({
                 accountId: parseInt(process.env.ID),
@@ -49,7 +50,8 @@ const onChart = async (prevState, {data, props}) => {
                 deviceId: process.env.DEVICE_ID,
                 symbol: contract.name,
                 action: "Sell",
-                orderQuantity: orderQuantity,
+                orderQty: orderQuantity,
+                orderType: "Market"
             })
             console.log('[onChart] response 1:', response)
         } catch (err) {
@@ -104,6 +106,7 @@ const onChart = async (prevState, {data, props}) => {
  
     if(mode === LongShortMode.Long && negativeCrossover) {
         console.log('[onChart] placeOrder 2:', placeOrder)
+        console.log('[onChart] mode 2:', mode)
         try {
             const response = await placeOrder({
                 accountId: parseInt(process.env.ID),
@@ -113,7 +116,8 @@ const onChart = async (prevState, {data, props}) => {
                 deviceId: process.env.DEVICE_ID,
                 symbol: contract.name,
                 action: "Sell",
-                orderQuantity: orderQuantity,
+                orderQty: orderQuantity,
+                orderType: "Market"
             })
             console.log('[onChart] response 2:', response)
         } catch (err) {
@@ -167,7 +171,8 @@ const onChart = async (prevState, {data, props}) => {
     }
 
     if(mode === LongShortMode.Watch && positiveCrossover) {   
-        console.log('[onChart] placeOrder 3:', placeOrder)  
+        console.log('[onChart] placeOrder 3:', placeOrder)
+        console.log('[onChart] mode 3:', mode)  
         try {
             const response = await placeOrder({
                 accountId: parseInt(process.env.ID),
@@ -177,7 +182,8 @@ const onChart = async (prevState, {data, props}) => {
                 deviceId: process.env.DEVICE_ID,
                 symbol: contract.name,
                 action: "Buy",
-                orderQuantity: orderQuantity,
+                orderQty: orderQuantity,
+                orderType: "Market"
             })
             console.log('[onChart] response 3:', response)
         } catch (err) {
@@ -229,6 +235,7 @@ const onChart = async (prevState, {data, props}) => {
 
     if(mode === LongShortMode.Short && positiveCrossover) {   
         console.log('[onChart] placeOrder 4:', placeOrder)
+        console.log('[onChart] mode 4:', mode)
         try {
             const response = await placeOrder({
                 accountId: parseInt(process.env.ID),
@@ -238,7 +245,8 @@ const onChart = async (prevState, {data, props}) => {
                 deviceId: process.env.DEVICE_ID,
                 symbol: contract.name,
                 action: "Buy",
-                orderQuantity: orderQuantity,
+                orderQty: orderQuantity,
+                orderType: "Market"
             })
             console.log('[onChart] response 4:', response)
         } catch (err) {
