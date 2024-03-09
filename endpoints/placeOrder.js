@@ -8,9 +8,10 @@ async function placeOrder({
     deviceId,
     price
 }) {
-    console.log('placeOrder ENDPOINT is being called')
+    console.log('[placeOrder ENDPOINT] is being called')
     
     const URL = process.env.HTTP_URL + '/order/placeOrder'
+    console.log('[placeOrder endpoint] URL:', URL)
 
     const config = {
         headers: {
@@ -19,6 +20,7 @@ async function placeOrder({
             'Authorization': `Bearer ${process.env.ACCESS_TOKEN}`
         }
     }
+    console.log('[placeOrder endpoint] config:', config)
 
     const order = {
         accountSpec: process.env.SPEC,
@@ -32,10 +34,11 @@ async function placeOrder({
         timeInForce: 'Day',
         isAutomated: true
     }
+    console.log('[placeOrder endpoint] order:', order)
 
     try {
         const response = await axios.post(URL, order, config)
-        console.log('placeOrder RESPONSE:', response.data)
+        console.log('[placeOrder endpoint] RESPONSE:', response.data)
         return response.data
     } catch (err) {
         console.error('Error in placeOrder ENDPOINT:', err)
