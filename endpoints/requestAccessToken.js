@@ -57,6 +57,8 @@ module.exports = async function requestAccessToken() {
     //worry about this data hanging out on our machine.
     process.env.ACCESS_TOKEN = result.data.accessToken
     process.env.MD_ACCESS_TOKEN = result.data.mdAccessToken
+    process.env.DEVICE_ID = deviceId
+    process.env.EXPIRATION_TIME = result.data.expirationTime
 
     return result.data
 } 

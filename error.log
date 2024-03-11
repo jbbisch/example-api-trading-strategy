@@ -418,3 +418,218 @@ error: Uncaught Exception:
 error: accounts.forEach is not a function {"error":{},"stack":"TypeError: accounts.forEach is not a function\n    at acquireAccess (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\utils\\acquireAccess.js:20:14)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:70:9)"}
 error: Uncaught Exception:
 error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Error in liquidatePosition
+error: Error in liquidatePosition
+error: Error in liquidatePosition
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Cannot read properties of undefined (reading 'data') {"error":{},"stack":"TypeError: Cannot read properties of undefined (reading 'data')\n    at requestAccessToken (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\endpoints\\requestAccessToken.js:53:24)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async acquireAccess (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\utils\\acquireAccess.js:11:5)\n    at async main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:70:9)"}
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Unexpected server response: 404 {"error":{"error":{},"message":"Unexpected server response: 404","target":{"_binaryType":"nodebuffer","_bufferedAmount":0,"_closeCode":1006,"_closeFrameReceived":false,"_closeFrameSent":false,"_closeMessage":"","_closeTimer":null,"_events":{},"_eventsCount":3,"_extensions":{},"_isServer":false,"_maxListeners":24,"_protocol":"","_readyState":3,"_receiver":null,"_redirects":0,"_req":{"_closed":false,"_contentLength":0,"_defaultKeepAlive":true,"_ended":true,"_events":{},"_eventsCount":4,"_hasBody":true,"_header":"GET /v1/ HTTP/1.1\r\nSec-WebSocket-Version: 13\r\nSec-WebSocket-Key: Fio9dV4Gum0nJnfu7AJ+qA==\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Extensions: permessage-deflate; client_max_window_bits\r\nHost: demo.tradovateapi.com\r\n\r\n","_headerSent":true,"_keepAliveTimeout":0,"_last":true,"_removedConnection":false,"_removedContLen":false,"_removedTE":false,"_trailer":"","aborted":true,"chunkedEncoding":false,"destroyed":true,"finished":true,"host":"demo.tradovateapi.com","maxHeadersCount":null,"maxRequestsOnConnectionReached":false,"method":"GET","outputData":[],"outputSize":0,"parser":null,"path":"/v1/","protocol":"https:","res":{"_consuming":false,"_dumped":true,"_events":{},"_eventsCount":1,"_readableState":{"awaitDrainWriters":null,"buffer":{"head":null,"length":0,"tail":null},"highWaterMark":16384,"length":0,"pipes":[]},"aborted":false,"client":{"_SNICallback":null,"_closeAfterHandlingError":false,"_controlReleased":true,"_events":{"close":[null,null],"newListener":[null,null]},"_eventsCount":5,"_hadError":false,"_host":"demo.tradovateapi.com","_httpMessage":"[Circular]","_newSessionPending":false,"_parent":null,"_pendingData":null,"_pendingEncoding":"","_readableState":{"awaitDrainWriters":null,"buffer":{"head":null,"length":0,"tail":null},"highWaterMark":16384,"length":0,"pipes":[]},"_rejectUnauthorized":true,"_requestCert":true,"_secureEstablished":true,"_securePending":false,"_server":null,"_sockname":null,"_tlsOptions":{"isServer":false,"pipe":false,"rejectUnauthorized":true,"requestCert":true,"secureContext":{"context":{}}},"_writableState":{"bufferedIndex":0,"corked":0,"highWaterMark":16384,"length":0,"pendingcb":0,"writelen":0},"allowHalfOpen":false,"alpnProtocol":false,"authorizationError":null,"authorized":true,"connecting":false,"encrypted":true,"parser":null,"secureConnecting":false,"servername":"demo.tradovateapi.com","ssl":null},"complete":true,"httpVersion":"1.1","httpVersionMajor":1,"httpVersionMinor":1,"method":null,"rawHeaders":["Content-Length","0","Date","Wed, 21 Feb 2024 12:58:44 GMT","Via","1.1 google","Alt-Svc","h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000","Connection","close"],"rawTrailers":[],"req":"[Circular]","socket":{"_SNICallback":null,"_closeAfterHandlingError":false,"_controlReleased":true,"_events":{"close":[null,null],"newListener":[null,null]},"_eventsCount":5,"_hadError":false,"_host":"demo.tradovateapi.com","_httpMessage":"[Circular]","_newSessionPending":false,"_parent":null,"_pendingData":null,"_pendingEncoding":"","_readableState":{"awaitDrainWriters":null,"buffer":{"head":null,"length":0,"tail":null},"highWaterMark":16384,"length":0,"pipes":[]},"_rejectUnauthorized":true,"_requestCert":true,"_secureEstablished":true,"_securePending":false,"_server":null,"_sockname":null,"_tlsOptions":{"isServer":false,"pipe":false,"rejectUnauthorized":true,"requestCert":true,"secureContext":{"context":{}}},"_writableState":{"bufferedIndex":0,"corked":0,"highWaterMark":16384,"length":0,"pendingcb":0,"writelen":0},"allowHalfOpen":false,"alpnProtocol":false,"authorizationError":null,"authorized":true,"connecting":false,"encrypted":true,"parser":null,"secureConnecting":false,"servername":"demo.tradovateapi.com","ssl":null},"statusCode":404,"statusMessage":"Not Found","upgrade":false,"url":""},"reusedSocket":false,"sendDate":false,"shouldKeepAlive":false,"strictContentLength":false,"timeoutCb":null,"upgradeOrConnect":false,"useChunkedEncodingByDefault":false,"writable":true},"_sender":null,"_socket":null,"_url":"wss://demo.tradovateapi.com/v1/"},"type":"error"}}
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Error in liquidatePosition
+error: Error in liquidatePosition
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Error in liquidatePosition
+error: Uncaught Exception:
+error: state is not defined {"error":{},"stack":"ReferenceError: state is not defined\n    at new Strategy (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\strategy\\strategy.js:36:32)\n    at new CrossoverStrategy (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:23:9)\n    at configureRobot (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\utils\\configureRobot.js:84:30)\n    at async main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:91:26)"}
+error: Uncaught Exception:
+error: state is not defined {"error":{},"stack":"ReferenceError: state is not defined\n    at new Strategy (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\strategy\\strategy.js:36:32)\n    at new CrossoverStrategy (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:23:9)\n    at configureRobot (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\utils\\configureRobot.js:84:30)\n    at async main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:91:26)"}
+error: action is not defined {"error":{},"stack":"ReferenceError: action is not defined\n    at new Strategy (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\strategy\\strategy.js:36:32)\n    at new CrossoverStrategy (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\strategies\\crossover\\crossoverStrategy.js:23:9)\n    at configureRobot (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\utils\\configureRobot.js:84:30)\n    at async main (C:\\Users\\JudeB\\OneDrive\\Desktop\\Tradovate Build\\example-api-trading-strategy\\index.js:91:26)"}
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Error in startOrderStrategy
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Error in startOrderStrategy
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: getaddrinfo ENOTFOUND md.tradovateapi.com {"error":{"error":{"code":"ENOTFOUND","errno":-3008,"hostname":"md.tradovateapi.com","syscall":"getaddrinfo"},"message":"getaddrinfo ENOTFOUND md.tradovateapi.com","target":{"_binaryType":"nodebuffer","_bufferedAmount":0,"_closeCode":1006,"_closeFrameReceived":false,"_closeFrameSent":false,"_closeMessage":"","_closeTimer":null,"_events":{},"_eventsCount":3,"_extensions":{},"_isServer":false,"_maxListeners":24,"_protocol":"","_readyState":3,"_receiver":null,"_redirects":0,"_req":null,"_sender":null,"_socket":null,"_url":"wss://md.tradovateapi.com/v1/websocket"},"type":"error"}}
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Error in liquidatePosition
+error: Error in liquidatePosition
+error: Error in liquidatePosition
+error: Error in liquidatePosition
+error: Error in liquidatePosition
+error: Error in liquidatePosition
+error: Error in liquidatePosition
+error: Error in liquidatePosition
+error: Error in liquidatePosition
+error: Error in liquidatePosition
+error: Error in liquidatePosition
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Uncaught Exception:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Uncaught Exception:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Uncaught Exception:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Uncaught Exception:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Unhandled rejection at:
+error: Uncaught Exception:
+error: Unhandled rejection at:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Uncaught Exception:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Uncaught Exception:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Unhandled rejection at:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Uncaught Exception:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Uncaught Exception:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Unhandled rejection at:
+error: Uncaught Exception:

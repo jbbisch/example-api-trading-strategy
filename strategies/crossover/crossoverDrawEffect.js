@@ -21,9 +21,9 @@ const drawEffect = (state, action) => {
                 ? `$${
                     calculatePnL({
                         price: buffer.last()?.price || buffer.last()?.price || 0, 
-                        contract,
-                        position,
-                        product,
+                        contract: contract.name,
+                        position: position.netPos,
+                        product: product,
                     }).toFixed(2)
                 }` 
                 : '$0.00',

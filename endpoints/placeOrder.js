@@ -1,6 +1,8 @@
-const { default: axios } = require("axios")
+const axios = require("axios")
+const { isTokenValid } = require("../utils/isTokenValid")
+const { renewAccessToken } = require("./renewAccessToken")
 
-module.exports = async function({
+async function placeOrder({
     action,
     symbol,
     orderQty,
@@ -8,9 +10,16 @@ module.exports = async function({
     deviceId,
     price
 }) {
-    console.log('placeOrder ENDPOINT is being called')
+    console.log('[placeOrder ENDPOINT] is being called')
+
+    if (!isTokenValid()) {
+        console.log('[placeOrder ENDPOINT] Token is not valid. Renewing...')
+        await renewAccessToken()
+        console.log('[placeOrder ENDPOINT] Token renewed:', process.env.ACCESS_TOKEN)
+    }
     
     const URL = process.env.HTTP_URL + '/order/placeOrder'
+    console.log('[placeOrder endpoint] URL:', URL)
 
     const config = {
         headers: {
@@ -19,6 +28,7 @@ module.exports = async function({
             'Authorization': `Bearer ${process.env.ACCESS_TOKEN}`
         }
     }
+    console.log('[placeOrder endpoint] config:', config)
 
     const order = {
         accountSpec: process.env.SPEC,
@@ -32,14 +42,14 @@ module.exports = async function({
         timeInForce: 'Day',
         isAutomated: true
     }
+    console.log('[placeOrder endpoint] order:', order)
 
-    let result
     try {
-        result = await axios.post(URL, order, config)
-        console.log('placeOrder RESPONSE:', result.data)
+        const response = await axios.post(URL, order, config)
+        console.log('[placeOrder endpoint] RESPONSE:', response.data)
+        return response.data
     } catch (err) {
-        console.error('Error in placeOrder ENDPOINT:', err)
+        console.error('[placeOrder endpoint] Error in placeOrder ENDPOINT:', err.response)
     }
-
-    return result.data
 }
+module.exports = { placeOrder }

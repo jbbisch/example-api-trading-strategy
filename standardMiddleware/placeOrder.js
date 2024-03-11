@@ -2,8 +2,10 @@ const { getSocket, getReplaySocket } = require("../websocket/utils")
 const { logger } = require("../utils/globalErrorHandler")
 
 
-const liquidatePosition = (state, action) => {
-        //console.log('liquidatePosition FUNCTION called')
+const placeOrder = (state, action) => {
+        //console.log('[liquidatePosition] FUNCTION called')
+        //console.log('[liquidatePosition] state:', state)
+
     try {
         const [event, payload] = action
 
@@ -12,30 +14,37 @@ const liquidatePosition = (state, action) => {
 
             const { data, props } = payload
             const { dev_mode } = props
-            const { contract, action, orderQty } = data
+            const { symbol, action, orderQuantity, entryVersion, deviceId } = data
+            //console.log('[liquidatePosition] Liquidate Data', data, 'accountSpec:', process.env.SPEC, 'accountId:', process.env.ID, 'isAutomated:', true)
+
+            const URL = process.env.WS_URL
+            console.log('[liquidatePosition] baseURL:', URL)
 
             const socket = dev_mode ? getReplaySocket() : getSocket()
 
             socket.onOpen = function() {
-                socket.request(`/authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
+                socket.request(URL + `/authorize\n1\n\n${process.env.ACCESS_TOKEN}`)
             }
+            console.log('[liquidatePosition] authorization payload:', process.env.ACCESS_TOKEN)
 
             const body = {
-                accountId: parseInt(process.env.ID, 10),
-                contractId: contract.id,
-                admin: true,
+                accountId: process.env.ID,
+                contractId: symbol,
                 accountSpec: process.env.SPEC,
                 deviceId: process.env.DEVICE_ID,
-                symbol: contract.name,
+                symbol: symbol,
                 action: "Sell",
-                orderQty: orderQty,
-                action: action,
+                orderQty: orderQuantity,
+                orderType: "Market",
+                admin: true,
+                //action: action,
                 isAutomated: true
 
             }
+            console.log('[liquidatePosition] order request payload:', JSON.stringify(body))
 
             let dispose = socket.request({
-                url: process.env.WS_URL + `/order/liquidatePosition\n4\n\n${JSON.stringify(body)}`,
+                url: URL + `/order/placeorder\n4\n\n${JSON.stringify(body)}`,
                 callback: (id, r) => {
                     console.log('[liquidatePosition] Response from trying to liquidate the Position RSSS:', r.s)
                     console.log('[liquidatePosition] Response from trying to liquidate the Position RIII:', r.i)
@@ -83,4 +92,4 @@ const liquidatePosition = (state, action) => {
     return action
 }
 
-module.exports = { liquidatePosition }
+module.exports = { placeOrder }
