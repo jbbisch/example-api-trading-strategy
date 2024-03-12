@@ -5,9 +5,10 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
     function nextTLC(prevState, data) {
         //console.log('TLC RECEIVED prevState', prevState)
         const { timestamp, open, high, low, close } = data
-        //console.log('TLC RECEIVED close', close)
-        const shortSma = data.slice(data.length - shortPeriod).reduce((a, b) => a + b.close || b.price, 0)/shortPeriod
-        const longSma = data.slice(data.length - longPeriod).reduce((a, b) => a + b.close || b.price, 0)/longPeriod
+        const newData = data.sort((a, b) => a.timestamp - b.timestamp)
+
+        const shortSma = newData.slice(newData.length - shortPeriod).reduce((a, b) => a + b.close || b.price, 0)/shortPeriod
+        const longSma = newData.slice(newData.length - longPeriod).reduce((a, b) => a + b.close || b.price, 0)/longPeriod
         const distance = shortSma - longSma
         //console.log('TLC calculated shortSma', shortSma)
         //console.log('TLC calculated longSma', longSma)
