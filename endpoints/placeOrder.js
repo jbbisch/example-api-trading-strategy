@@ -1,4 +1,6 @@
 const axios = require("axios")
+const { isTokenValid } = require("../utils/isTokenValid")
+const { renewAccessToken } = require("./renewAccessToken")
 
 async function placeOrder({
     action,
@@ -9,6 +11,12 @@ async function placeOrder({
     price
 }) {
     console.log('[placeOrder ENDPOINT] is being called')
+
+    if (!isTokenValid()) {
+        console.log('[placeOrder ENDPOINT] Token is not valid. Renewing...')
+        await renewAccessToken()
+        console.log('[placeOrder ENDPOINT] Token renewed:', process.env.ACCESS_TOKEN)
+    }
     
     const URL = process.env.HTTP_URL + '/order/placeOrder'
     console.log('[placeOrder endpoint] URL:', URL)
@@ -41,7 +49,7 @@ async function placeOrder({
         console.log('[placeOrder endpoint] RESPONSE:', response.data)
         return response.data
     } catch (err) {
-        console.error('Error in placeOrder ENDPOINT:', err)
+        console.error(err)
     }
 }
 module.exports = { placeOrder }
