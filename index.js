@@ -15,6 +15,8 @@ const { placeOrder } = require("./endpoints/placeOrder")
 const { startOrderStrategy } = require("./standardMiddleware/startOrderStrategy")
 const { strategy } = require("./strategies/strategy/strategy")
 const { onChart } = require("./strategies/crossover/onChart")
+const { isTokenValid } = require("./utils/isTokenValid")
+const { renewAccessToken } = require("./endpoints/renewAccessToken")
 
 
 //ENVIRONMENT VARIABLES ---------------------------------------------------------------------------------------
@@ -32,10 +34,10 @@ process.env.HTTP_URL    = 'https://demo.tradovateapi.com/v1'
 process.env.WS_URL      = 'wss://demo.tradovateapi.com/v1/websocket'
 process.env.MD_URL      = 'wss://md.tradovateapi.com/v1/websocket'
 process.env.REPLAY_URL  = 'wss://replay.tradovateapi.com/v1/websocket'
-process.env.USER        = ''    
-process.env.PASS        = '' 
-process.env.SEC         = ''
-process.env.CID         = 0
+process.env.USER        = ' '    
+process.env.PASS        = ' ' 
+process.env.SEC         = ' '
+process.env.CID         = 2
 
 //END ENVIRONMENT VARIABLES -----------------------------------------------------------------------------------
 
@@ -72,6 +74,14 @@ async function main() {
     // // // // // // // // // // // // // // // //
     // Configuration Section                     //
     // // // // // // // // // // // // // // // //
+
+        setInterval(async () => {
+            if (!isTokenValid()) {
+                console.log('[index renewAccessToken] Token is nearing expiration. Renewing...')
+                await renewAccessToken
+                console.log('[index renewAccessToken] Token successfully renewed.')
+            }
+        }, 70 * 60 * 1000)
 
     // const maybeReplayString = await askForReplay(REPLAY_TIMES)
 
