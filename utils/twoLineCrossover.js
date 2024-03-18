@@ -13,12 +13,22 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         //console.log('TLC calculated shortSma', shortSma)
         //console.log('TLC calculated longSma', longSma)
 
+        let shortSmaDirection = ''
+        if (shortSma > prevState.shortSma) {
+            shortSmaDirection = 'up'
+        } else if (shortSma < prevState.shortSma) {
+            shortSmaDirection = 'down'
+        } else {
+            shortSmaDirection = 'flat'
+        }
+
         next = {
             shortSma: shortSma,
             longSma: longSma,
             distance: distance,
             positiveCrossover: shortSma > longSma && prevState.shortSma <= prevState.longSma,
             negativeCrossover: shortSma < longSma && prevState.shortSma >= prevState.longSma,
+            shortSmaDirection: shortSmaDirection
         }         
 
         nextTLC.state = next
@@ -35,6 +45,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             distance: 0,
             positiveCrossover: false,
             negativeCrossover: false,
+            shortSmaDirection: 'unchanged'
         }
     }
 
