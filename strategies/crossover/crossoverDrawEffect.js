@@ -6,18 +6,19 @@ const drawEffect = (state, action) => {
 
     if(event === 'crossover/draw') {
         const { props } = payload
-        //console.log('crossoverDrawEffect called', payload)
         const { contract } = props
-        const { product, position, mode, buffer, tlc, realizedPnL } = state
-        const { distance, shortSma, longSma } = tlc.state  
+        const { product, position, mode, buffer, tlc, realizedPnL, lastTradeTime } = state
+        const { shortSmaDirection, distance, shortSma, longSma } = tlc.state  
 
         drawToConsole({
             mode,
+            shortSmaDirection: shortSmaDirection,
+            lastTradeTime: lastTradeTime,
             contract: contract.name,      
             netPos: position?.netPos || 0,
-            distance: distance.toFixed(2),
-            shortSma: shortSma.toFixed(2),
-            longSma: longSma.toFixed(2),
+            Distance: distance.toFixed(2),
+            SHORTsma: shortSma.toFixed(2),
+            LONGsma: longSma.toFixed(2),
             'p&l': position && position.netPos !== 0 && product 
                 ? `$${
                     calculatePnL({
