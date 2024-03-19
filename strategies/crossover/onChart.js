@@ -37,7 +37,7 @@ const onChart = (prevState, {data, props}) => {
         orderType: "Market",
     }
     
-    const lastTradeTime = prevState.lastTradeTime || null
+    const lastTradeTime = prevState.lastTradeTime || new Date()
 
     const bufferPeriod = 15 * 60 * 1000 // 5 minutes
 
@@ -46,7 +46,7 @@ const onChart = (prevState, {data, props}) => {
 
     // USE DURING BEAR MARKET INSTEAD OF WATCH AND LONG ##########
     if(mode === LongShortMode.Watch && negativeCrossover) {
-        if(now - lastTradeTime >= bufferPeriod) {
+        //if(now - lastTradeTime >= bufferPeriod) {
             console.log('[onChart] liquidatePosition 1:', placeOrder)
             console.log('[onChart] mode 1 placeOrder:', mode)
             placeOrder({
@@ -57,7 +57,7 @@ const onChart = (prevState, {data, props}) => {
                 deviceId: process.env.DEVICE_ID,
                 symbol: contract.name,
                 action: "Sell",
-                orderQty: 6,
+                orderQty: 1,
                 orderType: "Market"
             }).then(response => {
                 console.log('[onChart] response 1:', response)
@@ -65,7 +65,6 @@ const onChart = (prevState, {data, props}) => {
                     state: {
                         ...prevState,
                         mode: LongShortMode.Short,
-                        lastTradeTime: now,
                     },
                     effects: [
                         // FOR WEBSOCKET Liquidates any existing position
@@ -83,18 +82,15 @@ const onChart = (prevState, {data, props}) => {
     //                        }   
     //                    },
                         { event: 'crossover/draw' },
-                        { lastTradeTime: now },                   
                     ],
-                    lastTradeTime: now
-                },
-                console.log('[onChart] mode after placeOrder 1:', mode)
+                }
             }).catch(err => {
                 console.error('[onChart] Error:', err)
             })
-        }
+        //}
     }
     if(mode === LongShortMode.Long && negativeCrossover) { 
-        if(now - lastTradeTime >= bufferPeriod) {   
+        //if(now - lastTradeTime >= bufferPeriod) {   
             console.log('[onChart] liquidatePosition 2:', placeOrder)
             console.log('[onChart] mode 2 placeOrder:', mode)
             placeOrder({
@@ -105,7 +101,7 @@ const onChart = (prevState, {data, props}) => {
                 deviceId: process.env.DEVICE_ID,
                 symbol: contract.name,
                 action: "Sell",
-                orderQty: 6,
+                orderQty: 1,
                 orderType: "Market"
             }).then(response => {
                 console.log('[onChart] response 2:', response)
@@ -113,7 +109,6 @@ const onChart = (prevState, {data, props}) => {
                     state: {
                         ...prevState,
                         mode: LongShortMode.Short,
-                        lastTradeTime: now,
                     },
                     effects: [
                         // FOR WEBSOCKET Liquidates any existing position
@@ -131,20 +126,17 @@ const onChart = (prevState, {data, props}) => {
     //                        }
     //                    },
                         { event: 'crossover/draw' },
-                        { lastTradeTime: now },      
                     ],
-                    lastTradeTime: now
-                },
-                console.log('[onChart] mode after placeOrder 2:', mode)
+                }
             }).catch(err => {
                 console.error('[onChart] Error:', err)
             })
-        }
+        //}
     }
 
     // USE DURING BULL MARKET INSTEAD OF WATCH AND SHORT ##########
     if(mode === LongShortMode.Watch && positiveCrossover) { 
-        if(now - lastTradeTime >= bufferPeriod) {  
+        //if(now - lastTradeTime >= bufferPeriod) {  
             console.log('[onChart] placeOrder 3:', placeOrder)
             console.log('[onChart] mode 3 buyOrder:', mode)  
             placeOrder({
@@ -155,7 +147,7 @@ const onChart = (prevState, {data, props}) => {
                 deviceId: process.env.DEVICE_ID,
                 symbol: contract.name,
                 action: "Buy",
-                orderQty: 6,
+                orderQty: 1,
                 orderType: "Market"
             }).then(response => {
                 console.log('[onChart] response 3:', response)
@@ -163,7 +155,6 @@ const onChart = (prevState, {data, props}) => {
                     state: {
                         ...prevState,
                         mode: LongShortMode.Long,
-                        lastTradeTime: now,
                     },
                     effects: [
                         // FOR WEBSOCKET
@@ -180,19 +171,16 @@ const onChart = (prevState, {data, props}) => {
     //                        }   
     //                    },
                         { event: 'crossover/draw' },
-                        { lastTradeTime: now },    
                     ],
-                    lastTradeTime: now
-                },
-                console.log('[onChart] mode after placeOrder 3:', mode)
+                }
             }).catch(err => {
                 console.error('[onChart] Error:', err)
             })
-        }
+        //}
     }
     
     if(mode === LongShortMode.Short && positiveCrossover) { 
-        if(now - lastTradeTime >= bufferPeriod) {  
+        //if(now - lastTradeTime >= bufferPeriod) {  
             console.log('[onChart] placeOrder 4:', placeOrder)
             console.log('[onChart] mode 4 buyOrder:', mode)
             placeOrder({
@@ -203,7 +191,7 @@ const onChart = (prevState, {data, props}) => {
                 deviceId: process.env.DEVICE_ID,
                 symbol: contract.name,
                 action: "Buy",
-                orderQty: 6,
+                orderQty: 1,
                 orderType: "Market"
             }).then(response => {
                 console.log('[onChart] response 4:', response)
@@ -211,7 +199,6 @@ const onChart = (prevState, {data, props}) => {
                     state: {
                         ...prevState,
                         mode: LongShortMode.Long,
-                        lastTradeTime: now,
                     },
                     effects: [
                         // FOR WEBSOCKET
@@ -228,19 +215,14 @@ const onChart = (prevState, {data, props}) => {
     //                        }
     //                    },
                         { event: 'crossover/draw' },
-                        { lastTradeTime: now },
                     ],
-                    lastTradeTime: now
-                },
-                console.log('[onChart] mode after placeOrder 4:', mode)
+                }
             }).catch(err => {
                 console.error('[onChart] Error:', err)
             })
-        }
-    } else {
-        console.log('[onChart] Buffer Period, waiting...')
+        //}
     }
-    return { state: prevState, effects: [], lastTradeTime: now }
+    return { state: prevState, effects: [] }
 }
 
 module.exports = { onChart }
