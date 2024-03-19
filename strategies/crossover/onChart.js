@@ -1,6 +1,7 @@
 const { LongShortMode } = require("../common/longShortMode")
 const { placeOrder } = require("../../endpoints/placeOrder")
 const { liquidatePosition } = require("../../endpoints/liquidatePosition")
+const { chillOut } = require("../../utils/chillTime")
 console.log('[onChart] placeOrder:', placeOrder)
 
 const onChart = (prevState, {data, props}) => {
@@ -37,13 +38,6 @@ const onChart = (prevState, {data, props}) => {
         orderType: "Market",
     }
     
-    const lastTradeTime = prevState.lastTradeTime || new Date()
-
-    const bufferPeriod = 15 * 60 * 1000 // 5 minutes
-
-    const now = new Date()
-
-
     // USE DURING BEAR MARKET INSTEAD OF WATCH AND LONG ##########
     if(mode === LongShortMode.Watch && negativeCrossover) {
         //if(now - lastTradeTime >= bufferPeriod) {
@@ -59,8 +53,10 @@ const onChart = (prevState, {data, props}) => {
                 action: "Sell",
                 orderQty: 1,
                 orderType: "Market"
-            }).then(response => {
-                console.log('[onChart] response 1:', response)
+            }).then(async response => {
+                console.log('[onChart] response 1:', response, 'are we chilling?')
+                await chillOut()
+                console.log('[onChart] we chilled :)')
                 return {
                     state: {
                         ...prevState,
@@ -103,8 +99,10 @@ const onChart = (prevState, {data, props}) => {
                 action: "Sell",
                 orderQty: 1,
                 orderType: "Market"
-            }).then(response => {
-                console.log('[onChart] response 2:', response)
+            }).then(async response => {
+                console.log('[onChart] response 1:', response, 'are we chilling?')
+                await chillOut()
+                console.log('[onChart] we chilled :)')
                 return {
                     state: {
                         ...prevState,
@@ -149,8 +147,10 @@ const onChart = (prevState, {data, props}) => {
                 action: "Buy",
                 orderQty: 1,
                 orderType: "Market"
-            }).then(response => {
-                console.log('[onChart] response 3:', response)
+            }).then(async response => {
+                console.log('[onChart] response 1:', response, 'are we chilling?')
+                await chillOut()
+                console.log('[onChart] we chilled :)')
                 return {
                     state: {
                         ...prevState,
@@ -193,8 +193,10 @@ const onChart = (prevState, {data, props}) => {
                 action: "Buy",
                 orderQty: 1,
                 orderType: "Market"
-            }).then(response => {
-                console.log('[onChart] response 4:', response)
+            }).then(async response => {
+                console.log('[onChart] response 1:', response, 'are we chilling?')
+                await chillOut()
+                console.log('[onChart] we chilled :)')
                 return {
                     state: {
                         ...prevState,
