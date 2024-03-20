@@ -14,7 +14,7 @@ const onChart = (prevState, {data, props}) => {
     const lastTlc = tlc.state
 
     //const { variance } = hlv(lastHlv, bufferData)
-    const { shortSmaDirection, negativeCrossover, positiveCrossover } = tlc(lastTlc, bufferData)
+    const { negativeCrossover, positiveCrossover } = tlc(lastTlc, bufferData)
 
     //const round_s = num => Math.round((num + Number.EPSILON) * 100) / 100
 
@@ -38,12 +38,11 @@ const onChart = (prevState, {data, props}) => {
     }
     
     const now = Date.now()
-    const chillOut = 10 * 60 * 1000 // 10 minutes
+    const chillOut = 5 * 60 * 1000 // 10 minutes pause after placing an order
     if (prevState.lastTradeTime && now - prevState.lastTradeTime < chillOut) {
         console.log('[OnChart] Chill out time')
         return { state: prevState, effects: [] }
     }
-
 
     // USE DURING BEAR MARKET INSTEAD OF WATCH AND LONG ##########
     if(mode === LongShortMode.Watch && negativeCrossover) {
@@ -58,7 +57,7 @@ const onChart = (prevState, {data, props}) => {
                 deviceId: process.env.DEVICE_ID,
                 symbol: contract.name,
                 action: "Sell",
-                orderQty: 1,
+                orderQty: 6,
                 orderType: "Market"
             }).then(response => {
                 prevState.lastTradeTime = Date.now()
@@ -103,7 +102,7 @@ const onChart = (prevState, {data, props}) => {
                 deviceId: process.env.DEVICE_ID,
                 symbol: contract.name,
                 action: "Sell",
-                orderQty: 1,
+                orderQty: 6,
                 orderType: "Market"
             }).then(response => {
                 prevState.lastTradeTime = Date.now()
@@ -150,7 +149,7 @@ const onChart = (prevState, {data, props}) => {
                 deviceId: process.env.DEVICE_ID,
                 symbol: contract.name,
                 action: "Buy",
-                orderQty: 1,
+                orderQty: 6,
                 orderType: "Market"
             }).then(response => {
                 prevState.lastTradeTime = Date.now()
@@ -195,7 +194,7 @@ const onChart = (prevState, {data, props}) => {
                 deviceId: process.env.DEVICE_ID,
                 symbol: contract.name,
                 action: "Buy",
-                orderQty: 1,
+                orderQty: 6,
                 orderType: "Market"
             }).then(response => {
                 prevState.lastTradeTime = Date.now()
