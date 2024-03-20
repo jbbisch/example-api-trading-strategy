@@ -4,40 +4,22 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
     //console.log('TLC function called', shortPeriod, longPeriod)
     function nextTLC(prevState, data) {
         //console.log('TLC RECEIVED prevState', prevState)
-        const { open, high, low, close } = data
+        const { timestamp, open, high, low, close } = data
         const newData = data.sort((a, b) => a.timestamp - b.timestamp)
-        const { timestamp } = newData[newData.length - 1] //get latest timestamp
 
-        const fiveMinutes = 5 * 60 * 1000 // 5 minutes
-        if (timestamp - prevState.lastUpdate >= fiveMinutes) {
-
-            const shortSma = newData.slice(newData.length - shortPeriod).reduce((a, b) => a + b.close || b.price, 0)/shortPeriod
-            const longSma = newData.slice(newData.length - longPeriod).reduce((a, b) => a + b.close || b.price, 0)/longPeriod
-            const distance = shortSma - longSma
-
+        const shortSma = newData.slice(newData.length - shortPeriod).reduce((a, b) => a + b.close || b.price, 0)/shortPeriod
+        const longSma = newData.slice(newData.length - longPeriod).reduce((a, b) => a + b.close || b.price, 0)/longPeriod
+        const distance = shortSma - longSma
         //console.log('TLC calculated shortSma', shortSma)
         //console.log('TLC calculated longSma', longSma)
 
-            let shortSmaDirection = ''
-            if (shortSma > prevState.shortSma) {
-                shortSmaDirection = 'up'
-            } else if (shortSma < prevState.shortSma) {
-                shortSmaDirection = 'down'
-            } else {
-                shortSmaDirection = 'flat'
-            }
-
-            next = {
-                ...prevState,
-                shortSma: shortSma,
-                longSma: longSma,
-                distance: distance,
-                positiveCrossover: shortSma > longSma && prevState.shortSma <= prevState.longSma,
-                negativeCrossover: shortSma < longSma && prevState.shortSma >= prevState.longSma,
-                shortSmaDirection: shortSmaDirection,
-                lastUpdate: timestamp
-            }         
-        }
+        next = {
+            shortSma: shortSma,
+            longSma: longSma,
+            distance: distance,
+            positiveCrossover: shortSma > longSma && prevState.shortSma <= prevState.longSma,
+            negativeCrossover: shortSma < longSma && prevState.shortSma >= prevState.longSma,
+        }         
 
         nextTLC.state = next
         //console.log('TLC returning next', next)
@@ -53,9 +35,6 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             distance: 0,
             positiveCrossover: false,
             negativeCrossover: false,
-            snapshotTimestamp: new Date(),
-            shortSmaDirection: 'unchanged',
-            lastUpdate: 0
         }
     }
 
