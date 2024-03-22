@@ -45,29 +45,29 @@ const onChart = (prevState, {data, props}) => {
     }
 
     // USE DURING BEAR MARKET INSTEAD OF WATCH AND LONG ##########
-    if(mode === LongShortMode.Watch && negativeCrossover) {
+    //if(mode === LongShortMode.Watch && negativeCrossover) {
         //if(now - lastTradeTime >= bufferPeriod) {
-            console.log('[onChart] liquidatePosition 1:', placeOrder)
-            console.log('[onChart] mode 1 placeOrder:', mode)
-            placeOrder({
-                accountId: parseInt(process.env.ID),
-                contractId: contract.id,
-                admin: true,
-                accountSpec: process.env.SPEC,
-                deviceId: process.env.DEVICE_ID,
-                symbol: contract.name,
-                action: "Sell",
-                orderQty: 6,
-                orderType: "Market"
-            }).then(response => {
-                prevState.lastTradeTime = Date.now()
-                console.log('[onChart] response 1:', response)
-                return {
-                    state: {
-                        ...prevState,
-                        mode: LongShortMode.Short,
-                    },
-                    effects: [
+    //        console.log('[onChart] liquidatePosition 1:', placeOrder)
+    //        console.log('[onChart] mode 1 placeOrder:', mode)
+    //        placeOrder({
+    //            accountId: parseInt(process.env.ID),
+    //            contractId: contract.id,
+    //            admin: true,
+    //            accountSpec: process.env.SPEC,
+    //            deviceId: process.env.DEVICE_ID,
+    //            symbol: contract.name,
+    //            action: "Sell",
+    //            orderQty: 1,
+    //            orderType: "Market"
+    //        }).then(response => {
+    //            prevState.lastTradeTime = Date.now()
+    //            console.log('[onChart] response 1:', response)
+    //            return {
+    //                state: {
+    //                    ...prevState,
+    //                    mode: LongShortMode.Short,
+    //                },
+    //                effects: [
                         // FOR WEBSOCKET Liquidates any existing position
     //                    {
     //                        url: 'order/liquidatePosition', 
@@ -82,14 +82,14 @@ const onChart = (prevState, {data, props}) => {
     //                            orderQuantity: orderQuantity,
     //                        }   
     //                    },
-                        { event: 'crossover/draw' },
-                    ],
-                }
-            }).catch(err => {
-                console.error('[onChart] Error:', err)
-            })
+    //                    { event: 'crossover/draw' },
+    //                ],
+    //            }
+    //        }).catch(err => {
+    //            console.error('[onChart] Error:', err)
+    //        })
         //}
-    }
+    //}
     if(mode === LongShortMode.Long && negativeCrossover) { 
         //if(now - lastTradeTime >= bufferPeriod) {   
             console.log('[onChart] liquidatePosition 2:', placeOrder)
@@ -102,7 +102,7 @@ const onChart = (prevState, {data, props}) => {
                 deviceId: process.env.DEVICE_ID,
                 symbol: contract.name,
                 action: "Sell",
-                orderQty: 6,
+                orderQty: 1,
                 orderType: "Market"
             }).then(response => {
                 prevState.lastTradeTime = Date.now()
@@ -149,7 +149,7 @@ const onChart = (prevState, {data, props}) => {
                 deviceId: process.env.DEVICE_ID,
                 symbol: contract.name,
                 action: "Buy",
-                orderQty: 6,
+                orderQty: 1,
                 orderType: "Market"
             }).then(response => {
                 prevState.lastTradeTime = Date.now()
@@ -194,7 +194,7 @@ const onChart = (prevState, {data, props}) => {
                 deviceId: process.env.DEVICE_ID,
                 symbol: contract.name,
                 action: "Buy",
-                orderQty: 6,
+                orderQty: 1,
                 orderType: "Market"
             }).then(response => {
                 prevState.lastTradeTime = Date.now()
