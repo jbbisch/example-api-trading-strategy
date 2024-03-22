@@ -17,8 +17,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             shortSma: shortSma,
             longSma: longSma,
             distance: distance,
-            positiveCrossover: shortSma > longSma && prevState.shortSma <= prevState.longSma,
-            negativeCrossover: shortSma < longSma && prevState.shortSma >= prevState.longSma,
+            positiveCrossover: shortSma > longSma && prevState.shortSma <= prevState.longSma && distance >= 0.02,
+            negativeCrossover: shortSma < longSma && prevState.shortSma >= prevState.longSma && distance <= -0.05,
         }         
 
         nextTLC.state = next
