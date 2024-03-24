@@ -1,4 +1,5 @@
 const { BarsTransformer } = require('../utils/dataBuffer')
+const { TicksTransformer } = require('../utils/dataBuffer')
 const { TradovateSocket } = require('./TradovateSocket')
 
 /**
@@ -145,7 +146,7 @@ MarketDataSocket.prototype.getChart = function({symbol, chartDescription, timeRa
 
             item.d.charts
                 .filter(({id}) => id === realtimeId || id === historicalId)
-                .forEach(BarsTransformer)            
+                .forEach(callback)            
         },
         disposer: () => {
             let d = this.request({
