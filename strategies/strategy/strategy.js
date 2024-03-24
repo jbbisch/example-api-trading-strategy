@@ -19,6 +19,9 @@ class Strategy {
 
         //turned off via { event: 'stop' } effect
         this._shouldRun = true
+        this.shortPeriod = props.shortPeriod
+        this.longPeriod = props.longPeriod
+        this.props = props
 
         const { barType, barInterval, contract, elementSizeUnit, timeRangeType, timeRangeValue, histogram, dev_mode, replay_periods } = props
         
@@ -279,6 +282,9 @@ class Strategy {
         },
 
         timeRangeValue: 'int',    
+
+        shortPeriod: 'int',
+        longPeriod: 'int',
     }
 }
 
