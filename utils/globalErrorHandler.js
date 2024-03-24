@@ -16,4 +16,11 @@ process.on('uncaughtException', (error) => {
     process.exit(1);
 });
 
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled rejection at:', promise, 'reason:', reason);
+    logger.error('Unhandled rejection at:', promise, 'reason:', reason);
+
+    process.exit(1);
+});
+
 module.exports = { logger };
