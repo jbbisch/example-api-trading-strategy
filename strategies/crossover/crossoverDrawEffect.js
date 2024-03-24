@@ -7,13 +7,11 @@ const drawEffect = (state, action) => {
     if(event === 'crossover/draw') {
         const { props } = payload
         const { contract } = props
-        const { product, position, mode, buffer, tlc, realizedPnL, lastTradeTime } = state
-        const { shortSmaDirection, distance, shortSma, longSma } = tlc.state  
+        const { product, position, mode, buffer, tlc, realizedPnL } = state
+        const { distance, shortSma, longSma } = tlc.state  
 
         drawToConsole({
             mode,
-            shortSmaDirection: shortSmaDirection,
-            lastTradeTime: lastTradeTime,
             contract: contract.name,      
             netPos: position?.netPos || 0,
             Distance: distance.toFixed(2),
