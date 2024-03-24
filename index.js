@@ -30,14 +30,14 @@ const { renewAccessToken } = require("./endpoints/renewAccessToken")
 // - USER should be your username or email used for your Trader account
 // - PASS should be the password assoc with that account
 
-process.env.HTTP_URL    = 'https://demo.tradovateapi.com/v1'
-process.env.WS_URL      = 'wss://demo.tradovateapi.com/v1/websocket'
+process.env.HTTP_URL    = 'https://live.tradovateapi.com/v1'
+process.env.WS_URL      = 'wss://live.tradovateapi.com/v1/websocket'
 process.env.MD_URL      = 'wss://md.tradovateapi.com/v1/websocket'
 process.env.REPLAY_URL  = 'wss://replay.tradovateapi.com/v1/websocket'
-process.env.USER        = ' '    
-process.env.PASS        = ' ' 
-process.env.SEC         = ' '
-process.env.CID         = 2
+process.env.USER        = ''    
+process.env.PASS        = '' 
+process.env.SEC         = ''
+process.env.CID         = 0
 
 //END ENVIRONMENT VARIABLES -----------------------------------------------------------------------------------
 
@@ -78,10 +78,10 @@ async function main() {
         setInterval(async () => {
             if (!isTokenValid()) {
                 console.log('[index renewAccessToken] Token is nearing expiration. Renewing...')
-                await renewAccessToken
+                await renewAccessToken()
                 console.log('[index renewAccessToken] Token successfully renewed.')
             }
-        }, 70 * 60 * 1000)
+        }, 1 * 60 * 1000)
 
     // const maybeReplayString = await askForReplay(REPLAY_TIMES)
 
