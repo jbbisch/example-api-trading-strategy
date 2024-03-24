@@ -120,6 +120,7 @@ TradovateSocket.prototype.setupHeartbeat = function() {
     this.heartbeatInterval = setInterval(() => {
         if(this.isConnected()) {
             this.ws.send('[]')
+            //console.log('INTERVAL heartbeat sent to server')
         }
     }, heartbeatInterval)
 }
@@ -138,14 +139,17 @@ TradovateSocket.prototype.connect = async function(url) {
             return
         }
         this.ws.addEventListener('open', () => {
+            console.log('Websocket connection opened. Sending auth request...')
             this.ws.send(`authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
-            interval = setInterval(() => {
-                if(this.ws.readyState == 0 || this.ws.readyState == 3 || this.ws.readyState == 2) {
-                    clearInterval(interval)
-                    return
-                }
+            const interval = setInterval(() => {
+                if(this.ws.readyState === WebSocket.OPEN) {
                 this.ws.send('[]')
+                //console.log('heartbeat sent to server on OPEN')
+                } else {
+                    console.warn('Websocket is not open. Not sending HeartBeat.')
+                }
             }, 2500)
+            this.setupHeartbeat()
             res()
         })
 
