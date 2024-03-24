@@ -7,6 +7,7 @@ function DataBuffer(transformer = null, data = []) {
     this.buffer = [...data]
     let lastTs
     let lastInterval
+    const intervalDuration = 5 * 60 * 1000 // decide minute interval here (replace the current 5)
 
     this.push = tick => {
         let results
@@ -37,7 +38,7 @@ function DataBuffer(transformer = null, data = []) {
                     volume: result.volume
                     // any other properties
                 })
-                console.log('New currentInterval Data:', this.buffer[this.buffer.length - 1])
+                //console.log('New currentInterval Data:', this.buffer[this.buffer.length - 1])
                 lastInterval = currentInterval
             } else {
                 //Update the current MinureBar
