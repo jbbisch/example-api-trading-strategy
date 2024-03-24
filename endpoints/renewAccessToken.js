@@ -4,7 +4,6 @@ async function renewAccessToken() {
     console.log('[renewAccessToken ENDPOINT] is being called')
     
     const URL = process.env.HTTP_URL + '/auth/renewAccessToken'
-    //console.log('[renewAccessToken ENDPOINT] URL:', URL)
 
     const data = {
         name: process.env.USER,
@@ -24,17 +23,17 @@ async function renewAccessToken() {
             'Authorization': `Bearer ${process.env.ACCESS_TOKEN}`
         }
     }
-    //console.log('[renewAccessToken ENDPOINT] config:', config)
 
     try {
         const response = await axios.post(URL, data, config)
         console.log('[renewAccessToken ENDPOINT] RESPONSE:', response.data)
+        process.env.ACCESS_TOKEN = response.data.accessToken
+        process.env.MD_ACCESS_TOKEN = response.data.mdAccessToken
+        process.env.EXPIRATION_TIME = response.data.expirationTime
         return response.data
     } catch (err) {
         console.error('[renewAccessToken ENDPOINT] Error in renewAccessToken ENDPOINT:', err.response)
     }
-    process.env.ACCESS_TOKEN = response.data.accessToken
-    process.env.MD_ACCESS_TOKEN = response.data.mdAccessToken
-    process.env.EXPIRATION_TIME = response.data.expirationTime
+
 }
 module.exports = { renewAccessToken }
