@@ -3,8 +3,10 @@ const { placeOrder } = require("../../endpoints/placeOrder")
 const { liquidatePosition } = require("../../endpoints/liquidatePosition")
 console.log('[onChart] placeOrder:', placeOrder)
 
+const maxPosition = 1 // 1 contract
+
 const onChart = (prevState, {data, props}) => {
-    const { mode, buffer, tlc, } = prevState
+    const { mode, buffer, tlc, position } = prevState
     const { contract, orderQuantity } = props
 
     buffer.push(data)        
@@ -33,8 +35,10 @@ const onChart = (prevState, {data, props}) => {
         orderType: "Market",
     }
     
+    const currentPositionSize = prevState.position?.netPos || 0
+    
     const now = Date.now()
-    const chillOut = 5 * 60 * 1000 // 5 minutes pause after placing an order
+    const chillOut = 3 * 60 * 1000 // 3 minutes pause after placing an order
     if (prevState.lastTradeTime && now - prevState.lastTradeTime < chillOut) {
         console.log('[OnChart] Chill out time')
         return { state: prevState, effects: [] }
@@ -130,7 +134,7 @@ const onChart = (prevState, {data, props}) => {
     // }
 
     // USE DURING BULL MARKET INSTEAD OF WATCH AND SHORT ##########
-    if(mode === LongShortMode.Long && negativeCrossover) { 
+    if(mode === LongShortMode.Long && negativeCrossover && currentPositionSize >= maxPosition) { 
         console.log('[onChart] liquidatePosition 2:', placeOrder)
         console.log('[onChart] mode 2 placeOrder:', mode)
         placeOrder({
@@ -175,7 +179,7 @@ const onChart = (prevState, {data, props}) => {
     }
 
     // USE DURING BULL MARKET INSTEAD OF WATCH AND SHORT ##########
-    if(mode === LongShortMode.Watch && positiveCrossover) { 
+    if(mode === LongShortMode.Watch && positiveCrossover && currentPositionSize < maxPosition) { 
         console.log('[onChart] placeOrder 3:', placeOrder)
         console.log('[onChart] mode 3 buyOrder:', mode)  
         placeOrder({
