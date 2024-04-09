@@ -38,7 +38,7 @@ const onChart = (prevState, {data, props}) => {
     const currentPositionSize = prevState.position?.netPos || 0
     
     const now = Date.now()
-    const chillOut = 5 * 60 * 1000 // 5 minutes pause after placing an order
+    const chillOut = 4 * 60 * 1000 // 4 minutes pause after placing an order
     if (prevState.lastTradeTime && now - prevState.lastTradeTime < chillOut) {
         console.log('[OnChart] Chill out time')
         return { state: prevState, effects: [] }
@@ -49,6 +49,7 @@ const onChart = (prevState, {data, props}) => {
     //    if(currentPositionSize === 0) {
         //     console.log('[onChart] liquidatePosition 1:', placeOrder)
         //     console.log('[onChart] mode 1 placeOrder:', mode)
+        //     prevState.lastTradeTime = Date.now()
         //     placeOrder({
         //         accountId: parseInt(process.env.ID),
         //         contractId: contract.id,
@@ -60,7 +61,6 @@ const onChart = (prevState, {data, props}) => {
         //         orderQty: 1,
         //         orderType: "Market"
         //     }).then(response => {
-        //         prevState.lastTradeTime = Date.now()
         //         console.log('[onChart] response 1:', response)
         //         return {
         //             state: {
@@ -99,6 +99,7 @@ const onChart = (prevState, {data, props}) => {
         //    if(currentPositionSize < 0) {
         //     console.log('[onChart] placeOrder 4:', placeOrder)
         //     console.log('[onChart] mode 4 buyOrder:', mode)
+        //     prevState.lastTradeTime = Date.now()
         //     placeOrder({
         //         accountId: parseInt(process.env.ID),
         //         contractId: contract.id,
@@ -110,7 +111,6 @@ const onChart = (prevState, {data, props}) => {
         //         orderQty: 1,
         //         orderType: "Market"
         //     }).then(response => {
-        //         prevState.lastTradeTime = Date.now()
         //         console.log('[onChart] response 4:', response)
         //         return {
         //             state: {
@@ -148,6 +148,7 @@ const onChart = (prevState, {data, props}) => {
         if(currentPositionSize >= maxPosition) {
             console.log('[onChart] liquidatePosition 2:', placeOrder)
             console.log('[onChart] mode 2 placeOrder:', mode)
+            prevState.lastTradeTime = Date.now()
             placeOrder({
                 accountId: parseInt(process.env.ID),
                 contractId: contract.id,
@@ -159,7 +160,6 @@ const onChart = (prevState, {data, props}) => {
                 orderQty: 1,
                 orderType: "Market"
             }).then(response => {
-                prevState.lastTradeTime = Date.now()
                 console.log('[onChart] response 2:', response)
                 return {
                     state: {
@@ -198,6 +198,7 @@ const onChart = (prevState, {data, props}) => {
         if(currentPositionSize < maxPosition) { 
             console.log('[onChart] placeOrder 3:', placeOrder)
             console.log('[onChart] mode 3 buyOrder:', mode)  
+            prevState.lastTradeTime = Date.now()
             placeOrder({
                 accountId: parseInt(process.env.ID),
                 contractId: contract.id,
@@ -209,7 +210,6 @@ const onChart = (prevState, {data, props}) => {
                 orderQty: 1,
                 orderType: "Market"
             }).then(response => {
-                prevState.lastTradeTime = Date.now()
                 console.log('[onChart] response 3:', response)
                 return {
                     state: {
