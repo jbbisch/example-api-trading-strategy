@@ -6,12 +6,29 @@ console.log('[onChart] placeOrder:', placeOrder)
 const maxPosition = 1 // 1 contract
 
 const onChart = (prevState, {data, props}) => {
+    
     const { mode, buffer, tlc, position } = prevState
     const { contract, orderQuantity } = props
 
     buffer.push(data)        
     const bufferData = buffer.getData()
-    
+
+    const now = new Date()
+    const chillOut = 4 * 60 * 1000 // 4 minutes pause after placing an order
+    if (prevState.lastTradeTime && now - prevState.lastTradeTime < chillOut) {
+        console.log('[OnChart] Chill out time')
+        return { state: prevState, effects: [] }
+    }
+
+    const minutes = now.getMinutes()
+    const seconds = now.getSeconds()
+
+    if(minutes % 5 !== 0 || seconds > 10 ) { 
+        console.log('[onChart] Not a 5 minute interval - skip processing')
+        return { state: prevState, effects: [] }
+    } // 10 second window on every 5th minute interval to update SMA and place order
+      // allows for delay in data feed and tries to avoid false signals
+        
     const lastTlc = tlc.state
 
     const { negativeCrossover, positiveCrossover, distance } = tlc(lastTlc, bufferData)
@@ -36,13 +53,6 @@ const onChart = (prevState, {data, props}) => {
     }
     
     const currentPositionSize = prevState.position?.netPos || 0
-    
-    const now = Date.now()
-    const chillOut = 4 * 60 * 1000 // 4 minutes pause after placing an order
-    if (prevState.lastTradeTime && now - prevState.lastTradeTime < chillOut) {
-        console.log('[OnChart] Chill out time')
-        return { state: prevState, effects: [] }
-    }
 
     // USE DURING BEAR MARKET INSTEAD OF WATCH AND LONG ##########
     // if(mode === LongShortMode.Watch && negativeCrossover ) {
