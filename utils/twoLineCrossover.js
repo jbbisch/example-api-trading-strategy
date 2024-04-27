@@ -17,6 +17,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             negativeCrossover: prevState.shortSma >= prevState.longSma && distance < 0.00,
         }         
 
+        console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover)
+
         nextTLC.state = next
 
         return next       
