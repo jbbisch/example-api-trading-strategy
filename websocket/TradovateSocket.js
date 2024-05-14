@@ -168,6 +168,7 @@ TradovateSocket.prototype.connect = async function(url) {
                 console.log('Attempting to reconnect...')
                 this.reconnect()
             }
+            res()
         })
 
         this.ws.addEventListener('message', async msg => {
@@ -207,6 +208,7 @@ TradovateSocket.prototype.connect = async function(url) {
                     break
                 case 'c':
                     clearInterval(interval)
+                    res()
                     break
                 default:
                     console.error('Unexpected response token received:')
