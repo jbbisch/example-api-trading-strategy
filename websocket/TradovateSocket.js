@@ -1,5 +1,6 @@
 const WebSocket = require('ws')
 const { writeToLog } = require('../utils/helpers')
+const { clear } = require('winston')
 // const logger = require('../utils/logger')
 
 function Counter() {
@@ -143,7 +144,7 @@ TradovateSocket.prototype.connect = async function(url) {
         this.ws.addEventListener('open', () => {
             console.log('Websocket connection opened. Sending auth request...')
             this.ws.send(`authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
-            const interval = setInterval(() => {
+            interval = setInterval(() => {
                 if(this.ws.readyState === WebSocket.OPEN) {
                 this.ws.send('[]')
                 //console.log('heartbeat sent to server on OPEN')
@@ -156,11 +157,12 @@ TradovateSocket.prototype.connect = async function(url) {
 
         this.ws.addEventListener('error', err => {
             console.error('Websocket error: ' + err)
+            clearInterval(interval)
             rej(err)
         })
 
         this.ws.addEventListener('close', event => {
-            console.warn('WebSocket closed with code: ${event.code}, reason: ${event.reason}')
+            console.warn(`WebSocket closed with code: ${event.code}, reason: ${event.reason}`)
             clearInterval(interval) // Clear the heartbeat interval on close
             if(event.code !== 1000) { // Non-normal closure should try to reconnect
                 console.log('Attempting to reconnect...')
