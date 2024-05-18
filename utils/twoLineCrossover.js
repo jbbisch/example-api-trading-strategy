@@ -10,7 +10,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const distance = shortSma - longSma
 
         const positiveCrossover = (prevState.distance <= -0.17 && distance > -0.17) || (prevState.shortSma <= prevState.longSma && distance > 0.00) || (prevState.distance > 0.00 && prevState.shortSMA < shortSMA) // EarlyBuy, TrueCrossOver, PositiveBounce
-        const negativeCrossover = (prevState.distance >= -0.17 && distance < -0.17) || (prevState.shortSma >= prevState.longSma && distance < 0.00) || (prevState.distance >= 0.17 && distance < 0.17) || (prevState.distance >= 0.43 && distance < 0.43) || (prevState.distance >= 1.17 && distance < 1.17) || (prevState.distance >= 2.17 && distance < 2.17) // NegativeBounce, TrueCrossUnder, EarlySells
+        const negativeCrossover = (prevState.distance >= -0.17 && distance < -0.17) || (prevState.shortSma >= prevState.longSma && distance < 0.00) || (prevState.shortSMA > shortSMA) // NegativeBounce, TrueCrossUnder, EarlySell
         
         next = {
             shortSma: shortSma,
