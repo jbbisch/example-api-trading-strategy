@@ -52,7 +52,9 @@ TradovateSocket.prototype.request = function({url, query, body, callback, dispos
     } 
 
     this.ws.addEventListener('message', resSubscription)
-    this.ws.send(`${url}\n${id}\n${query}\n${JSON.stringify(body)}`)
+    if (this.ws.readyState === WebSocket.OPEN) {
+        this.ws.send(`${url}\n${id}\n${query}\n${JSON.stringify(body)}`)
+    } 
 
     return () => {
         if(disposer && typeof disposer === 'function'){
@@ -63,7 +65,7 @@ TradovateSocket.prototype.request = function({url, query, body, callback, dispos
 }
 
 TradovateSocket.prototype.synchronize = function(callback) {
-    if(!this.ws || this.ws.readyState == 3 || this.ws.readyState == 2) {
+    if(!this.ws || this.ws.readyState !== WebSocket.OPEN) {
         console.warn('no websocket connection available, please connect the websocket and try again.')
         return
     }
@@ -228,37 +230,17 @@ TradovateSocket.prototype.disconnect = function() {
 }
 
 TradovateSocket.prototype.isConnected = function() {
-    return this.ws && this.ws.readyState != 2 && this.ws.readyState != 3
+    return this.ws && this.ws.readyState === WebSocket.OPEN
 }
 
 /**
  * Attempts to reconnect the WebSocket after an unexpected closure.
  */
 TradovateSocket.prototype.reconnect = function() {
-    const maxRetries = 5 // Maximum number of retries
-    let attemptCount = 0 // Current attempt count
-    const initialDelay = 1000 // Initial delay in milliseconds
-
-    const attemptReconnect = () => {
-        if (attemptCount >= maxRetries) {
-            console.error('Max reconnect attempts reached. Stopping reconnection attempts.')
-            return
-        }
-
-        // Wait for the exponential backoff delay before reconnecting
-        setTimeout(async () => {
-            console.log('Attempting to reconnect... Try ' + (attemptCount + 1))
-            try {
-                await this.connect(this.ws.url) // Re-attempt the connection
-                console.log('Reconnection successful.')
-            } catch (error) {
-                console.error('Reconnection attempt failed:', error.message)
-                attemptCount++
-                attemptReconnect() // Recursively attempt to reconnect
-            }
-        }, initialDelay * Math.pow(2, attemptCount)) // Exponential backoff delay
+    if (!this.isConnected()) {
+        console.log('Attempting to reconnect...')
+        this.connect(this.ws.url).catch(console.error)
     }
-    attemptReconnect()
 }
 
 module.exports = { TradovateSocket }
