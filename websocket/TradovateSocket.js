@@ -16,7 +16,8 @@ function Counter() {
  */
 function TradovateSocket() {
     this.ws = null
-    this.counter = new Counter()    
+    this.counter = new Counter()
+    this.reconnectAttempts = 0
 }
 
 TradovateSocket.prototype.getSocket = function() {
@@ -146,6 +147,7 @@ TradovateSocket.prototype.connect = async function(url) {
         this.ws.addEventListener('open', () => {
             console.log('Websocket connection opened. Sending auth request...')
             this.ws.send(`authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
+            this.reconnectAttempts = 0
             interval = setInterval(() => {
                 if(this.ws.readyState === WebSocket.OPEN) {
                 this.ws.send('[]')
@@ -159,6 +161,8 @@ TradovateSocket.prototype.connect = async function(url) {
 
         this.ws.addEventListener('error', err => {
             console.error('Websocket error: ' + err)
+            this.reconnect(url)
+            this.reconnectAttempts += 1
             clearInterval(interval)
             rej(err)
         })
@@ -168,7 +172,8 @@ TradovateSocket.prototype.connect = async function(url) {
             clearInterval(interval) // Clear the heartbeat interval on close
             if(event.code !== 1000) { // Non-normal closure should try to reconnect
                 console.log('Attempting to reconnect...')
-                this.reconnect()
+                this.reconnect(url)
+                this.reconnectAttempts += 1
             }
             res()
         })
@@ -238,8 +243,12 @@ TradovateSocket.prototype.isConnected = function() {
  */
 TradovateSocket.prototype.reconnect = function() {
     if (!this.isConnected()) {
+        setTimeout(() => {
         console.log('Attempting to reconnect...')
-        this.connect(this.ws.url).catch(console.error)
+        this.connect(url).catch(console.error)
+        this.reconnectAttempts += 1
+        }, Math.pow(2, this.reconnectAttempts) * 1000)
+        
     }
 }
 
