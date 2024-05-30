@@ -14,17 +14,18 @@ const onChart = (prevState, {data, props}) => {
     const bufferData = buffer.getData()
 
     const now = new Date()
+    
+    // Update SMA only at specific intervals
+    const dataPause = 1 * 60 * 1000 // 1 minute pause after processing data
+    if (prevState.lastSMAUpdate && now - prevState.lastSMAUpdate < dataPause) {
+        console.log('[onChart] Waiting for next SMA update interval', prevState.lastSMAUpdate);
+        return { state: prevState, effects: [] };
+    }
+
     const chillOut = 4 * 60 * 1000 // 4 minutes pause after placing an order
     if (prevState.lastTradeTime && now - prevState.lastTradeTime < chillOut) {
         console.log('[OnChart] Chill out time')
         return { state: prevState, effects: [] }
-    }
-    
-    // Update SMA only at specific intervals
-    const dataPause = 1 * 60 * 1000 // 1 minute pause after processing data
-    if (lastSMAUpdate && now - lastSMAUpdate < dataPause) {
-        console.log('[onChart] Waiting for next SMA update interval');
-        return { state: prevState, effects: [] };
     }
 
     const minutes = now.getMinutes()
@@ -37,7 +38,7 @@ const onChart = (prevState, {data, props}) => {
       // allows for delay in data feed and tries to avoid false signals
         
     const lastTlc = tlc.state
-
+    prevState.lastSMAUpdate = Date.now()
     const { negativeCrossover, positiveCrossover, distance } = tlc(lastTlc, bufferData)
 
     const longBracket = {
@@ -66,7 +67,6 @@ const onChart = (prevState, {data, props}) => {
     //    if(currentPositionSize === 0) {
         //     console.log('[onChart] liquidatePosition 1:', placeOrder)
         //     console.log('[onChart] mode 1 placeOrder:', mode)
-        //     prevState.lastSMAUpdate = Date.now();
         //     prevState.lastTradeTime = Date.now()
         //     placeOrder({
         //         accountId: parseInt(process.env.ID),
@@ -117,7 +117,6 @@ const onChart = (prevState, {data, props}) => {
         //    if(currentPositionSize < 0) {
         //     console.log('[onChart] placeOrder 4:', placeOrder)
         //     console.log('[onChart] mode 4 buyOrder:', mode)
-        //     prevState.lastSMAUpdate = Date.now();
         //     prevState.lastTradeTime = Date.now()
         //     placeOrder({
         //         accountId: parseInt(process.env.ID),
@@ -167,7 +166,6 @@ const onChart = (prevState, {data, props}) => {
         if(currentPositionSize >= maxPosition) {
             console.log('[onChart] liquidatePosition 2:', placeOrder)
             console.log('[onChart] mode 2 placeOrder:', mode)
-            prevState.lastSMAUpdate = Date.now();
             prevState.lastTradeTime = Date.now()
             placeOrder({
                 accountId: parseInt(process.env.ID),
@@ -218,7 +216,6 @@ const onChart = (prevState, {data, props}) => {
         if(currentPositionSize < maxPosition) { 
             console.log('[onChart] placeOrder 3:', placeOrder)
             console.log('[onChart] mode 3 buyOrder:', mode)  
-            prevState.lastSMAUpdate = Date.now();
             prevState.lastTradeTime = Date.now()
             placeOrder({
                 accountId: parseInt(process.env.ID),
