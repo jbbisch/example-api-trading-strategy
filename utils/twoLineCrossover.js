@@ -9,8 +9,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const longSma = newData.slice(newData.length - longPeriod).reduce((a, b) => a + b.close || b.price, 0)/longPeriod
         const distance = shortSma - longSma
 
-        const positiveCrossover = (prevState.distance <= -0.17 && distance > -0.17) || (prevState.shortSma <= prevState.longSma && distance > 0.00) || (prevState.distance > 0.00 && prevState.shortSma < shortSma && (shortSma - prevState.shortSma) >= 0.33) // EarlyBuy, TrueCrossOver, PositiveBounce
-        const negativeCrossover = (prevState.distance >= -0.17 && distance < -0.17) || (prevState.shortSma >= prevState.longSma && distance < 0.00) || (prevState.distance > 0.00 && prevState.shortSma > shortSma && (prevState.shortSma - shortSma) >= 0.33) // NegativeBounce, TrueCrossUnder, EarlySell
+        const positiveCrossover = (prevState.distance <= -0.17 && distance > -0.17) || (prevState.shortSma <= prevState.longSma && distance > 0.00) || (prevState.distance > 0.00 && distance < 1.00 && prevState.shortSma < shortSma) // EarlyBuy, TrueCrossOver, PositiveBounce
+        const negativeCrossover = (prevState.distance >= -0.17 && distance < -0.17) || (prevState.shortSma >= prevState.longSma && distance < 0.00) || (distance < 1.00 && prevState.shortSma > shortSma && prevState.distance > distance) // NegativeBounce, TrueCrossUnder, EarlySell
         
         next = {
             shortSma: shortSma,
