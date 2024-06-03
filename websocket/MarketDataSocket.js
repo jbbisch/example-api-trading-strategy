@@ -28,7 +28,7 @@ MarketDataSocket.prototype.subscribeQuote = function({symbol, contractId: cid, c
 
     const isQuote = data => data.e && data.e === 'md' && data.d && data.d.quotes
 
-    const subscription = () => this.request({
+    const subscription = this.request({
         url: 'md/subscribeQuote',
         body: { symbol },
         callback: (id, item) => {
@@ -51,13 +51,13 @@ MarketDataSocket.prototype.subscribeQuote = function({symbol, contractId: cid, c
     })
 
     this.subscriptions.push({ symbol, subscription })
-    return subscription()
+    return subscription
 }
 
 MarketDataSocket.prototype.subscribeDOM = function({symbol, contractId: cid, callback}) {
     const isDom = data => data.e && data.e === 'md' && data.d && data.d.doms
 
-    const subscription = () => this.request({
+    const subscription = this.request({
         url:  'md/subscribeDOM',
         body: { symbol },
         callback: (id, item) => {            
@@ -83,14 +83,14 @@ MarketDataSocket.prototype.subscribeDOM = function({symbol, contractId: cid, cal
     
     this.subscriptions.push({ symbol, subscription })
 
-    return subscription()
+    return subscription
         
 }
 
 MarketDataSocket.prototype.subscribeHistogram = function({symbol, contractId: cid, callback}) {
     const isHistogram = data => data.e && data.e === 'md' && data.d && data.d.histograms
 
-    const subscription = () => this.request({
+    const subscription = this.request({
         url:  'md/subscribeHistogram',
         body: { symbol },
         callback: (id, item) => {            
@@ -114,7 +114,7 @@ MarketDataSocket.prototype.subscribeHistogram = function({symbol, contractId: ci
     
     this.subscriptions.push({ symbol, subscription })
 
-    return subscription()
+    return subscription
 }
 
 
