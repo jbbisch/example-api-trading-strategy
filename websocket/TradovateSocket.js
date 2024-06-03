@@ -1,6 +1,7 @@
 const WebSocket = require('ws')
 const { writeToLog } = require('../utils/helpers')
 const { clear } = require('winston')
+const { renewAccessToken } = require('../endpoints/renewAccessToken')
 // const logger = require('../utils/logger')
 
 function Counter() {
@@ -244,8 +245,9 @@ TradovateSocket.prototype.isConnected = function() {
  */
 TradovateSocket.prototype.reconnect = function() {
     if (!this.isConnected()) {
-        setTimeout(() => {
+        setTimeout(async() => {
         console.log('Attempting to reconnect...')
+        await renewAccessToken()
         this.connect(this.ws.url).then(() => {
             this.subscriptions.forEach(({ symbol, subscription }) => {
                 console.log(`Re-subscribing to ${symbol}...`)
