@@ -249,13 +249,14 @@ TradovateSocket.prototype.reconnect = function() {
         console.log('Attempting to reconnect...')
         await renewAccessToken()
         this.connect(this.ws.url).then(() => {
+            const currentSubscriptions = this.subscriptions.slice()
             this.subscriptions.forEach(({ symbol, subscription }) => {
                 console.log(`Un-subscribing to ${symbol}...`)
                 subscription()
             })
             this.subscriptions = []
             // Resubscribe to data streams
-            this.subscriptions.forEach(({ symbol, subscription }) => {
+            currentSubscriptions.forEach(({ symbol, subscription }) => {
                 console.log(`Re-subscribing to ${symbol}...`);
                 subscription();
             });
