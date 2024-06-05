@@ -250,9 +250,15 @@ TradovateSocket.prototype.reconnect = function() {
         await renewAccessToken()
         this.connect(this.ws.url).then(() => {
             this.subscriptions.forEach(({ symbol, subscription }) => {
-                console.log(`Re-subscribing to ${symbol}...`)
+                console.log(`Un-subscribing to ${symbol}...`)
                 subscription()
             })
+            this.subscriptions = []
+            // Resubscribe to data streams
+            this.subscriptions.forEach(({ symbol, subscription }) => {
+                console.log(`Re-subscribing to ${symbol}...`);
+                subscription();
+            });
         }).catch(console.error)
         this.reconnectAttempts += 1
         }, Math.pow(2, this.reconnectAttempts) * 1000)
