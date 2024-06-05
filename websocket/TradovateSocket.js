@@ -260,6 +260,7 @@ TradovateSocket.prototype.reconnect = function() {
                 console.log(`Re-subscribing to ${symbol}...`);
                 subscription();
             });
+            this.setupHeartbeat()
         }).catch(console.error)
         this.reconnectAttempts += 1
         }, Math.pow(2, this.reconnectAttempts) * 1000)
