@@ -150,30 +150,23 @@ TradovateSocket.prototype.connect = async function(url) {
             console.log('Websocket connection opened. Sending auth request...')
             this.ws.send(`authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
             this.reconnectAttempts = 0
-            interval = setInterval(() => {
-                if(this.ws.readyState === WebSocket.OPEN) {
-                this.ws.send('[]')
-                //console.log('heartbeat sent to server on OPEN')
-                } else {
-                    console.warn('Websocket is not open. Not sending HeartBeat.')
-                }
-            }, 2500)
+            this.setupHeartbeat()
             res()
         })
 
         this.ws.addEventListener('error', err => {
-            console.error('Websocket error: ' + err)
+            console.error('(onError) Websocket error: ' + err)
+            clearInterval(this.heartbeatInterval)
             this.reconnect()
             this.reconnectAttempts += 1
-            clearInterval(interval)
             rej(err)
         })
 
         this.ws.addEventListener('close', event => {
             console.warn(`WebSocket closed with code: ${event.code}, reason: ${event.reason}`)
-            clearInterval(interval) // Clear the heartbeat interval on close
+            clearInterval(this.heartbeatInterval) // Clear the heartbeat interval on close
             if(event.code !== 1000) { // Non-normal closure should try to reconnect
-                console.log('Attempting to reconnect...')
+                console.log('(onClose) Attempting to reconnect...')
                 this.reconnect()
                 this.reconnectAttempts += 1
             }
@@ -216,7 +209,7 @@ TradovateSocket.prototype.connect = async function(url) {
                     } else rej()
                     break
                 case 'c':
-                    clearInterval(interval)
+                    clearInterval(this.heartbeatInterval)
                     res()
                     break
                 default:
@@ -248,18 +241,23 @@ TradovateSocket.prototype.reconnect = function() {
         setTimeout(async() => {
         console.log('Attempting to reconnect...')
         await renewAccessToken()
-        this.connect(this.ws.url).then(() => {
+        await this.connect(this.ws.url).then(() => {
             const currentSubscriptions = this.subscriptions.slice()
             this.subscriptions.forEach(({ symbol, subscription }) => {
-                console.log(`Un-subscribing to ${symbol}...`)
+                console.log(`Ue-subscribing to ${symbol}...`)
                 subscription()
             })
             this.subscriptions = []
-            // Resubscribe to data streams
             currentSubscriptions.forEach(({ symbol, subscription }) => {
-                console.log(`Re-subscribing to ${symbol}...`);
-                subscription();
-            });
+                console.log(`Re-subscribing to ${symbol}...`)
+                subscription()
+            })
+            this.synchronize(() => {
+                console.log('Re-subscribed to all subscriptions.')
+            })
+            this.onSync(() => {
+                console.log('Re-synchronized with server.')
+            })
             this.setupHeartbeat()
         }).catch(console.error)
         this.reconnectAttempts += 1
