@@ -242,6 +242,15 @@ TradovateSocket.prototype.reconnect = function() {
         console.log('Attempting to reconnect...')
         await renewAccessToken()
         await this.connect(this.ws.url).then(() => {
+            this.request({
+                url: 'user/syncrequest',
+                body: { accounts: [parseInt(process.env.ID, 10)] },
+                callback: (id, data) => {
+                    if(data.i === id) {
+                        console.log('Reconnected to server.')
+                    }
+                }
+            })
             const currentSubscriptions = this.subscriptions.slice()
             this.subscriptions.forEach(({ symbol, subscription }) => {
                 console.log(`Ue-subscribing to ${symbol}...`)
@@ -258,7 +267,9 @@ TradovateSocket.prototype.reconnect = function() {
             this.onSync(() => {
                 console.log('Re-synchronized with server.')
             })
-            this.setupHeartbeat()
+            this.setupHeartbeat(
+                console.log('Reconnected to server, sending heartbeat.')
+            )
         }).catch(console.error)
         this.reconnectAttempts += 1
         }, Math.pow(2, this.reconnectAttempts) * 1000)
