@@ -2,7 +2,7 @@ const WebSocket = require('ws')
 const { writeToLog } = require('../utils/helpers')
 const { clear } = require('winston')
 const { renewAccessToken } = require('../endpoints/renewAccessToken')
-const { main } = require('../index')
+const { main, currentConfig } = require('../index')
 // const logger = require('../utils/logger')
 
 function Counter() {
@@ -246,7 +246,7 @@ TradovateSocket.prototype.isConnected = function() {
 /**
  * Attempts to reconnect the WebSocket after an unexpected closure.
  */
-TradovateSocket.prototype.reconnect = function() {
+TradovateSocket.prototype.reconnect = async function() {
     if (!this.isConnected()) {
         setTimeout(async() => {
         console.log('Attempting to reconnect...')
@@ -260,11 +260,14 @@ TradovateSocket.prototype.reconnect = function() {
             if(this.ws.readyState === WebSocket.CLOSED) {
                 this.connect(this.ws.url).then(() => {
                     console.log('Reconnected to server.')
-                    main(currentConfig)
                 }).catch(console.error)
             } else {
                 setTimeout(checkClosedAndReconnect, 1000)
             }
+        }
+        if (this.ws.readyState === WebSocket.OPEN) {
+            await main(currentConfig)
+            console.log('Configured bot with previous configuration.')
         }
         checkClosedAndReconnect()
         }, Math.pow(2, this.reconnectAttempts) * 1000)
