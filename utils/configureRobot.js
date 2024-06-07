@@ -5,7 +5,7 @@ const { askQuestion } = require("./askQuestion")
 const { confirm } = require("./confirm")
 const { pressEnterToContinue } = require("./enterToContinue")
 
-const configureRobot = async (ALL_STRATEGIES, REPLAY_TIMES) => {
+const configureRobot = async (ALL_STRATEGIES, REPLAY_TIMES, existingConfig = null) => {
 
     console.clear()    
 
@@ -24,7 +24,7 @@ const configureRobot = async (ALL_STRATEGIES, REPLAY_TIMES) => {
         ])
     }
     
-    let contract = await askForContract()
+    let contract = existingConfig ? existingConfig.contract : await askForContract()
 
     while(!contract) {
         contract = await askForContract(true)
@@ -34,12 +34,15 @@ const configureRobot = async (ALL_STRATEGIES, REPLAY_TIMES) => {
 
     await pressEnterToContinue()
 
-    const StrategyType = await askQuestion({
+    const StrategyType = existingConfig ? existingConfig.StrategyType : await askQuestion({
         question: 'Choose a strategy:',
         items: ALL_STRATEGIES
     })
 
     const getParams = async () => {
+        if (existingConfig) {
+            return existingConfig.params
+        }
         const captured_params = {}
 
         const keys = Object.keys(StrategyType.params)
