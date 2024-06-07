@@ -37,6 +37,7 @@ MarketDataSocket.prototype.subscribeQuote = function({symbol, contractId: cid, c
             item.d.quotes
                 .filter(({contractId}) => contractId === cid)
                 .forEach(callback)
+                console.log(`Received data for symbol: ${symbol}`, item.d)
 
         },
         disposer: () => {
