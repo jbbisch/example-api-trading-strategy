@@ -30,14 +30,14 @@ const { renewAccessToken } = require("./endpoints/renewAccessToken")
 // - USER should be your username or email used for your Trader account
 // - PASS should be the password assoc with that account
 
-process.env.HTTP_URL    = 'https://live.tradovateapi.com/v1'
-process.env.WS_URL      = 'wss://live.tradovateapi.com/v1/websocket'
+process.env.HTTP_URL    = 'https://demo.tradovateapi.com/v1'
+process.env.WS_URL      = 'wss://demo.tradovateapi.com/v1/websocket'
 process.env.MD_URL      = 'wss://md.tradovateapi.com/v1/websocket'
 process.env.REPLAY_URL  = 'wss://replay.tradovateapi.com/v1/websocket'
-process.env.USER        = ''    
-process.env.PASS        = '' 
-process.env.SEC         = ''
-process.env.CID         = 0
+process.env.USER        = 'JudeRufus'    
+process.env.PASS        = 'Rufusdufus18$' 
+process.env.SEC         = '59cafc50-d93f-49ff-931f-12d70e8de41a'
+process.env.CID         = 2162
 
 //END ENVIRONMENT VARIABLES -----------------------------------------------------------------------------------
 
@@ -62,7 +62,9 @@ const ALL_STRATEGIES = {
 /**
  * Program entry point.
  */
-async function main() {
+let currentConfig = null
+
+async function main(existingConfig = null) {
     try {
         
     // // // // // // // // // // // // // // // //
@@ -98,8 +100,15 @@ async function main() {
             ])
     // }
     
-        const Strategy = await configureRobot(ALL_STRATEGIES)
+        const Strategy = await configureRobot(ALL_STRATEGIES, existingConfig)
         Strategy.init()
+
+        currentConfig = {
+            StrategyType: Strategy.constructor,
+            params: Strategy.params,
+            contract: Strategy.contract
+        }
+
     } catch (error) {
         logger.error({message: error.message, stack: error.stack, error})
     }
@@ -140,3 +149,5 @@ async function main() {
 }
 
 main()
+
+module.exports = { main }
