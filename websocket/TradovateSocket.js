@@ -49,7 +49,7 @@ TradovateSocket.prototype.request = function({url, query, body, callback, dispos
 
         if(data.length > 0) {
             data.forEach(item => {
-                // console.log(item)
+                console.log(item)
                 callback(id, item)
             })
         }
@@ -58,6 +58,7 @@ TradovateSocket.prototype.request = function({url, query, body, callback, dispos
     this.ws.addEventListener('message', resSubscription)
     if (this.ws.readyState === WebSocket.OPEN) {
         this.ws.send(`${url}\n${id}\n${query}\n${JSON.stringify(body)}`)
+        console.log(`Subscription sent to ${url} with body:`, body)
     } 
 
     const subscription = () => {
