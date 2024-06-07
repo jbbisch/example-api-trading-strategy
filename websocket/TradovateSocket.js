@@ -63,6 +63,7 @@ TradovateSocket.prototype.request = function({url, query, body, callback, dispos
     const subscription = () => {
         if (this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(`${url}\n${id}\n${query}\n${JSON.stringify(body)}`)
+            console.log('resubscribing to: ' + url, 'with body:', body)
         }
     }
 
@@ -250,17 +251,16 @@ TradovateSocket.prototype.reconnect = function() {
     if (!this.isConnected()) {
         setTimeout(async() => {
         console.log('Attempting to reconnect...')
-        await renewAccessToken()
         if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
             console.log('Closing current connection...')
             this.ws.close(1000, 'Client initiated disconnect.')
         }
-
+        await renewAccessToken()
         const checkClosedAndReconnect = () => {
             if(this.ws.readyState === WebSocket.CLOSED) {
                 this.connect(this.ws.url).then(() => {
                     console.log('Reconnected to server.')
-                    
+                    this.resubscribe()
                 }).catch(console.error)
             } else {
                 setTimeout(checkClosedAndReconnect, 1000)
@@ -270,6 +270,14 @@ TradovateSocket.prototype.reconnect = function() {
         }, Math.pow(2, this.reconnectAttempts) * 1000)
         this.reconnectAttempts += 1
     }
+}
+
+TradovateSocket.prototype.resubscribe = function() {
+    console.log('Resubscribing to subscriptions...')
+    this.subscriptions.forEach(sub => {
+        console.log('Resubscribing to: ${sub.url} with body:', sub.body)
+        sub.subscription()
+    })
 }
 
 module.exports = { TradovateSocket }
