@@ -267,9 +267,8 @@ TradovateSocket.prototype.reconnect = function() {
             }
         }
         checkClosedAndReconnect()
-        this.reconnectAttempts += 1
         }, Math.pow(2, this.reconnectAttempts) * 1000)
-        
+        this.reconnectAttempts += 1
     }
 }
 
