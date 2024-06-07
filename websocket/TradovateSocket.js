@@ -2,6 +2,7 @@ const WebSocket = require('ws')
 const { writeToLog } = require('../utils/helpers')
 const { clear } = require('winston')
 const { renewAccessToken } = require('../endpoints/renewAccessToken')
+const { main } = require('../index')
 // const logger = require('../utils/logger')
 
 function Counter() {
@@ -58,6 +59,14 @@ TradovateSocket.prototype.request = function({url, query, body, callback, dispos
     if (this.ws.readyState === WebSocket.OPEN) {
         this.ws.send(`${url}\n${id}\n${query}\n${JSON.stringify(body)}`)
     } 
+
+    const subscription = () => {
+        if (this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(`${url}\n${id}\n${query}\n${JSON.stringify(body)}`)
+        }
+    }
+
+    this.subscriptions.push({ url, query, body, callback, disposer, subscription })
 
     return () => {
         if(disposer && typeof disposer === 'function'){
@@ -123,6 +132,7 @@ TradovateSocket.prototype.onSync = function(callback) {
 }
 TradovateSocket.prototype.setupHeartbeat = function() {
     const heartbeatInterval = 2500
+    clearInterval(this.heartbeatInterval)
     this.heartbeatInterval = setInterval(() => {
         if(this.isConnected()) {
             this.ws.send('[]')
@@ -242,34 +252,8 @@ TradovateSocket.prototype.reconnect = function() {
         console.log('Attempting to reconnect...')
         await renewAccessToken()
         await this.connect(this.ws.url).then(() => {
-            this.request({
-                url: 'user/syncrequest',
-                body: { accounts: [parseInt(process.env.ID, 10)] },
-                callback: (id, data) => {
-                    if(data.i === id) {
-                        console.log('Reconnected to server.')
-                    }
-                }
-            })
-            const currentSubscriptions = this.subscriptions.slice()
-            this.subscriptions.forEach(({ symbol, subscription }) => {
-                console.log(`Ue-subscribing to ${symbol}...`)
-                subscription()
-            })
-            this.subscriptions = []
-            currentSubscriptions.forEach(({ symbol, subscription }) => {
-                console.log(`Re-subscribing to ${symbol}...`)
-                subscription()
-            })
-            this.synchronize(() => {
-                console.log('Re-subscribed to all subscriptions.')
-            })
-            this.onSync(() => {
-                console.log('Re-synchronized with server.')
-            })
-            this.setupHeartbeat(
-                console.log('Reconnected to server, sending heartbeat.')
-            )
+            console.log('Reconnected to server.')
+            main(currentConfig)            
         }).catch(console.error)
         this.reconnectAttempts += 1
         }, Math.pow(2, this.reconnectAttempts) * 1000)
