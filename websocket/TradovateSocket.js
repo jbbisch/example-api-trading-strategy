@@ -251,10 +251,22 @@ TradovateSocket.prototype.reconnect = function() {
         setTimeout(async() => {
         console.log('Attempting to reconnect...')
         await renewAccessToken()
-        await this.connect(this.ws.url).then(() => {
-            console.log('Reconnected to server.')
-            main(currentConfig)            
-        }).catch(console.error)
+        if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
+            console.log('Closing current connection...')
+            this.ws.close(1000, 'Client initiated disconnect.')
+        }
+
+        const checkClosedAndReconnect = () => {
+            if(this.ws.readyState === WebSocket.CLOSED) {
+                this.connect(this.ws.url).then(() => {
+                    console.log('Reconnected to server.')
+                    main(currentConfig)
+                }).catch(console.error)
+            } else {
+                setTimeout(checkClosedAndReconnect, 1000)
+            }
+        }
+        checkClosedAndReconnect()
         this.reconnectAttempts += 1
         }, Math.pow(2, this.reconnectAttempts) * 1000)
         
