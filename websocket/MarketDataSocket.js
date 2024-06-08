@@ -183,7 +183,9 @@ MarketDataSocket.prototype.mdReconnect = function() {
             const checkClosedAndReconnect = () => {
                 if (this.ws.readyState === WebSocket.CLOSED) {
                     this.ws = getMdSocket(this.ws.url);  // Re-instantiate Market Data WebSocket
-                    this.connect(this.ws.url);  // Call connect function to handle authentication and event listeners
+                    this.connect(this.ws.url).then(() => {
+                        this.mdResubscribe();  // Resubscribe after reconnecting
+                    }).catch(console.error);
                 } else {
                     setTimeout(checkClosedAndReconnect, 1000);
                 }
@@ -193,6 +195,14 @@ MarketDataSocket.prototype.mdReconnect = function() {
         this.reconnectAttempts += 1;
     }
 };
+
+MarketDataSocket.prototype.mdResubscribe = function() {
+    console.log('Resubscribing to subscriptions...');
+    this.subscriptions.forEach(sub => {
+        console.log(`Resubscribing to: ${sub.url} with body:`, sub.body);
+        sub.subscription();
+    })
+}
 
 Array.prototype.tap = function(fn) {
     this.forEach(fn)
