@@ -265,7 +265,7 @@ TradovateSocket.prototype.reconnect = function() {
                         this.setupHeartbeat(); // Set up heartbeat
                         this.synchronize(() => {
                             console.log('Synchronization complete');
-                            this.resubscribe(); // Resubscribe to all previous subscriptions
+                            this.mdResubscribe(); // Resubscribe to all previous subscriptions
                         })
                     }
             } else {
@@ -280,21 +280,6 @@ TradovateSocket.prototype.reconnect = function() {
         }, Math.pow(2, this.reconnectAttempts) * 1000)
         this.reconnectAttempts += 1
     }
-}
-
-TradovateSocket.prototype.resubscribe = function() {
-    console.log('Resubscribing to subscriptions...')
-    this.subscriptions.forEach(sub => {
-        console.log('Resubscribing to: ${sub.url} with body:', sub.body)
-        sub.subscription()
-        // Reattach event listeners if necessary
-        this.ws.onmessage = (msg) => {
-            const [event, payload] = JSON.parse(msg.data);
-            if (event === 'crossover/draw') {
-                drawEffect(this.state, [event, payload]);
-            }
-        }
-    })
 }
 
 module.exports = { TradovateSocket }
