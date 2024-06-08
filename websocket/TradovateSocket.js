@@ -266,7 +266,8 @@ TradovateSocket.prototype.reconnect = function() {
                         this.synchronize(() => {
                             console.log('Synchronization complete');
                             this.resubscribe(); // Resubscribe to all previous subscriptions
-                }).catch(console.error)
+                        })
+                    }
             } else {
                 setTimeout(checkClosedAndReconnect, 1000)
             }
