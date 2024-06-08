@@ -275,7 +275,6 @@ TradovateSocket.prototype.reconnect = function() {
         
         if (this.mdSocket) {
             this.mdSocket.mdReconnect();  // Call mdReconnect to handle market data socket reconnection
-        }
         }, Math.pow(2, this.reconnectAttempts) * 1000)
         this.reconnectAttempts += 1
     }
