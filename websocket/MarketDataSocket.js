@@ -170,6 +170,30 @@ MarketDataSocket.prototype.disconnect = function() {
     TradovateSocket.prototype.disconnect.call(this)
 }
 
+MarketDataSocket.prototype.mdReconnect = function() {
+    if (!this.isConnected()) {
+        setTimeout(() => {
+            console.log('Attempting to reconnect market data socket...');
+
+            if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
+                console.log('Closing current market data connection...');
+                this.close();
+            }
+
+            const checkClosedAndReconnect = () => {
+                if (this.ws.readyState === WebSocket.CLOSED) {
+                    this.ws = getMdSocket(this.ws.url);  // Re-instantiate Market Data WebSocket
+                    this.connect(this.ws.url);  // Call connect function to handle authentication and event listeners
+                } else {
+                    setTimeout(checkClosedAndReconnect, 1000);
+                }
+            };
+            checkClosedAndReconnect();
+        }, Math.pow(2, this.reconnectAttempts) * 1000);
+        this.reconnectAttempts += 1;
+    }
+};
+
 Array.prototype.tap = function(fn) {
     this.forEach(fn)
     return this
