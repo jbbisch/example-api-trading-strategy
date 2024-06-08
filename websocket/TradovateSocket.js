@@ -2,7 +2,6 @@ const WebSocket = require('ws')
 const { writeToLog } = require('../utils/helpers')
 const { clear } = require('winston')
 const { renewAccessToken } = require('../endpoints/renewAccessToken')
-const { main } = require('../index')
 // const logger = require('../utils/logger')
 
 function Counter() {
@@ -49,7 +48,7 @@ TradovateSocket.prototype.request = function({url, query, body, callback, dispos
 
         if(data.length > 0) {
             data.forEach(item => {
-                console.log(item)
+                // console.log(item)
                 callback(id, item)
             })
         }
@@ -58,7 +57,6 @@ TradovateSocket.prototype.request = function({url, query, body, callback, dispos
     this.ws.addEventListener('message', resSubscription)
     if (this.ws.readyState === WebSocket.OPEN) {
         this.ws.send(`${url}\n${id}\n${query}\n${JSON.stringify(body)}`)
-        console.log(`Subscription sent to ${url} with body:`, body)
     } 
 
     const subscription = () => {
@@ -251,33 +249,50 @@ TradovateSocket.prototype.isConnected = function() {
 TradovateSocket.prototype.reconnect = function() {
     if (!this.isConnected()) {
         setTimeout(async() => {
-        console.log('Attempting to reconnect...')
-        await renewAccessToken()
+        console.log('[TsReconnect] Attempting to reconnect...')
         if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
-            console.log('Closing current connection...')
+            console.log('[TsReconnect] Closing current connection...')
             this.ws.close(1000, 'Client initiated disconnect.')
         }
+        await renewAccessToken()
         const checkClosedAndReconnect = () => {
             if(this.ws.readyState === WebSocket.CLOSED) {
-                this.ws = getSocket(this.ws.url); // Initialize new WebSocket connection
-                    this.ws.onopen = () => {
-                        console.log('Reconnected to server.');
-                        this.setupHeartbeat(); // Set up heartbeat
-                        this.synchronize(() => {
-                            console.log('Synchronization complete');
-                        })
-                    }
+                this.connect(this.ws.url).then(() => {
+                    console.log('[TsReconnect] Reconnected to server.')
+                    this.setupHeartbeat()
+                    console.log('[TsReconnect] Heartbeat setup.')
+                    this.synchronize()
+                    console.log('[TsReconnect] Synchronized with server.')
+                    this.resubscribe()
+                    console.log('[TsReconnect] Resubscribed to subscriptions.')
+                }).catch(console.error)
             } else {
                 setTimeout(checkClosedAndReconnect, 1000)
             }
         }
         checkClosedAndReconnect()
-        
         if (this.mdSocket) {
-            this.mdSocket.mdReconnect();  // Call mdReconnect to handle market data socket reconnection
+            this.mdSocket.mdReconnect()
+        }
         }, Math.pow(2, this.reconnectAttempts) * 1000)
         this.reconnectAttempts += 1
     }
+}
+
+
+TradovateSocket.prototype.resubscribe = function() {
+    console.log('[TsResubscribe] Resubscribing to subscriptions...')
+    this.subscriptions.forEach(sub => {
+        console.log('[TsResubscribe] Resubscribing to:', sub.url, 'with body:', sub.body)
+        sub.subscription()
+        // Reattach event listeners if necessary
+        this.ws.onmessage = (msg) => {
+            const [event, payload] = JSON.parse(msg.data);
+            if (event === 'crossover/draw') {
+                drawEffect(this.state, [event, payload]);
+            }
+        }
+    })
 }
 
 module.exports = { TradovateSocket }
