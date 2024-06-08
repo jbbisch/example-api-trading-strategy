@@ -197,10 +197,17 @@ MarketDataSocket.prototype.mdReconnect = function() {
 };
 
 MarketDataSocket.prototype.mdResubscribe = function() {
-    console.log('Resubscribing to subscriptions...');
+    console.log('Resubscribing to subscriptions...')
     this.subscriptions.forEach(sub => {
-        console.log(`Resubscribing to: ${sub.url} with body:`, sub.body);
-        sub.subscription();
+        console.log('Resubscribing to: ${sub.url} with body:', sub.body)
+        sub.subscription()
+        // Reattach event listeners if necessary
+        this.ws.onmessage = (msg) => {
+            const [event, payload] = JSON.parse(msg.data);
+            if (event === 'crossover/draw') {
+                drawEffect(this.state, [event, payload]);
+            }
+        }
     })
 }
 
