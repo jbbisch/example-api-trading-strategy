@@ -265,7 +265,6 @@ TradovateSocket.prototype.reconnect = function() {
                         this.setupHeartbeat(); // Set up heartbeat
                         this.synchronize(() => {
                             console.log('Synchronization complete');
-                            this.mdResubscribe(); // Resubscribe to all previous subscriptions
                         })
                     }
             } else {
