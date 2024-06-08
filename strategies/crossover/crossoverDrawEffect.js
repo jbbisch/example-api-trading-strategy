@@ -18,14 +18,12 @@ const drawEffect = (state, action) => {
             SHORTsma: shortSma.toFixed(2),
             LONGsma: longSma.toFixed(2),
             'p&l': position && position.netPos !== 0 && product 
-                ? `$${
-                    calculatePnL({
-                        price: buffer.last()?.price || buffer.last()?.price || 0, 
-                        contract,
-                        position,
-                        product,
-                    }).toFixed(2)
-                }` 
+                ? `$${calculatePnL({
+                    price: buffer.last()?.price || buffer.last()?.price || 0, 
+                    contract,
+                    position,
+                    product,
+                }).toFixed(2)}` 
                 : '$0.00',
             realizedPnL: `$${realizedPnL.toFixed(2)}`
         })    
