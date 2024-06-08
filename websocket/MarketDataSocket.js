@@ -173,10 +173,10 @@ MarketDataSocket.prototype.disconnect = function() {
 MarketDataSocket.prototype.mdReconnect = function() {
     if (!this.isConnected()) {
         setTimeout(() => {
-            console.log('Attempting to reconnect market data socket...');
+            console.log('[mdReconnect] Attempting to reconnect market data socket...');
 
             if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
-                console.log('Closing current market data connection...');
+                console.log('[mdReconnect] Closing current market data connection...');
                 this.close();
             }
 
@@ -197,9 +197,9 @@ MarketDataSocket.prototype.mdReconnect = function() {
 };
 
 MarketDataSocket.prototype.mdResubscribe = function() {
-    console.log('Resubscribing to subscriptions...')
+    console.log('[mdResubscribe] Resubscribing to subscriptions...')
     this.subscriptions.forEach(sub => {
-        console.log('Resubscribing to: ${sub.url} with body:', sub.body)
+        console.log('[mdResubscribe] Resubscribing to:', sub.url, 'with body:', sub.body)
         sub.subscription()
         // Reattach event listeners if necessary
         this.ws.onmessage = (msg) => {
