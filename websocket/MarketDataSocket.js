@@ -203,9 +203,18 @@ MarketDataSocket.prototype.mdResubscribe = function() {
         sub.subscription()
         // Reattach event listeners if necessary
         this.ws.onmessage = (msg) => {
-            const [event, payload] = JSON.parse(msg.data);
-            if (event === 'crossover/draw') {
-                drawEffect(this.state, [event, payload]);
+            try {
+                const messageData = msg.data
+                if (messageData.trim().startsWith('{') && messageData.trim().endsWith('}')) {
+                    const [event, payload] = JSON.parse(msg.data);
+                    if (event === 'crossover/draw') {
+                        drawEffect(this.state, [event, payload]);
+                    }
+                } else {
+                    console.log('[mdResubscribe] Message received invalid:', messageData)
+                }
+            } catch(error) {
+                console.error('[mdResubscribe] Error parsing message', error)
             }
         }
     })
