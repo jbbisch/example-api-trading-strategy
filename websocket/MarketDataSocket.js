@@ -170,7 +170,7 @@ MarketDataSocket.prototype.disconnect = function() {
     TradovateSocket.prototype.disconnect.call(this)
 }
 
-MarketDataSocket.prototype.mdReconnect = function() {
+MarketDataSocket.prototype.mdReconnect = async function() {
     if (!this.isConnected()) {
         setTimeout(() => {
             console.log('[mdReconnect] Attempting to reconnect market data socket...');
@@ -196,7 +196,7 @@ MarketDataSocket.prototype.mdReconnect = function() {
     }
 };
 
-MarketDataSocket.prototype.mdResubscribe = function() {
+MarketDataSocket.prototype.mdResubscribe = async function() {
     console.log('[mdResubscribe] Resubscribing to subscriptions...')
     this.subscriptions.forEach(sub => {
         console.log('[mdResubscribe] Resubscribing to:', sub.url, 'with body:', sub.body)
