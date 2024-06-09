@@ -1,3 +1,4 @@
+const { renewAccessToken } = require('../endpoints/renewAccessToken')
 const { BarsTransformer } = require('../utils/dataBuffer')
 const { TicksTransformer } = require('../utils/dataBuffer')
 const { TradovateSocket } = require('./TradovateSocket')
@@ -172,8 +173,9 @@ MarketDataSocket.prototype.disconnect = function() {
 
 MarketDataSocket.prototype.mdReconnect = async function() {
     if (!this.isConnected()) {
-        setTimeout(() => {
+        setTimeout(async() => {
             console.log('[mdReconnect] Attempting to reconnect market data socket...');
+            await renewAccessToken()
 
             if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
                 console.log('[mdReconnect] Closing current market data connection...');
@@ -182,9 +184,15 @@ MarketDataSocket.prototype.mdReconnect = async function() {
 
             const checkClosedAndReconnect = () => {
                 if (this.ws.readyState === WebSocket.CLOSED) {
-                    this.ws = getMdSocket(this.ws.url);  // Re-instantiate Market Data WebSocket
                     this.connect(this.ws.url).then(() => {
-                        this.mdResubscribe();  // Resubscribe after reconnecting
+                        console.log('[mdReconnect] Market data socket reconnected successfully.')
+                        this.synchronize(() => {
+                            console.log('[TsReconnect] Synchronized with server.')
+                        })
+                        this.mdResubscribe()  // Resubscribe after reconnecting
+                        console.log('[mdReconnect] Subscriptions resubscribed successfully.')
+                        this.setupHeartbeat()
+                        console.log('[mdReconnect] Heartbeat setup successfully.')
                     }).catch(console.error);
                 } else {
                     setTimeout(checkClosedAndReconnect, 1000);
