@@ -209,6 +209,8 @@ MarketDataSocket.prototype.mdResubscribe = function() {
                     const [event, payload] = JSON.parse(msg.data);
                     if (event === 'crossover/draw') {
                         drawEffect(this.state, [event, payload]);
+                    } else {
+                        console.log('[mdResubscribe] Unhandled event/payload:', event, payload);
                     }
                 } else {
                     console.log('[mdResubscribe] Message received invalid:', messageData)
