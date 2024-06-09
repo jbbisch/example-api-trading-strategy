@@ -263,8 +263,6 @@ TradovateSocket.prototype.reconnect = function() {
                     console.log('[TsReconnect] Heartbeat setup.')
                     this.synchronize()
                     console.log('[TsReconnect] Synchronized with server.')
-                    this.resubscribe()
-                    console.log('[TsReconnect] Resubscribed to subscriptions.')
                 }).catch(console.error)
             } else {
                 setTimeout(checkClosedAndReconnect, 1000)
@@ -277,22 +275,6 @@ TradovateSocket.prototype.reconnect = function() {
         }, Math.pow(2, this.reconnectAttempts) * 1000)
         this.reconnectAttempts += 1
     }
-}
-
-
-TradovateSocket.prototype.resubscribe = function() {
-    console.log('[TsResubscribe] Resubscribing to subscriptions...')
-    this.subscriptions.forEach(sub => {
-        console.log('[TsResubscribe] Resubscribing to:', sub.url, 'with body:', sub.body)
-        sub.subscription()
-        // Reattach event listeners if necessary
-        this.ws.onmessage = (msg) => {
-            const [event, payload] = JSON.parse(msg.data);
-            if (event === 'crossover/draw') {
-                drawEffect(this.state, [event, payload]);
-            }
-        }
-    })
 }
 
 module.exports = { TradovateSocket }
