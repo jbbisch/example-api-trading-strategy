@@ -261,8 +261,9 @@ TradovateSocket.prototype.reconnect = function() {
                     console.log('[TsReconnect] Reconnected to server.')
                     this.setupHeartbeat()
                     console.log('[TsReconnect] Heartbeat setup.')
-                    this.synchronize()
-                    console.log('[TsReconnect] Synchronized with server.')
+                    this.synchronize(() => {
+                        console.log('[TsReconnect] Synchronized with server.')
+                    })
                 }).catch(console.error)
             } else {
                 setTimeout(checkClosedAndReconnect, 1000)
