@@ -246,15 +246,15 @@ TradovateSocket.prototype.isConnected = function() {
 /**
  * Attempts to reconnect the WebSocket after an unexpected closure.
  */
-TradovateSocket.prototype.reconnect = function() {
+TradovateSocket.prototype.reconnect = async function() {
     if (!this.isConnected()) {
         setTimeout(async() => {
         console.log('[TsReconnect] Attempting to reconnect...')
+        await renewAccessToken()
         if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
             console.log('[TsReconnect] Closing current connection...')
             this.ws.close(1000, 'Client initiated disconnect.')
         }
-        await renewAccessToken()
         const checkClosedAndReconnect = () => {
             if(this.ws.readyState === WebSocket.CLOSED) {
                 this.connect(this.ws.url).then(() => {
@@ -263,6 +263,7 @@ TradovateSocket.prototype.reconnect = function() {
                     console.log('[TsReconnect] Heartbeat setup.')
                     this.synchronize(() => {
                         console.log('[TsReconnect] Synchronized with server.')
+                        this.mdReconnect()
                     })
                 }).catch(console.error)
             } else {
