@@ -251,29 +251,27 @@ TradovateSocket.prototype.reconnect = async function() {
         setTimeout(async() => {
         console.log('[TsReconnect] Attempting to reconnect...')
         await renewAccessToken()
+        console.log('[tsReconnect-renewAccessToken] Token successfully renewed.')
         if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
             console.log('[TsReconnect] Closing current connection...')
             this.ws.close(1000, '[TsReconnect] Client initiated disconnect.')
         }
         const checkClosedAndReconnect = () => {
             if(this.ws.readyState === WebSocket.CLOSED) {
-                this.connect(this.ws.url).then(() => {
+                this.connect(this.url).then(() => {
                     console.log('[TsReconnect] Reconnected to server.')
-                    this.synchronize(() => {
-                        console.log('[TsReconnect] Synchronized with server.')
-                        if (this.mdSocket) {
-                            this.mdReconnect()
-                        }
-                    })
                     this.setupHeartbeat()
                     console.log('[TsReconnect] Heartbeat setup.')
+                    this.synchronize(() => {
+                        console.log('[TsReconnect] Synchronized with server.')
+                    })
+                    
                 }).catch(console.error)
             } else {
                 setTimeout(checkClosedAndReconnect, 1000)
             }
         }
-        checkClosedAndReconnect()
-        }, Math.pow(2, this.reconnectAttempts) * 1000)
+        },Math.pow(2, this.reconnectAttempts) * 1000)
         this.reconnectAttempts += 1
     }
 }
