@@ -2,7 +2,6 @@ const WebSocket = require('ws')
 const { writeToLog } = require('../utils/helpers')
 const { clear } = require('winston')
 const { renewAccessToken } = require('../endpoints/renewAccessToken')
-const { strategy } = require("./strategies/strategy/strategy")
 // const logger = require('../utils/logger')
 
 function Counter() {
@@ -250,23 +249,28 @@ TradovateSocket.prototype.isConnected = function() {
 TradovateSocket.prototype.reconnect = async function() {
     if (!this.isConnected()) {
         setTimeout(async() => {
-        console.log('[TsReconnect] Attempting to reconnect...')
-        await renewAccessToken()
-        console.log('[tsReconnect-renewAccessToken] Token successfully renewed.')
-        if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
-            console.log('[TsReconnect] Closing current connection...')
-            this.ws.close(1000, '[TsReconnect] Client initiated disconnect.')
-        }
-        const checkClosedAndReconnect = () => {
-            if(this.ws.readyState === WebSocket.CLOSED) {
-                this.connect(this.url).then(() => {
-                    console.log('[TsReconnect] Reconnected to server.')
-                    Strategy.init()
-                }).catch(console.error)
-            } else {
-                setTimeout(checkClosedAndReconnect, 1000)
+            console.log('[TsReconnect] Attempting to reconnect...')
+            await renewAccessToken()
+            console.log('[tsReconnect-renewAccessToken] Token successfully renewed.')
+            if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
+                console.log('[TsReconnect] Closing current connection...')
+                this.ws.close(1000, '[TsReconnect] Client initiated disconnect.')
             }
-        }
+            const reconnectAttempt = async () => {
+                if(this.ws.readyState === WebSocket.CLOSED) {
+                    try {
+                        await this.connect(this.url)
+                        console.log('[TsReconnect] Reconnected to server.')
+                        await Strategy.init()
+                        console.log('[TsReconnect] Strategy initialized.')
+                    } catch(error) {
+                        console.error('[TsReconnect] Error initializing strategy:', error)
+                    }
+                } else {
+                    setTimeout(reconnectAttempt, 1000)
+                }
+            }
+            reconnectAttempt()
         },Math.pow(2, this.reconnectAttempts) * 1000)
         this.reconnectAttempts += 1
     }
