@@ -259,9 +259,10 @@ TradovateSocket.prototype.reconnect = async function() {
             const reconnectAttempt = async () => {
                 if(this.ws.readyState === WebSocket.CLOSED) {
                     try {
-                        await this.connect(this.url)
+                        console.log('[TsReconnect] Connecting to URL:', this.ws.url)
+                        await this.connect(this.ws.url)
                         console.log('[TsReconnect] Reconnected to server.')
-                        await Strategy.init()
+                        await Strategy.init(props)
                         console.log('[TsReconnect] Strategy initialized.')
                     } catch(error) {
                         console.error('[TsReconnect] Error initializing strategy:', error)
