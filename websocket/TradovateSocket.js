@@ -260,12 +260,7 @@ TradovateSocket.prototype.reconnect = async function() {
             if(this.ws.readyState === WebSocket.CLOSED) {
                 this.connect(this.url).then(() => {
                     console.log('[TsReconnect] Reconnected to server.')
-                    this.synchronize(() => {
-                        console.log('[TsReconnect] Synchronized with server.')
-                        Strategy.init()
-                    })
-                    this.setupHeartbeat()
-                    console.log('[TsReconnect] Heartbeat setup.')
+                    Strategy.init()
                 }).catch(console.error)
             } else {
                 setTimeout(checkClosedAndReconnect, 1000)
