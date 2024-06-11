@@ -264,26 +264,26 @@ TradovateSocket.prototype.reconnect = async function() {
                         console.log('[TsReconnect] Reconnected to server.')
                         this.subscriptions.forEach(sub => sub.subscription())
                         console.log('[TsReconnect] Resubscribed to data.')
+                        // Reattach event listeners if necessary
+                        this.ws.onmessage = (msg) => {
+                            try {
+                                const messageData = msg.data
+                                if (messageData.trim().startsWith('{') && messageData.trim().endsWith('}')) {
+                                    const [event, payload] = JSON.parse(msg.data);
+                                    if (event === 'crossover/draw') {
+                                        drawEffect(this.state, [event, payload]);
+                                    } else {
+                                        console.log('[mdResubscribe] Unhandled event/payload:', event, payload);
+                                    }
+                                } else {
+                                    console.log('[mdResubscribe] Message received invalid:', messageData)
+                                }
+                            } catch(error) {
+                                console.error('[mdResubscribe] Error parsing message', error)
+                            }
+                        }
                     } catch(error) {
                         console.error('[TsReconnect] Error subscribing to data:', error)
-                    }
-                    // Reattach event listeners if necessary
-                    this.ws.onmessage = (msg) => {
-                        try {
-                            const messageData = msg.data
-                            if (messageData.trim().startsWith('{') && messageData.trim().endsWith('}')) {
-                                const [event, payload] = JSON.parse(msg.data);
-                                if (event === 'crossover/draw') {
-                                    drawEffect(this.state, [event, payload]);
-                                } else {
-                                    console.log('[mdResubscribe] Unhandled event/payload:', event, payload);
-                                }
-                            } else {
-                                console.log('[mdResubscribe] Message received invalid:', messageData)
-                            }
-                        } catch(error) {
-                            console.error('[mdResubscribe] Error parsing message', error)
-                        }
                     }
                 } else {
                     setTimeout(reconnectAttempt, 1000)
