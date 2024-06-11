@@ -262,10 +262,28 @@ TradovateSocket.prototype.reconnect = async function() {
                         console.log('[TsReconnect] Connecting to URL:', this.ws.url)
                         await this.connect(this.ws.url)
                         console.log('[TsReconnect] Reconnected to server.')
-                        await Strategy.init(props)
-                        console.log('[TsReconnect] Strategy initialized.')
+                        this.subscriptions.forEach(sub => sub.subscription())
+                        console.log('[TsReconnect] Resubscribed to data.')
                     } catch(error) {
-                        console.error('[TsReconnect] Error initializing strategy:', error)
+                        console.error('[TsReconnect] Error subscribing to data:', error)
+                    }
+                    // Reattach event listeners if necessary
+                    this.ws.onmessage = (msg) => {
+                        try {
+                            const messageData = msg.data
+                            if (messageData.trim().startsWith('{') && messageData.trim().endsWith('}')) {
+                                const [event, payload] = JSON.parse(msg.data);
+                                if (event === 'crossover/draw') {
+                                    drawEffect(this.state, [event, payload]);
+                                } else {
+                                    console.log('[mdResubscribe] Unhandled event/payload:', event, payload);
+                                }
+                            } else {
+                                console.log('[mdResubscribe] Message received invalid:', messageData)
+                            }
+                        } catch(error) {
+                            console.error('[mdResubscribe] Error parsing message', error)
+                        }
                     }
                 } else {
                     setTimeout(reconnectAttempt, 1000)
