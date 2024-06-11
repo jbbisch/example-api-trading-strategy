@@ -264,6 +264,9 @@ TradovateSocket.prototype.reconnect = async function() {
                         console.log('[TsReconnect] Reconnected to server.')
                         this.subscriptions.forEach(sub => sub.subscription())
                         console.log('[TsReconnect] Resubscribed to data.')
+                        this.synchronize(callback => {
+                            console.log('[TsReconnect] Synchronized data:', callback)
+                        })
                         // Reattach event listeners if necessary
                         this.ws.onmessage = (msg) => {
                             try {
