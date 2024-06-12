@@ -264,6 +264,15 @@ TradovateSocket.prototype.reconnect = async function() {
                         console.log('[TsReconnect] Reconnected to server.')
                         this.subscriptions.forEach(sub => sub.subscription())
                         console.log('[TsReconnect] Resubscribed to data.')
+                        if (!storedParams) {
+                            console.error('[AutoTrade]: Missing initial configuration parameters.');
+                            return;
+                        } else {
+                            const StrategyType = ALL_STRATEGIES.find(s => s.name === storedParams.strategyName);
+                            const strategy = new StrategyType(storedParams);
+                            await resubscribe(strategy); // Resubscribe to necessary endpoints
+                            strategy.init(); // Initialize the strategy
+                        }
                         this.synchronize(data => {
                             console.log('[TsReconnect] Synchronized with server.')
                             this.onSync()
