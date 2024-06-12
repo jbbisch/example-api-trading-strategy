@@ -246,7 +246,7 @@ TradovateSocket.prototype.isConnected = function() {
 /**
  * Attempts to reconnect the WebSocket after an unexpected closure.
  */
-TradovateSocket.prototype.reconnect = async function() {
+TradovateSocket.prototype.reconnect = async function(ALL_STRATEGIES, storedParams) {
     if (!this.isConnected()) {
         setTimeout(async() => {
             console.log('[TsReconnect] Attempting to reconnect...')
