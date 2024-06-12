@@ -264,8 +264,6 @@ TradovateSocket.prototype.reconnect = async function(concreteStrategy) {
                         console.log('[TsReconnect] Reconnected to server.')
                         this.subscriptions.forEach(sub => sub.subscription())
                         console.log('[TsReconnect] Resubscribed to data.')
-                        strategy.init(concreteStrategy); // Initialize the strategy
-                        console.log('[TsReconnect] Strategy initialized.')
                         this.synchronize(data => {
                             console.log('[TsReconnect] Synchronized with server.')
                             this.onSync()
