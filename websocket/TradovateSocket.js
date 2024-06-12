@@ -246,7 +246,7 @@ TradovateSocket.prototype.isConnected = function() {
 /**
  * Attempts to reconnect the WebSocket after an unexpected closure.
  */
-TradovateSocket.prototype.reconnect = async function(ALL_STRATEGIES, storedParams) {
+TradovateSocket.prototype.reconnect = async function(concreteStrategy) {
     if (!this.isConnected()) {
         setTimeout(async() => {
             console.log('[TsReconnect] Attempting to reconnect...')
@@ -264,15 +264,8 @@ TradovateSocket.prototype.reconnect = async function(ALL_STRATEGIES, storedParam
                         console.log('[TsReconnect] Reconnected to server.')
                         this.subscriptions.forEach(sub => sub.subscription())
                         console.log('[TsReconnect] Resubscribed to data.')
-                        if (!storedParams) {
-                            console.error('[AutoTrade]: Missing initial configuration parameters.');
-                            return;
-                        } else {
-                            const StrategyType = ALL_STRATEGIES.find(s => s.name === storedParams.strategyName);
-                            const strategy = new StrategyType(storedParams);
-                            await resubscribe(strategy); // Resubscribe to necessary endpoints
-                            strategy.init(); // Initialize the strategy
-                        }
+                        strategy.init(concreteStrategy); // Initialize the strategy
+                        console.log('[TsReconnect] Strategy initialized.')
                         this.synchronize(data => {
                             console.log('[TsReconnect] Synchronized with server.')
                             this.onSync()
