@@ -62,7 +62,7 @@ TradovateSocket.prototype.request = function({url, query, body, callback, dispos
     const subscription = () => {
         if (this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(`${url}\n${id}\n${query}\n${JSON.stringify(body)}`)
-            console.log('resubscribing to: ' + url, 'with body:', body)
+            console.log('[tsRequest] resubscribing to: ' + url, 'with body:', body)
         }
     }
 
@@ -246,7 +246,7 @@ TradovateSocket.prototype.isConnected = function() {
 /**
  * Attempts to reconnect the WebSocket after an unexpected closure.
  */
-TradovateSocket.prototype.reconnect = async function(concreteStrategy) {
+TradovateSocket.prototype.reconnect = async function() {
     if (!this.isConnected()) {
         setTimeout(async() => {
             console.log('[TsReconnect] Attempting to reconnect...')
@@ -262,11 +262,13 @@ TradovateSocket.prototype.reconnect = async function(concreteStrategy) {
                         console.log('[TsReconnect] Connecting to URL:', this.ws.url)
                         await this.connect(this.ws.url)
                         console.log('[TsReconnect] Reconnected to server.')
+                        this.Strategy.init(concreteStrategy, this.state, this.props)
+                        console.log('[TsReconnect] Initialized strategy.')
                         this.subscriptions.forEach(sub => sub.subscription())
                         console.log('[TsReconnect] Resubscribed to data.')
                         this.synchronize(data => {
                             console.log('[TsReconnect] Synchronized with server.')
-                            this.onSync()
+                            this.onSync(data)
                             console.log('[TsReconnect] Subscribed to sync events.')
                         })
                         // Reattach event listeners if necessary
