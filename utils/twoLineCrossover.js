@@ -10,6 +10,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const distance = shortSma - longSma
         const currentPrice = newData[newData.length - 1].close || newData[newData.length - 1].price
 
+        const momentum = (shortSma - prevState.shortSma) / shortSma
+        
         const positiveCrossover = (prevState.distance <= -0.17 && distance > -0.17) || (prevState.shortSma <= prevState.longSma && distance > 0.00) || (prevState.distance > 0.00 && distance < 1.50 && (shortSma - prevState.shortSma) > 0.15) // EarlyBuy, TrueCrossOver, PositiveBounce
         const negativeCrossover = (prevState.distance >= -0.17 && distance < -0.17) || (prevState.shortSma >= prevState.longSma && distance < 0.00) || (distance < 1.50 && (distance - prevState.distance) < -0.33) || (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00) // NegativeBounce, TrueCrossUnder, EarlySell
         
@@ -19,9 +21,10 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             distance: distance,
             positiveCrossover: positiveCrossover,
             negativeCrossover: negativeCrossover,
+            momentum: momentum,
         }         
 
-        console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover)
+        console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover, ' Momentum: ', next.momentum)
 
         nextTLC.state = next
 
@@ -35,6 +38,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             distance: 0,
             positiveCrossover: false,
             negativeCrossover: false,
+            momentum: 0,
         }
     }
 
