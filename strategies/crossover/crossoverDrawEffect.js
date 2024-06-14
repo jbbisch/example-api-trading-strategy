@@ -15,7 +15,7 @@ const drawEffect = (state, action) => {
             contract: contract.name,      
             netPos: position?.netPos || 0,
             Distance: distance.toFixed(2),
-            Momentum: momentum.toFixed(4),
+            Momentum: momentum.toFixed(8),
             SHORTsma: shortSma.toFixed(2),
             LONGsma: longSma.toFixed(2),
             'p&l': position && position.netPos !== 0 && product 
