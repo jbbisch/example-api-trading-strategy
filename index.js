@@ -59,7 +59,7 @@ const ALL_STRATEGIES = {
 //    }
 // ]
 
-let storedParams = null
+let Strategy = null
 
 /**
  * Program entry point.
@@ -101,7 +101,6 @@ async function main() {
     // }
     
         const Strategy = await configureRobot(ALL_STRATEGIES)
-        storedParams = Strategy.params
         Strategy.init()
     } catch (error) {
         logger.error({message: error.message, stack: error.stack, error})
@@ -143,3 +142,5 @@ async function main() {
 }
 
 main()
+
+module.exports = { Strategy }
