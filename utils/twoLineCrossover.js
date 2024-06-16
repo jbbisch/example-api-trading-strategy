@@ -1,6 +1,6 @@
 const { calculateSma } = require("./helpers")
 
-module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
+module.exports = function twoLineCrossover(shortPeriod, longPeriod, distanceThreshold, smaChangeThreshold) {
     function nextTLC(prevState, data) {
         const { timestamp, open, high, low, close } = data
         const newData = data.sort((a, b) => a.timestamp - b.timestamp)
@@ -10,15 +10,29 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const distance = shortSma - longSma
         const currentPrice = newData[newData.length - 1].close || newData[newData.length - 1].price
 
-        const positiveCrossover = (prevState.distance <= -0.17 && distance > -0.17) || (prevState.shortSma <= prevState.longSma && distance > 0.00) || (prevState.distance > 0.00 && distance < 1.50 && (shortSma - prevState.shortSma) > 0.15)
-        const negativeCrossover = (prevState.distance >= -0.17 && distance < -0.17) || (prevState.shortSma >= prevState.longSma && distance < 0.00) || (distance < 1.50 && (distance - prevState.distance) < -0.33) || (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00)
-        
-        // Calculate momentum over the last 4 periods plus the current period
         const updatedShortSmaValues = [...prevState.shortSmaValues.slice(1), shortSma]
         const momentum = updatedShortSmaValues.reduce((sum, value, index, arr) => {
             if (index === 0) return sum
             return sum + (value - arr[index - 1]) / arr[index - 1]
         }, 0) / (updatedShortSmaValues.length - 1)
+
+        const updatedDistanceValues = [...prevState.distanceValues.slice(1), distance]
+        const distanceMomentum = updatedDistanceValues.reduce((sum, value, index, arr) => {
+            if (index === 0) return sum
+            return sum + (value - arr[index - 1]) / arr[index - 1]
+        }, 0) / (updatedDistanceValues.length - 1)
+
+        // Determine continuous drops in distance
+        const distanceDrops = prevState.distanceDrops + (distance < prevState.distance ? 1 : -prevState.distanceDrops)
+        const continuousDrops = distanceDrops >= 3
+
+        // Determine if short SMA changes stop exceeding a positive threshold
+        const smaChange = Math.abs(shortSma - prevState.shortSma)
+        const stopsExceedingThreshold = smaChange <= smaChangeThreshold
+
+        // Crossover signals
+        const positiveCrossover = continuousDrops && stopsExceedingThreshold
+        const negativeCrossover = (momentum < 0 && distance < distanceThreshold)
 
         const next = {
             shortSma: shortSma,
@@ -27,10 +41,13 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             positiveCrossover: positiveCrossover,
             negativeCrossover: negativeCrossover,
             momentum: momentum,
+            distanceMomentum: distanceMomentum,
             shortSmaValues: updatedShortSmaValues,
+            distanceValues: updatedDistanceValues,
+            distanceDrops: distanceDrops
         }
 
-        console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover, ' Momentum: ', next.momentum)
+        console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover, ' Momentum: ', next.momentum, ' Distance Momentum: ', next.distanceMomentum)
 
         nextTLC.state = next
 
@@ -45,7 +62,10 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             positiveCrossover: false,
             negativeCrossover: false,
             momentum: 0,
+            distanceMomentum: 0,
             shortSmaValues: Array(5).fill(0), // Initialize with an array of 5 zeros
+            distanceValues: Array(5).fill(0), // Initialize with an array of 5 zeros
+            distanceDrops: 0
         }
     }
 
