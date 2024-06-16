@@ -1,6 +1,6 @@
 const { calculateSma } = require("./helpers")
 
-module.exports = function twoLineCrossover(shortPeriod, longPeriod, distanceThreshold, smaChangeThreshold) {
+module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
     function nextTLC(prevState, data) {
         const { timestamp, open, high, low, close } = data
         const newData = data.sort((a, b) => a.timestamp - b.timestamp)
@@ -10,6 +10,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod, distanceThre
         const distance = shortSma - longSma
         const currentPrice = newData[newData.length - 1].close || newData[newData.length - 1].price
 
+        // Calculate momentum over the last 4 periods plus the current period
         const updatedShortSmaValues = [...prevState.shortSmaValues.slice(1), shortSma]
         const momentum = updatedShortSmaValues.reduce((sum, value, index, arr) => {
             if (index === 0) return sum
@@ -26,13 +27,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod, distanceThre
         const distanceDrops = prevState.distanceDrops + (distance < prevState.distance ? 1 : -prevState.distanceDrops)
         const continuousDrops = distanceDrops >= 3
 
-        // Determine if short SMA changes stop exceeding a positive threshold
-        const smaChange = Math.abs(shortSma - prevState.shortSma)
-        const stopsExceedingThreshold = smaChange <= smaChangeThreshold
-
-        // Crossover signals
-        const positiveCrossover = continuousDrops && stopsExceedingThreshold
-        const negativeCrossover = (momentum < 0 && distance < distanceThreshold)
+        const positiveCrossover = (prevState.distance <= -0.17 && distance > -0.17) || (prevState.shortSma <= prevState.longSma && distance > 0.00) || (prevState.distance > 0.00 && distance < 1.50 && (shortSma - prevState.shortSma) > 0.15)
+        const negativeCrossover = (prevState.distance >= -0.17 && distance < -0.17) || (prevState.shortSma >= prevState.longSma && distance < 0.00) || (distance < 1.50 && (distance - prevState.distance) < -0.33) || (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00)
 
         const next = {
             shortSma: shortSma,
