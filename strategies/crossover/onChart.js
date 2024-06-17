@@ -31,10 +31,10 @@ const onChart = (prevState, {data, props}) => {
     const minutes = now.getMinutes()
     const seconds = now.getSeconds()
 
-    if(minutes % 5 !== 0 || seconds > 10 ) { 
+    if(minutes % 5 !== 0 || seconds > 20 ) { 
         console.log('[onChart] Not a 5 minute interval - skip processing')
         return { state: prevState, effects: [] }
-    } // 10 second window on every 5th minute interval to update SMA and place order
+    } // 20 second window on every 5th minute interval to update SMA and place order
       // allows for delay in data feed and tries to avoid false signals
         
     const lastTlc = tlc.state
