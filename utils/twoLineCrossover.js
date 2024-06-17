@@ -14,13 +14,13 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const updatedShortSmaValues = [...prevState.shortSmaValues.slice(1), shortSma]
         const momentum = updatedShortSmaValues.reduce((sum, value, index, arr) => {
             if (index === 0) return sum
-            return sum + (value - arr[index - 1]) / arr[index - 1]
+            return sum + (arr[index - 1] !== 0 ? (value - arr[index - 1]) / arr[index - 1] : 0)
         }, 0) / (updatedShortSmaValues.length - 1)
 
         const updatedDistanceValues = [...prevState.distanceValues.slice(1), distance]
         const distanceMomentum = updatedDistanceValues.reduce((sum, value, index, arr) => {
             if (index === 0) return sum
-            return sum + (value - arr[index - 1]) / arr[index - 1]
+            return sum + (arr[index - 1] !== 0 ? (value - arr[index - 1]) / arr[index - 1] : 0)
         }, 0) / (updatedDistanceValues.length - 1)
 
         // Determine continuous drops in distance
