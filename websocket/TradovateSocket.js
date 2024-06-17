@@ -20,6 +20,7 @@ function TradovateSocket() {
     this.counter = new Counter()
     this.reconnectAttempts = 0
     this.subscriptions = []
+    this.strategy = null
 }
 
 TradovateSocket.prototype.getSocket = function() {
@@ -157,7 +158,7 @@ TradovateSocket.prototype.connect = async function(url) {
             return
         }
         this.ws.addEventListener('open', () => {
-            console.log('Websocket connection opened. Sending auth request...')
+            console.log('[ConnectOpenEvent] Websocket connection opened. Sending auth request...')
             this.ws.send(`authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
             this.reconnectAttempts = 0
             this.setupHeartbeat()
@@ -165,7 +166,7 @@ TradovateSocket.prototype.connect = async function(url) {
         })
 
         this.ws.addEventListener('error', err => {
-            console.error('(onError) Websocket error: ' + err)
+            console.error('[ConnectErrorEvent] Websocket error: ' + err)
             clearInterval(this.heartbeatInterval)
             this.reconnect()
             this.reconnectAttempts += 1
@@ -173,7 +174,7 @@ TradovateSocket.prototype.connect = async function(url) {
         })
 
         this.ws.addEventListener('close', event => {
-            console.warn(`WebSocket closed with code: ${event.code}, reason: ${event.reason}`)
+            console.warn(`[ConnectCloseEvent] WebSocket closed with code: ${event.code}, reason: ${event.reason}`)
             clearInterval(this.heartbeatInterval) // Clear the heartbeat interval on close
             if(event.code !== 1000) { // Non-normal closure should try to reconnect
                 console.log('(onClose) Attempting to reconnect...')
@@ -266,9 +267,10 @@ TradovateSocket.prototype.reconnect = async function() {
                         this.subscriptions.forEach(sub => sub.subscription())
                         console.log('[TsReconnect] Resubscribed to data.')
                         
-                        if (Strategy) {
-                            Strategy.init()
-                            console.log('[TsReconnect] Initialized strategy.')
+                        if (this.strategy) {
+                            const strategyProps = this.strategy.props
+                            this.strategy = new this.strategy.constructor(strategyProps)
+                            console.log('[TsReconnect] Initialized strategy: ', this.strategy.constructor.name)
                         } else {
                             console.log('[TsReconnect] No strategy to initialize.')
                         }
