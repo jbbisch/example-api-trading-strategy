@@ -8,17 +8,19 @@ const drawEffect = (state, action) => {
         const { props } = payload
         const { contract } = props
         const { product, position, mode, buffer, tlc, realizedPnL } = state
-        const { distance, shortSma, longSma, momentum, shortSmaValues } = tlc.state  
+        const { distance, shortSma, longSma, momentum, shortSmaValues,distanceMomentum, distanceValues } = tlc.state  
 
         drawToConsole({
             mode,
             contract: contract.name,      
             netPos: position?.netPos || 0,
             Distance: distance.toFixed(2),
-            SHORTsma: shortSma.toFixed(2),
-            LONGsma: longSma.toFixed(2),
+            DistanceMomentum: distanceMomentum.toFixed(8),
+            'Distance Values': distanceValues.map(value => value.toFixed(2)).join(', '),
             Momentum: momentum.toFixed(8),
             'Short SMA Values': shortSmaValues.map(value => value.toFixed(2)).join(', '),
+            SHORTsma: shortSma.toFixed(2),
+            LONGsma: longSma.toFixed(2),
             'p&l': position && position.netPos !== 0 && product 
                 ? `$${calculatePnL({
                     price: buffer.last()?.price || buffer.last()?.price || 0, 
