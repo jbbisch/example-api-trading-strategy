@@ -30,8 +30,13 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const momentumPeak = prevState.momentum > prevState.prevMomentum && momentum < prevState.momentum
         const distancePeak = prevState.distanceMomentum > prevState.prevDistanceMomentum && distanceMomentum < prevState.distanceMomentum
 
+        const updatedMomentumPeak = [...prevState.momentumPeak.slice(1), momentumPeak]
+        if (updatedMomentumPeak.length > 10) updatedMomentumPeak.shift()
+        const updatedDistancePeak = [...prevState.distancePeak.slice(1), distancePeak]
+        if (updatedDistancePeak.length > 10) updatedDistancePeak.shift()
+
         const positiveCrossover = (prevState.distance <= -0.17 && distance > -0.17) || (prevState.shortSma <= prevState.longSma && distance > 0.00) || (prevState.distance > 0.00 && distance < 1.50 && (shortSma - prevState.shortSma) > 0.15)
-        const negativeCrossover = (prevState.distance >= -0.17 && distance < -0.17) || (prevState.shortSma >= prevState.longSma && distance < 0.00) || (distance < 1.50 && (distance - prevState.distance) < -0.33) || (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00)
+        const negativeCrossover = (prevState.distance >= -0.17 && distance < -0.17) || (prevState.shortSma >= prevState.longSma && distance < 0.00) || (prevState.distance > 60 && distance < 77) || (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00)
 
         const next = {
             shortSma: shortSma,
@@ -48,9 +53,11 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             prevDistanceMomentum: prevState.distanceMomentum,
             momentumPeak: momentumPeak,
             distancePeak: distancePeak,
+            updatedMomentumPeak: updatedMomentumPeak,
+            updatedDistancePeak: updatedDistancePeak,
         }
 
-        console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover, ' Momentum: ', next.momentum, ' Distance Momentum: ', next.distanceMomentum, 'MomentumPeak: ', next.momentumPeak, 'DistancePeak: ', next.distancePeak)
+        console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover, ' Momentum: ', next.momentum, ' Distance Momentum: ', next.distanceMomentum, 'MomentumPeak: ', next.momentumPeak, 'DistancePeak: ', next.distancePeak, 'Updated Momentum Peak: ', next.updatedMomentumPeak, 'Updated Distance Peak: ', next.updatedDistancePeak)
 
         nextTLC.state = next
 
@@ -73,6 +80,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             prevDistanceMomentum: 0,
             momentumPeak: false,
             distancePeak: false,
+            updatedMomentumPeak: Array(10).fill(false), // Initialize with an array of 10 falses
+            updatedDistancePeak: Array(10).fill(false), // Initialize with an array of 10 falses
         }
     }
 
