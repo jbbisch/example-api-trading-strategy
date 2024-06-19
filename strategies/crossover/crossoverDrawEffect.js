@@ -10,6 +10,13 @@ const drawEffect = (state, action) => {
         const { product, position, mode, buffer, tlc, realizedPnL, buyDistance, sellDistance } = state
         const { distance, shortSma, longSma, momentum, shortSmaValues,distanceMomentum, distanceValues, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak } = tlc.state  
 
+        const formatDistanceArray = (distanceArray) => {
+            return distanceArray && distanceArray.length > 0 ? distanceArray.map(item => `Time: ${item.time.toISOString()}, Distance: ${item.distance !== undefined ? item.distance.toFixed(2) : 'N/A'}`).join(', ') : 'No Distance'
+        }
+
+        const formattedBuyDistance = formatDistanceArray(buyDistance)
+        const formattedSellDistance = formatDistanceArray(sellDistance)
+
         drawToConsole({
             mode,
             contract: contract.name,      
@@ -30,8 +37,8 @@ const drawEffect = (state, action) => {
                 }).toFixed(2)}` 
                 : '$0.00',
             realizedPnL: `$${realizedPnL.toFixed(2)}`,
-            buyDistance: buyDistance.map(item => `Time: ${item.time.toISOString()}, Distance: ${item.distance.toFixed(2)}`).join(', '),
-            sellDistance: sellDistance.map(item => `Time: ${item.time.toISOString()}, Distance: ${item.distance.toFixed(2)}`).join(', '),
+            buyDistance: formattedBuyDistance,
+            sellDistance: formattedSellDistance,
         })    
     }
 
