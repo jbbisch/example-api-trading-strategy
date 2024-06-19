@@ -7,7 +7,7 @@ const maxPosition = 1 // 1 contract
 
 const onChart = (prevState, {data, props}) => {
     
-    const { mode, buffer, tlc, position } = prevState
+    const { mode, buffer, tlc, position, buyDistance, sellDistance } = prevState
     const { contract, orderQuantity } = props
 
     buffer.push(data)        
@@ -53,6 +53,18 @@ const onChart = (prevState, {data, props}) => {
         profitTarget: 100, //round_s(-variance/1.33), // 200 (for tick count)
         stopLoss: -40, //round_s(variance/5), //-80 (for tick count)
         trailingStop: false //true //false?
+    }
+
+    const trackDistance = (distanceArray, distance) => {
+        if (distance !== undefined) {
+            distanceArray.push({
+                time: now,
+                distance: distance
+            })
+            console.log('[onChart] distanceArray:', distanceArray)
+        } else {
+            console.log('[onChart] distance is undefined')
+        }
     }
 
     const entryVersion = {
@@ -178,11 +190,13 @@ const onChart = (prevState, {data, props}) => {
                 orderQty: 1,
                 orderType: "Market"
             }).then(response => {
+                trackDistance(sellDistance, prevState.distance, distance),
                 console.log('[onChart] response 2:', response)
                 return {
                     state: {
                         ...prevState,
                         mode: LongShortMode.Short,
+                        sellDistance,
                     },
                     effects: [
                         // FOR WEBSOCKET Liquidates any existing position
@@ -228,11 +242,13 @@ const onChart = (prevState, {data, props}) => {
                 orderQty: 1,
                 orderType: "Market"
             }).then(response => {
+                trackDistance(buyDistance, prevState.distance, distance),
                 console.log('[onChart] response 3:', response)
                 return {
                     state: {
                         ...prevState,
                         mode: LongShortMode.Long,
+                        buyDistance,
                     },
                     effects: [
                         // FOR WEBSOCKET
