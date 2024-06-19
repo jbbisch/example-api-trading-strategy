@@ -34,7 +34,9 @@ class CrossoverStrategy extends Strategy {
             //hlv:        highLowVariance(20),
             product:    null,
             position:   null,
-            realizedPnL: 0
+            realizedPnL: 0,
+            buyDistance: [],
+            sellDistance: [],
         }
     }
     
