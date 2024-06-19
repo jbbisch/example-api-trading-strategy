@@ -7,8 +7,8 @@ const drawEffect = (state, action) => {
     if(event === 'crossover/draw') {
         const { props } = payload
         const { contract } = props
-        const { product, position, mode, buffer, tlc, realizedPnL } = state
-        const { distance, shortSma, longSma, momentum, shortSmaValues,distanceMomentum, distanceValues, momentumPeak, distancePeak } = tlc.state  
+        const { product, position, mode, buffer, tlc, realizedPnL, buyDistance, sellDistance } = state
+        const { distance, shortSma, longSma, momentum, shortSmaValues,distanceMomentum, distanceValues, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak } = tlc.state  
 
         drawToConsole({
             mode,
@@ -16,8 +16,8 @@ const drawEffect = (state, action) => {
             netPos: position?.netPos || 0,
             DistanceMomentum: distanceMomentum.toFixed(8),
             'Distance Values': distanceValues.map(value => value.toFixed(2)).join(', '),
-            DistancePeak: distancePeak,
-            MomentumPeak: momentumPeak,
+            DistancePeak: updatedDistancePeak ? updatedDistancePeak.join(', ') : 'N/A',
+            MomentumPeak: updatedMomentumPeak ? updatedMomentumPeak.join(', ') : 'N/A',
             ShortSmaMomentum: momentum.toFixed(8),
             'Short SMA Values': shortSmaValues.map(value => value.toFixed(2)).join(', '),
             LONGsma: longSma.toFixed(2),
@@ -29,7 +29,9 @@ const drawEffect = (state, action) => {
                     product,
                 }).toFixed(2)}` 
                 : '$0.00',
-            realizedPnL: `$${realizedPnL.toFixed(2)}`
+            realizedPnL: `$${realizedPnL.toFixed(2)}`,
+            buyDistance: buyDistance.map(item => `Time: ${item.time.toISOString()}, Distance: ${item.distance.toFixed(2)}`).join(', '),
+            sellDistance: sellDistance.map(item => `Time: ${item.time.toISOString()}, Distance: ${item.distance.toFixed(2)}`).join(', '),
         })    
     }
 
