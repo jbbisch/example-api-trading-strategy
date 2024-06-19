@@ -23,20 +23,16 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             return sum + (arr[index - 1] !== 0 ? (value - arr[index - 1]) / arr[index - 1] : 0)
         }, 0) / (updatedDistanceValues.length - 1)
 
-        // Determine continuous drops in distance
-        const distanceDrops = prevState.distanceDrops + (distance < prevState.distance ? 1 : -prevState.distanceDrops)
-        const continuousDrops = distanceDrops >= 3
-
         const momentumPeak = prevState.momentum > prevState.prevMomentum && momentum < prevState.momentum
         const distancePeak = prevState.distanceMomentum > prevState.prevDistanceMomentum && distanceMomentum < prevState.distanceMomentum
 
-        const updatedMomentumPeak = [...prevState.momentumPeak.slice(1), momentumPeak]
+        const updatedMomentumPeak = [...prevState.updatedMomentumPeak.slice(1), momentumPeak]
         if (updatedMomentumPeak.length > 10) updatedMomentumPeak.shift()
-        const updatedDistancePeak = [...prevState.distancePeak.slice(1), distancePeak]
+        const updatedDistancePeak = [...prevState.updatedDistancePeak.slice(1), distancePeak]
         if (updatedDistancePeak.length > 10) updatedDistancePeak.shift()
 
         const positiveCrossover = (prevState.distance <= -0.17 && distance > -0.17) || (prevState.shortSma <= prevState.longSma && distance > 0.00) || (prevState.distance > 0.00 && distance < 1.50 && (shortSma - prevState.shortSma) > 0.15)
-        const negativeCrossover = (prevState.distance >= -0.17 && distance < -0.17) || (prevState.shortSma >= prevState.longSma && distance < 0.00) || (prevState.distance > 60 && distance < 77) || (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00)
+        const negativeCrossover = (prevState.distance >= -0.17 && distance < -0.17) || (prevState.shortSma >= prevState.longSma && distance < 0.00) || (prevState.distance > 0.48 && distance < 0.51) || (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00) || (prevState.distance > 0.00 && distance < 1.00 && distancePeak === true) || (prevState.distance > 0.00 && distance < 1.00 && momentumPeak === true)
 
         const next = {
             shortSma: shortSma,
@@ -48,7 +44,6 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             distanceMomentum: distanceMomentum,
             shortSmaValues: updatedShortSmaValues,
             distanceValues: updatedDistanceValues,
-            distanceDrops: distanceDrops,
             prevMomentum: prevState.momentum,
             prevDistanceMomentum: prevState.distanceMomentum,
             momentumPeak: momentumPeak,
@@ -75,7 +70,6 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             distanceMomentum: 0,
             shortSmaValues: Array(5).fill(0), // Initialize with an array of 5 zeros
             distanceValues: Array(5).fill(0), // Initialize with an array of 5 zeros
-            distanceDrops: 0,
             prevMomentum: 0,
             prevDistanceMomentum: 0,
             momentumPeak: false,
