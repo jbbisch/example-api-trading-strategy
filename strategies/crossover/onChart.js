@@ -58,7 +58,7 @@ const onChart = (prevState, {data, props}) => {
     const trackDistance = (distanceArray, distance) => {
         if (distance !== undefined) {
             distanceArray.push({
-                time: now,
+                pre: prevState.distance,
                 distance: distance
             })
             console.log('[onChart] distanceArray:', distanceArray)
@@ -190,13 +190,13 @@ const onChart = (prevState, {data, props}) => {
                 orderQty: 1,
                 orderType: "Market"
             }).then(response => {
-                trackDistance(sellDistance, prevState.distance, distance),
+                trackDistance(sellDistance, distance),
                 console.log('[onChart] response 2:', response)
                 return {
                     state: {
                         ...prevState,
                         mode: LongShortMode.Short,
-                        sellDistance,
+                        sellDistance: [...sellDistance],
                     },
                     effects: [
                         // FOR WEBSOCKET Liquidates any existing position
@@ -242,13 +242,13 @@ const onChart = (prevState, {data, props}) => {
                 orderQty: 1,
                 orderType: "Market"
             }).then(response => {
-                trackDistance(buyDistance, prevState.distance, distance),
+                trackDistance(buyDistance, distance),
                 console.log('[onChart] response 3:', response)
                 return {
                     state: {
                         ...prevState,
                         mode: LongShortMode.Long,
-                        buyDistance,
+                        buyDistance: [...buyDistance],
                     },
                     effects: [
                         // FOR WEBSOCKET
