@@ -37,7 +37,7 @@ process.env.REPLAY_URL  = 'wss://replay.tradovateapi.com/v1/websocket'
 process.env.USER        = ''    
 process.env.PASS        = '' 
 process.env.SEC         = ''
-process.env.CID         = 1
+process.env.CID         = 
 
 //END ENVIRONMENT VARIABLES -----------------------------------------------------------------------------------
 
@@ -100,7 +100,7 @@ async function main() {
             ])
     // }
     
-        const Strategy = await configureRobot(ALL_STRATEGIES)
+        Strategy = await configureRobot(ALL_STRATEGIES)
         Strategy.init()
     } catch (error) {
         logger.error({message: error.message, stack: error.stack, error})
