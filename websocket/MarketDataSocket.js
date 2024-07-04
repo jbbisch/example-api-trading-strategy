@@ -38,7 +38,7 @@ MarketDataSocket.prototype.subscribeQuote = function({symbol, contractId: cid, c
             item.d.quotes
                 .filter(({contractId}) => contractId === cid)
                 .forEach(callback)
-                console.log(`Received data for symbol: ${symbol}`, item.d)
+                //console.log(`Received data for symbol: ${symbol}`, item.d)
 
         },
         disposer: () => {
@@ -169,70 +169,6 @@ MarketDataSocket.prototype.disconnect = function() {
     this.subscriptions.forEach(({subscription}) => subscription())
     this.subscriptions = []
     TradovateSocket.prototype.disconnect.call(this)
-}
-
-MarketDataSocket.prototype.mdReconnect = async function() {
-    if (!this.isConnected()) {
-        setTimeout(async() => {
-            console.log('[mdReconnect] Attempting to reconnect market data socket...');
-            await renewAccessToken()
-
-            if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
-                console.log('[mdReconnect] Closing current market data connection...');
-                this.close();
-            }
-
-            const checkClosedAndReconnect = () => {
-                if (this.ws.readyState === WebSocket.CLOSED) {
-                    this.connect(this.ws.url).then(() => {
-                        console.log('[mdReconnect] Market data socket reconnected successfully.')
-                        this.synchronize(() => {
-                            console.log('[TsReconnect] Synchronized with server.')
-                        })
-                        this.mdResubscribe()  // Resubscribe after reconnecting
-                        console.log('[mdReconnect] Subscriptions resubscribed successfully.')
-                        this.setupHeartbeat()
-                        console.log('[mdReconnect] Heartbeat setup successfully.')
-                    }).catch(console.error);
-                } else {
-                    setTimeout(checkClosedAndReconnect, 1000);
-                }
-            };
-            checkClosedAndReconnect();
-        }, Math.pow(2, this.reconnectAttempts) * 1000);
-        this.reconnectAttempts += 1;
-    }
-};
-
-MarketDataSocket.prototype.mdResubscribe = async function() {
-    console.log('[mdResubscribe] Resubscribing to subscriptions...')
-    this.subscriptions.forEach(sub => {
-        console.log('[mdResubscribe] Resubscribing to:', sub.url, 'with body:', sub.body)
-        sub.subscription()
-        // Reattach event listeners if necessary
-        this.ws.onmessage = (msg) => {
-            try {
-                const messageData = msg.data
-                if (messageData.trim().startsWith('{') && messageData.trim().endsWith('}')) {
-                    const [event, payload] = JSON.parse(msg.data);
-                    if (event === 'crossover/draw') {
-                        drawEffect(this.state, [event, payload]);
-                    } else {
-                        console.log('[mdResubscribe] Unhandled event/payload:', event, payload);
-                    }
-                } else {
-                    console.log('[mdResubscribe] Message received invalid:', messageData)
-                }
-            } catch(error) {
-                console.error('[mdResubscribe] Error parsing message', error)
-            }
-        }
-    })
-}
-
-Array.prototype.tap = function(fn) {
-    this.forEach(fn)
-    return this
 }
 
 module.exports = { MarketDataSocket } 
