@@ -11,7 +11,7 @@ const drawEffect = (state, action) => {
         const { distance, shortSma, longSma, momentum, shortSmaValues,distanceMomentum, distanceValues, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak } = tlc.state  
 
         const formatDistanceArray = (distanceArray) => {
-            return distanceArray && distanceArray.length > 0 ? distanceArray.map(item => `Time: ${item.time.toISOString()}, Distance: ${item.distance !== undefined ? item.distance.toFixed(2) : 'N/A'}`).join(', ') : 'No Distance'
+            return distanceArray && distanceArray.length > 0 ? distanceArray.map(item => `Pre: ${item.prevDistance !== undefined ? item.prevDistance.toFixed(2) : 'N/A'}, Distance: ${item.distance !== undefined ? item.distance.toFixed(2) : 'N/A'}`).join(', ') : 'No Distance'
         }
 
         const formattedBuyDistance = formatDistanceArray(buyDistance)
