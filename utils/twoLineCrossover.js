@@ -30,12 +30,9 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         if (updatedMomentumPeak.length > 10) updatedMomentumPeak.shift()
         const updatedDistancePeak = [...prevState.updatedDistancePeak.slice(1), distancePeak]
         if (updatedDistancePeak.length > 10) updatedDistancePeak.shift()
-        
-        // add buy on a peak true while negative distance to get earliest buy
-        // add defensive sell to protect against above buy condition 
 
-        const positiveCrossover = (prevState.distance <= -0.17 && distance > -0.17) || (prevState.shortSma <= prevState.longSma && distance > 0.00) || (prevState.distance > 0.00 && distance < 1.50 && (shortSma - prevState.shortSma) > 0.15)
-        const negativeCrossover = (prevState.distance >= -0.17 && distance < -0.17) || (prevState.shortSma >= prevState.longSma && distance < 0.00) || (prevState.distance > 0.48 && distance < 0.51) || (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00) || (prevState.distance > 0.00 && distance < 1.00 && distancePeak === true) || (prevState.distance > 0.00 && distance < 1.00 && momentumPeak === true)
+        const positiveCrossover = (prevState.shortSma <= prevState.longSma && distance > 0.00)// || (prevState.distance > 0.50 && distance < 1.50 && (shortSma - prevState.shortSma) > 0.15)
+        const negativeCrossover = (prevState.distance >= -0.17 && distance < -0.17) || (prevState.shortSma >= prevState.longSma && distance < 0.00) || (prevState.distance > 0.28 && distance < 0.31) || (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00) || (prevState.distance > 0.50 && distance < 1.50 && momentumPeak === true)// || (prevState.distance > 0.00 && distance < 1.50 && distancePeak === true)
 
         const next = {
             shortSma: shortSma,
