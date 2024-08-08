@@ -1,85 +1,282 @@
-const { calculateSma } = require("./helpers")
+const { LongShortMode } = require("../common/longShortMode")
+const { placeOrder } = require("../../endpoints/placeOrder")
+const { liquidatePosition } = require("../../endpoints/liquidatePosition")
+console.log('[onChart] placeOrder:', placeOrder)
 
-module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
-    function nextTLC(prevState, data) {
-        const { timestamp, open, high, low, close } = data
-        const newData = data.sort((a, b) => a.timestamp - b.timestamp)
+const maxPosition = 1 // 1 contract
 
-        const shortSma = newData.slice(newData.length - shortPeriod).reduce((a, b) => a + b.close || b.price, 0) / shortPeriod
-        const longSma = newData.slice(newData.length - longPeriod).reduce((a, b) => a + b.close || b.price, 0) / longPeriod
-        const distance = shortSma - longSma
-        const currentPrice = newData[newData.length - 1].close || newData[newData.length - 1].price
+const onChart = (prevState, {data, props}) => {
+    
+    const { mode, buffer, tlc, position, buyDistance, sellDistance } = prevState
+    const { contract, orderQuantity } = props
 
-        // Calculate momentum over the last 4 periods plus the current period
-        const updatedShortSmaValues = [...prevState.shortSmaValues.slice(1), shortSma]
-        const momentum = updatedShortSmaValues.reduce((sum, value, index, arr) => {
-            if (index === 0) return sum
-            return sum + (arr[index - 1] !== 0 ? (value - arr[index - 1]) / arr[index - 1] : 0)
-        }, 0) / (updatedShortSmaValues.length - 1)
+    buffer.push(data)        
+    const bufferData = buffer.getData()
 
-        const updatedDistanceValues = [...prevState.distanceValues.slice(1), distance]
-        const distanceMomentum = updatedDistanceValues.reduce((sum, value, index, arr) => {
-            if (index === 0) return sum
-            return sum + (arr[index - 1] !== 0 ? (value - arr[index - 1]) / arr[index - 1] : 0)
-        }, 0) / (updatedDistanceValues.length - 1)
-
-        const momentumPeak = prevState.momentum > prevState.prevMomentum && momentum < prevState.momentum
-        const distancePeak = prevState.distanceMomentum > prevState.prevDistanceMomentum && distanceMomentum < prevState.distanceMomentum
-
-        const updatedMomentumPeak = [...prevState.updatedMomentumPeak.slice(1), momentumPeak]
-        if (updatedMomentumPeak.length > 10) updatedMomentumPeak.shift()
-        const updatedDistancePeak = [...prevState.updatedDistancePeak.slice(1), distancePeak]
-        if (updatedDistancePeak.length > 10) updatedDistancePeak.shift()
-
-        const positiveCrossover = (prevState.shortSma <= prevState.longSma && distance > 0.00)// || (prevState.distance > 0.50 && distance < 1.50 && (shortSma - prevState.shortSma) > 0.15)
-        const negativeCrossover = (prevState.distance >= -0.17 && distance < -0.17) || (prevState.shortSma >= prevState.longSma && distance < 0.00) || (prevState.distance > 0.28 && distance < 0.31) || (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00) || (prevState.distance > 0.50 && distance < 1.50 && momentumPeak === true)// || (prevState.distance > 0.00 && distance < 1.50 && distancePeak === true)
-
-        const next = {
-            shortSma: shortSma,
-            longSma: longSma,
-            distance: distance,
-            positiveCrossover: positiveCrossover,
-            negativeCrossover: negativeCrossover,
-            momentum: momentum,
-            distanceMomentum: distanceMomentum,
-            shortSmaValues: updatedShortSmaValues,
-            distanceValues: updatedDistanceValues,
-            prevMomentum: prevState.momentum,
-            prevDistanceMomentum: prevState.distanceMomentum,
-            momentumPeak: momentumPeak,
-            distancePeak: distancePeak,
-            updatedMomentumPeak: updatedMomentumPeak,
-            updatedDistancePeak: updatedDistancePeak,
-        }
-
-        console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover, ' Momentum: ', next.momentum, ' Distance Momentum: ', next.distanceMomentum, 'MomentumPeak: ', next.momentumPeak, 'DistancePeak: ', next.distancePeak, 'Updated Momentum Peak: ', next.updatedMomentumPeak, 'Updated Distance Peak: ', next.updatedDistancePeak)
-
-        nextTLC.state = next
-
-        return next
+    const now = new Date()
+    
+    // Update SMA only at specific intervals
+    const dataPause = 1 * 60 * 1000 // 1 minute pause after processing data
+    if (prevState.lastSMAUpdate && now - prevState.lastSMAUpdate < dataPause) {
+        console.log('[onChart] Waiting for next SMA update interval', prevState.lastSMAUpdate);
+        return { state: prevState, effects: [] };
     }
 
-    nextTLC.init = () => {
-        nextTLC.state = {
-            shortSma: 0,
-            longSma: 0,
-            distance: 0,
-            positiveCrossover: false,
-            negativeCrossover: false,
-            momentum: 0,
-            distanceMomentum: 0,
-            shortSmaValues: Array(5).fill(0), // Initialize with an array of 5 zeros
-            distanceValues: Array(5).fill(0), // Initialize with an array of 5 zeros
-            prevMomentum: 0,
-            prevDistanceMomentum: 0,
-            momentumPeak: false,
-            distancePeak: false,
-            updatedMomentumPeak: Array(10).fill(false), // Initialize with an array of 10 falses
-            updatedDistancePeak: Array(10).fill(false), // Initialize with an array of 10 falses
+    const chillOut = 4 * 60 * 1000 // 4 minutes pause after placing an order
+    if (prevState.lastTradeTime && now - prevState.lastTradeTime < chillOut) {
+        console.log('[OnChart] Chill out time')
+        return { state: prevState, effects: [] }
+    }
+
+    const minutes = now.getMinutes()
+    const seconds = now.getSeconds()
+
+    if(minutes % 5 !== 0 || seconds > 30 ) { 
+        console.log('[onChart] Not a 5 minute interval - skip processing')
+        return { state: prevState, effects: [] }
+    } // 30 second window on every 5th minute interval to update SMA and place order
+      // allows for delay in data feed and tries to avoid false signals
+        
+    const lastTlc = tlc.state
+    prevState.lastSMAUpdate = Date.now()
+    const { negativeCrossover, positiveCrossover, distance } = tlc(lastTlc, bufferData)
+
+    const longBracket = {
+        qty: orderQuantity,
+        profitTarget: 200, //round_s(variance/1.33), // 200 (for tick count)
+        stopLoss: -80, //round_s(-variance/5), //-80 (for tick count) 
+        trailingStop: false //true //false?
+    }
+      
+    const shortBracket = {
+        qty: orderQuantity,
+        profitTarget: 100, //round_s(-variance/1.33), // 200 (for tick count)
+        stopLoss: -40, //round_s(variance/5), //-80 (for tick count)
+        trailingStop: false //true //false?
+    }
+
+    const trackDistance = (distanceArray, prevDistance, distance) => {
+        if (distance !== undefined) {
+            distanceArray.push({
+                time: now,
+                prevDistance: prevDistance,
+                distance: distance
+            })
+            console.log('[onChart] distanceArray:', distanceArray)
+        } else {
+            console.log('[onChart] distance is undefined')
         }
     }
 
-    nextTLC.init()
+    const entryVersion = {
+        orderQty: orderQuantity,
+        orderType: "Market",
+    }
+    
+    const currentPositionSize = prevState.position?.netPos || 0
 
-    return nextTLC
+    // USE DURING BEAR MARKET INSTEAD OF WATCH AND LONG ##########
+    // if(mode === LongShortMode.Watch && negativeCrossover ) {
+    //    if(currentPositionSize === 0) {
+        //     console.log('[onChart] liquidatePosition 1:', placeOrder)
+        //     console.log('[onChart] mode 1 placeOrder:', mode)
+        //     prevState.lastTradeTime = Date.now()
+        //     placeOrder({
+        //         accountId: parseInt(process.env.ID),
+        //         contractId: contract.id,
+        //         admin: true,
+        //         accountSpec: process.env.SPEC,
+        //         deviceId: process.env.DEVICE_ID,
+        //         symbol: contract.name,
+        //         action: "Sell",
+        //         orderQty: 1,
+        //         orderType: "Market"
+        //     }).then(response => {
+        //         console.log('[onChart] response 1:', response)
+        //         return {
+        //             state: {
+        //                 ...prevState,
+        //                 mode: LongShortMode.Short,
+        //             },
+        //             effects: [
+        //                  FOR WEBSOCKET Liquidates any existing position
+        //                 {
+        //                     url: 'order/liquidatePosition', 
+        //                     data: {
+        //                         accountId: parseInt(process.env.ID),
+        //                         contractId: contract.id,
+        //                         admin: true,
+        //                         accountSpec: process.env.SPEC,
+        //                         deviceId: process.env.DEVICE_ID,
+        //                         symbol: contract.name,
+        //                         action: "Sell",
+        //                         orderQuantity: orderQuantity,
+        //                     }   
+        //                 },
+        //                 { event: 'crossover/draw' },
+        //             ],
+        //         }
+        //     }).catch(err => {
+        //         console.error('[onChart] Error:', err)
+        //     })
+        // } else {
+        //    console.log('[onChart] short position already exists')
+        //    return { state: prevState, effects: [] }
+        // }
+    // }
+
+    // USE DURING BEAR MARKET INSTEAD OF WATCH AND LONG ##########    
+    // if(mode === LongShortMode.Short && positiveCrossover ) { 
+        //    if(currentPositionSize < 0) {
+        //     console.log('[onChart] placeOrder 4:', placeOrder)
+        //     console.log('[onChart] mode 4 buyOrder:', mode)
+        //     prevState.lastTradeTime = Date.now()
+        //     placeOrder({
+        //         accountId: parseInt(process.env.ID),
+        //         contractId: contract.id,
+        //         admin: true,
+        //         accountSpec: process.env.SPEC,
+        //         deviceId: process.env.DEVICE_ID,
+        //         symbol: contract.name,
+        //         action: "Buy",
+        //         orderQty: 1,
+        //         orderType: "Market"
+        //     }).then(response => {
+        //         console.log('[onChart] response 4:', response)
+        //         return {
+        //             state: {
+        //                 ...prevState,
+        //                 mode: LongShortMode.Long,
+        //             },
+        //             effects: [
+        //                     FOR WEBSOCKET
+        //                 {
+        //                     url: 'orderStrategy/startOrderStrategy',
+        //                     data: {
+        //                         accountId: parseInt(process.env.ID),
+        //                         accountSpec: process.env.SPEC,
+        //                         symbol: contract.id,
+        //                         action: "Buy",
+        //                         orderStrategyTypeId: 2,
+        //                         entryVersion: JSON.stringify(entryVersion),
+        //                         brackets: JSON.stringify(longBracket),
+        //                     }
+        //                 },
+        //                 { event: 'crossover/draw' },
+        //             ],
+        //         }
+        //     }).catch(err => {
+        //         console.error('[onChart] Error:', err)
+        //     })
+        // } else {
+        //    console.log('[onChart] no short position to liquidate')
+        //    return { state: prevState, effects: [] }
+        // }    
+    // }
+
+    // USE DURING BULL MARKET INSTEAD OF WATCH AND SHORT ##########
+    if(mode === LongShortMode.Long && negativeCrossover ) {
+        if(currentPositionSize >= maxPosition) {
+            console.log('[onChart] liquidatePosition 2:', placeOrder)
+            console.log('[onChart] mode 2 placeOrder:', mode)
+            prevState.lastTradeTime = Date.now()
+            placeOrder({
+                accountId: parseInt(process.env.ID),
+                contractId: contract.id,
+                admin: true,
+                accountSpec: process.env.SPEC,
+                deviceId: process.env.DEVICE_ID,
+                symbol: contract.name,
+                action: "Sell",
+                orderQty: 1,
+                orderType: "Market"
+            }).then(response => {
+                trackDistance(sellDistance, lastTlc.distance, distance),
+                console.log('[onChart] response 2:', response)
+                return {
+                    state: {
+                        ...prevState,
+                        mode: LongShortMode.Short,
+                        sellDistance: [...sellDistance],
+                    },
+                    effects: [
+                        // FOR WEBSOCKET Liquidates any existing position
+                        // {
+                        //     url: 'order/liquidatePosition',
+                        //     data: {
+                        //         accountId: parseInt(process.env.ID),
+                        //         contractId: contract.id,
+                        //         admin: true,
+                        //         accountSpec: process.env.SPEC,
+                        //         deviceId: process.env.DEVICE_ID,
+                        //         symbol: contract.name,
+                        //         action: "Sell",
+                        //         orderQuantity: orderQuantity,
+                        //     }
+                        // },
+                        { event: 'crossover/draw' },
+                    ],
+                }
+            }).catch(err => {
+                console.error('[onChart] Error:', err)
+            })
+        } else {
+            console.log('[onChart] no position to liquidate')
+            return { state: prevState, effects: [] }
+        }
+    }
+
+    // USE DURING BULL MARKET INSTEAD OF WATCH AND SHORT ##########
+    if(mode === LongShortMode.Watch && positiveCrossover ) {
+        if(currentPositionSize < maxPosition) { 
+            console.log('[onChart] placeOrder 3:', placeOrder)
+            console.log('[onChart] mode 3 buyOrder:', mode)  
+            prevState.lastTradeTime = Date.now()
+            placeOrder({
+                accountId: parseInt(process.env.ID),
+                contractId: contract.id,
+                admin: true,
+                accountSpec: process.env.SPEC,
+                deviceId: process.env.DEVICE_ID,
+                symbol: contract.name,
+                action: "Buy",
+                orderQty: 1,
+                orderType: "Market"
+            }).then(response => {
+                trackDistance(buyDistance, lastTlc.distance, distance),
+                console.log('[onChart] response 3:', response)
+                return {
+                    state: {
+                        ...prevState,
+                        mode: LongShortMode.Long,
+                        buyDistance: [...buyDistance],
+                    },
+                    effects: [
+                        // FOR WEBSOCKET
+                        // {
+                        //     url: 'orderStrategy/startOrderStrategy',
+                        //     data: {
+                        //         accountId: parseInt(process.env.ID),
+                        //         accountSpec: process.env.SPEC,
+                        //         symbol: contract.id,
+                        //         action: "Buy",
+                        //         orderStrategyTypeId: 2,
+                        //         entryVersion: JSON.stringify(entryVersion),
+                        //         brackets: JSON.stringify(longBracket),
+                        //     }   
+                        // },
+                        { event: 'crossover/draw' },
+                    ],
+                }
+            }).catch(err => {
+                console.error('[onChart] Error:', err)
+            })
+        } else {
+            console.log('[onChart] max position reached')
+            return { state: prevState, effects: [] }
+        }
+    }
+    return { state: prevState, effects: [] }
 }
+
+module.exports = { onChart }
