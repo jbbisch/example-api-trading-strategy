@@ -1,55 +1,64 @@
-const axios = require("axios")
-const { isTokenValid } = require("../utils/isTokenValid")
-const { renewAccessToken } = require("./renewAccessToken")
+const axios = require('axios')
+const crypto = require('crypto')
 
-async function placeOrder({
-    action,
-    symbol,
-    orderQty,
-    orderType,
-    deviceId,
-    price
-}) {
-    console.log('[placeOrder ENDPOINT] is being called')
+/**
+ * Asynchronously requests an access token from the Tradovate API. Uses given environment variables to construct
+ * the request. If this function errs, be sure that you've configured your environment variables in `index.js`.
+ * @returns AccessTokenResponse
+ */
+module.exports = async function requestAccessToken() {
+    console.log(`[AutoTrade]: Running Operation /auth/accessTokenRequest...`)
+    const URL = process.env.HTTP_URL + '/auth/accessTokenRequest'
 
-    if (!isTokenValid()) {
-        console.log('[placeOrder ENDPOINT] Token is not valid. Renewing...')
-        await renewAccessToken()
-        console.log('[placeOrder ENDPOINT] Token renewed:', process.env.ACCESS_TOKEN)
+    //create a unique identifier for this robot, this will be the same every time the application boots
+    //unless you change your username or run the bot from a different device. Were we creating a web app
+    //for this, I'd opt for the reliable device-uuid package to gather this info.
+    const deviceId = 
+        crypto.createHash('sha256')     //creates an instance of hasher
+            .update(process.platform)   //adds the platform to the hash ('windows', 'android', ...)
+            .update(process.arch)       //adds the cpu architecture to the hash ('x64', ...)
+            .update(process.env.USER)   //adds your tradovate username to the hash
+            .digest('hex')              //creates a hash 'digest' - the result of the algo as a hex string
+
+    console.log(`[AutoTrade]: Device <${deviceId}> detected.`)
+
+    //our authentication data...
+    const data = {
+        name: process.env.USER,
+        password: process.env.PASS,
+        appId: 'AutoTrade',
+        appVersion: '1.0',
+        deviceId: deviceId,
+        cid: parseInt(process.env.CID, 10),
+        sec: process.env.SEC
     }
-    
-    const URL = process.env.HTTP_URL + '/order/placeOrder'
-    console.log('[placeOrder endpoint] URL:', URL)
 
     const config = {
         headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${process.env.ACCESS_TOKEN}`
+            'Accept': 'application/json'
         }
     }
-    console.log('[placeOrder endpoint] config:', config)
 
-    const order = {
-        accountSpec: process.env.SPEC,
-        accountId: parseInt(process.env.ID, 10),
-        action,
-        symbol,
-        orderQty,
-        orderType,
-        price,
-        deviceId,
-        timeInForce: 'Day',
-        isAutomated: true
-    }
-    console.log('[placeOrder endpoint] order:', order)
+    //Here's where we kick off the auth request
+    let result //this will hold the possible result
 
+    //we try to get the result of our request using the configuration we've defined.
     try {
-        const response = await axios.post(URL, order, config)
-        console.log('[placeOrder endpoint] RESPONSE:', response.data)
-        return response.data
-    } catch (err) {
-        console.error(err)
+        result = await axios.post(URL, data, config)
+    } catch(err) {
+        console.error(`[AutoTrade]: Couldn't acquire access token --\n${JSON.stringify(err, null, 2)}`)
     }
-}
-module.exports = { placeOrder }
+
+    console.log(result.data)
+
+    //Set our access token so that it is globally available in the context of our robot.
+    //process.env is unique to this node process and is cleared afterward, so we don't have to
+    //worry about this data hanging out on our machine.
+    process.env.ACCESS_TOKEN = result.data.accessToken
+    process.env.MD_ACCESS_TOKEN = result.data.mdAccessToken
+    process.env.DEVICE_ID = deviceId
+    process.env.EXPIRATION_TIME = result.data.expirationTime
+
+    return result.data
+} 
