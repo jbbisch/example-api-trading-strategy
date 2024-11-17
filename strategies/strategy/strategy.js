@@ -12,9 +12,6 @@ const { TdEvent }                                   = require("./tdEvent")
 class Strategy {
 
     constructor(props) {
-        // Save initial parameters
-        this.initialProps = { ...props };
-        
         //Sockets are global, we need to retrieve them like so
         let socket          = getSocket()
         let mdSocket        = getMdSocket()
@@ -201,12 +198,6 @@ class Strategy {
             }
         })
     }
-
-    restart() {
-        console.log('Restarting strategy with initial props...');
-        this.init(this.initialProps); // Reinitialize with the saved initial parameters
-    }
-    
     init(props) { }
 
     addMiddleware(...mws) {
