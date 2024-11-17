@@ -229,13 +229,7 @@ TradovateSocket.prototype.connect = async function(url) {
                     break
             }
         })
-    })
-
-    // Initialize the strategy if it hasn't been set yet
-    if (!this.strategy) {
-        this.strategy = new Strategy(this.strategyParams); // Use the params here
-        console.log('[Connect] Initializeed strategy: ', this.strategy.constructor.name);
-    }
+    })    
 }
 
 TradovateSocket.prototype.disconnect = function() {
@@ -274,10 +268,11 @@ TradovateSocket.prototype.reconnect = async function() {
                         console.log('[TsReconnect] Resubscribed to data.')
                         
                         if (this.strategy) {
-                            this.strategy.restart(); // Restart the existing strategy
-                            console.log('[TsReconnect] Reinitialized strategy.')
+                            const strategyProps = this.strategy.props
+                            this.strategy = new this.strategy.constructor(strategyProps)
+                            console.log('[TsReconnect] Initialized strategy: ', this.strategy.constructor.name)
                         } else {
-                            console.log('[TsReconnect] No strategy to reinitialize.')
+                            console.log('[TsReconnect] No strategy to initialize.')
                         }
                     
                         this.synchronize(data => {
