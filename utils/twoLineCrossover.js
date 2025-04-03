@@ -31,8 +31,44 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const updatedDistancePeak = [...prevState.updatedDistancePeak.slice(1), distancePeak]
         if (updatedDistancePeak.length > 10) updatedDistancePeak.shift()
 
-        const positiveCrossover = (prevState.shortSma <= prevState.longSma && distance > 0.00)// || (prevState.distance > 0.50 && distance < 1.50 && (shortSma - prevState.shortSma) > 0.15)
-        const negativeCrossover = (prevState.distance >= -0.17 && distance < -0.17) || (prevState.shortSma >= prevState.longSma && distance < 0.00) || (prevState.distance > 0.28 && distance < 0.31) || (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00) || (prevState.distance > 0.50 && distance < 1.50 && momentumPeak === true)// || (prevState.distance > 0.00 && distance < 1.50 && distancePeak === true)
+        const SMAPositiveCrossover = (prevState.shortSma <= prevState.longSma && distance > 0.00)
+        const BouncePositiveCrossover = (prevState.distance > 0.50 && distance < 1.50 && (shortSma - prevState.shortSma) > 0.15)
+        const positiveCrossover = SMAPositiveCrossover || BouncePositiveCrossover
+
+        const SMANegativeCrossover = (prevState.distance >= -0.17 && distance < -0.17) || (prevState.shortSma >= prevState.longSma && distance < 0.00)
+        const LikelyNegativeCrossover = (prevState.distance > 0.28 && distance < 0.31)
+        const BigDistancePullback = (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00)
+        const MomentumPeakNegativeCrossover = (prevState.distance > 4.50 && distance < 6.50 && momentumPeak === true)
+        const DistancePeakNegativeCrossover = (prevState.distance > 4.50 && distance < 6.50 && distancePeak === true)
+        const negativeCrossover =  SMANegativeCrossover || LikelyNegativeCrossover || BigDistancePullback || MomentumPeakNegativeCrossover || DistancePeakNegativeCrossover
+
+        if (!this.state.tlc.triggerSource) this.state.tlc.triggerSource = []
+
+        if (positiveCrossover) {
+            if (SMAPositiveCrossover) {
+                this.state.tlc.triggerSource.push('SMAPositiveCrossover')
+            }
+            if (BouncePositiveCrossover) {
+                this.state.tlc.triggerSource.push('BouncePositiveCrossover')
+            }
+        }
+        if (negativeCrossover) {
+            if (SMANegativeCrossover) {
+                this.state.tlc.triggerSource.push('SMANegativeCrossover')
+            }
+            if (LikelyNegativeCrossover) {
+                this.state.tlc.triggerSource.push('LikelyNegativeCrossover')
+            }
+            if (BigDistancePullback) {
+                this.state.tlc.triggerSource.push('BigDistancePullback')
+            }
+            if (MomentumPeakNegativeCrossover) {
+                this.state.tlc.triggerSource.push('MomentumPeakNegativeCrossover')
+            }
+            if (DistancePeakNegativeCrossover) {
+                this.state.tlc.triggerSource.push('DistancePeakNegativeCrossover')
+            }
+        }
 
         const next = {
             shortSma: shortSma,
