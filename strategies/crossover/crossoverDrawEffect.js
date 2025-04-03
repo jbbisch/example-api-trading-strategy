@@ -8,7 +8,7 @@ const drawEffect = (state, action) => {
         const { props } = payload
         const { contract } = props
         const { product, position, mode, buffer, tlc, realizedPnL, buyDistance, sellDistance } = state
-        const { distance, shortSma, longSma, momentum, shortSmaValues,distanceMomentum, distanceValues, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak } = tlc.state  
+        const { distance, shortSma, longSma, momentum, shortSmaValues,distanceMomentum, distanceValues, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource } = tlc?.state || {}  
 
         const formatDistanceArray = (distanceArray) => {
             return distanceArray && distanceArray.length > 0 ? distanceArray.map(item => `Pre: ${item.prevDistance !== undefined ? item.prevDistance.toFixed(2) : 'N/A'}, Distance: ${item.distance !== undefined ? item.distance.toFixed(2) : 'N/A'}`).join(', ') : 'No Distance'
@@ -16,6 +16,12 @@ const drawEffect = (state, action) => {
 
         const formattedBuyDistance = formatDistanceArray(buyDistance)
         const formattedSellDistance = formatDistanceArray(sellDistance)
+
+        const formattedTriggerSource = (triggerSourceArray) => {
+            return triggerSourceArray && triggerSourceArray.length > 0 ? triggerSourceArray.join(', ') : 'No Triggers'
+        }
+
+        const triggers = formattedTriggerSource(triggerSource)
 
         drawToConsole({
             mode,
@@ -37,6 +43,7 @@ const drawEffect = (state, action) => {
                 }).toFixed(2)}` 
                 : '$0.00',
             realizedPnL: `$${realizedPnL.toFixed(2)}`,
+            triggerSource: triggers,
             buyDistance: formattedBuyDistance,
             sellDistance: formattedSellDistance,
         })    
