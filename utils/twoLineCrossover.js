@@ -42,32 +42,18 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const DistancePeakNegativeCrossover = (prevState.distance > 4.50 && distance < 6.50 && distancePeak === true)
         const negativeCrossover =  SMANegativeCrossover || LikelyNegativeCrossover || BigDistancePullback || MomentumPeakNegativeCrossover || DistancePeakNegativeCrossover
 
-        if (!this.state.tlc.triggerSource) this.state.tlc.triggerSource = []
+        const triggerSource = []
 
         if (positiveCrossover) {
-            if (SMAPositiveCrossover) {
-                this.state.tlc.triggerSource.push('SMAPositiveCrossover')
-            }
-            if (BouncePositiveCrossover) {
-                this.state.tlc.triggerSource.push('BouncePositiveCrossover')
-            }
+            if (SMAPositiveCrossover) triggerSource.push('SMAPositiveCrossover')
+            if (BouncePositiveCrossover) triggerSource.push('BouncePositiveCrossover')
         }
         if (negativeCrossover) {
-            if (SMANegativeCrossover) {
-                this.state.tlc.triggerSource.push('SMANegativeCrossover')
-            }
-            if (LikelyNegativeCrossover) {
-                this.state.tlc.triggerSource.push('LikelyNegativeCrossover')
-            }
-            if (BigDistancePullback) {
-                this.state.tlc.triggerSource.push('BigDistancePullback')
-            }
-            if (MomentumPeakNegativeCrossover) {
-                this.state.tlc.triggerSource.push('MomentumPeakNegativeCrossover')
-            }
-            if (DistancePeakNegativeCrossover) {
-                this.state.tlc.triggerSource.push('DistancePeakNegativeCrossover')
-            }
+            if (SMANegativeCrossover) triggerSource.push('SMANegativeCrossover')
+            if (LikelyNegativeCrossover) triggerSource.push('LikelyNegativeCrossover')
+            if (BigDistancePullback) triggerSource.push('BigDistancePullback')
+            if (MomentumPeakNegativeCrossover) triggerSource.push('MomentumPeakNegativeCrossover')
+            if (DistancePeakNegativeCrossover) triggerSource.push('DistancePeakNegativeCrossover')
         }
 
         const next = {
@@ -86,6 +72,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             distancePeak: distancePeak,
             updatedMomentumPeak: updatedMomentumPeak,
             updatedDistancePeak: updatedDistancePeak,
+            triggerSource: triggerSource,
         }
 
         console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover, ' Momentum: ', next.momentum, ' Distance Momentum: ', next.distanceMomentum, 'MomentumPeak: ', next.momentumPeak, 'DistancePeak: ', next.distancePeak, 'Updated Momentum Peak: ', next.updatedMomentumPeak, 'Updated Distance Peak: ', next.updatedDistancePeak)
