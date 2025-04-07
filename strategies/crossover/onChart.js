@@ -71,8 +71,9 @@ const onChart = (prevState, {data, props}) => {
 
     const trackTrigger = (triggerArray, label) => {
         if (label) {
-            triggerArray.push(label)
-            console.log('[onChart] triggerSource:', triggerArray)
+            const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false})
+            triggerArray.push(`${timestamp} - ${label}`)
+            console.log('[onChart] trigger logged:', `${timestamp} - ${label}`)
         } else {
             console.log('[onChart] triggerSource is undefined')
         }
