@@ -1,7 +1,7 @@
 const { LongShortMode } = require("../common/longShortMode")
 const { placeOrder } = require("../../endpoints/placeOrder")
 const { liquidatePosition } = require("../../endpoints/liquidatePosition")
-console.log('[onChart] placeOrder:', placeOrder)
+//console.log('[onChart] placeOrder:', placeOrder)
 
 const maxPosition = 1 // 1 contract
 
@@ -39,7 +39,8 @@ const onChart = (prevState, {data, props}) => {
         
     const lastTlc = tlc.state
     prevState.lastSMAUpdate = Date.now()
-    const { negativeCrossover, positiveCrossover, distance } = tlc(lastTlc, bufferData)
+    const nextTlcState = tlc(lastTlc, bufferData)
+    const { negativeCrossover, positiveCrossover, distance } = nextTlcState
 
     const longBracket = {
         qty: orderQuantity,
@@ -65,6 +66,15 @@ const onChart = (prevState, {data, props}) => {
             console.log('[onChart] distanceArray:', distanceArray)
         } else {
             console.log('[onChart] distance is undefined')
+        }
+    }
+
+    const trackTrigger = (triggerArray, label) => {
+        if (label) {
+            triggerArray.push(label)
+            console.log('[onChart] triggerSource:', triggerArray)
+        } else {
+            console.log('[onChart] triggerSource is undefined')
         }
     }
 
@@ -191,13 +201,20 @@ const onChart = (prevState, {data, props}) => {
                 orderQty: 1,
                 orderType: "Market"
             }).then(response => {
-                trackDistance(sellDistance, lastTlc.distance, distance),
+                trackDistance(sellDistance, lastTlc.distance, distance)
+                const sellLog = prevState.sellTriggerSource || (prevState.sellTriggerSource = [])
+                if (nextTlcState.SMANegativeCrossover) trackTrigger(sellLog, 'SMANegativeCrossover')
+                if (nextTlcState.LikelyNegativeCrossover) trackTrigger(sellLog, 'LikelyNegativeCrossover')
+                if (nextTlcState.BigDistancePullback) trackTrigger(sellLog, 'BigDistancePullback')
+                if (nextTlcState.MomentumPeakNegativeCrossover) trackTrigger(sellLog, 'MomentumPeakNegativeCrossover')
+                if (nextTlcState.DistancePeakNegativeCrossover) trackTrigger(sellLog, 'DistancePeakNegativeCrossover')
                 console.log('[onChart] response 2:', response)
                 return {
                     state: {
                         ...prevState,
                         mode: LongShortMode.Short,
                         sellDistance: [...sellDistance],
+                        sellTriggerSource: [...sellLog],
                     },
                     effects: [
                         // FOR WEBSOCKET Liquidates any existing position
@@ -243,13 +260,17 @@ const onChart = (prevState, {data, props}) => {
                 orderQty: 1,
                 orderType: "Market"
             }).then(response => {
-                trackDistance(buyDistance, lastTlc.distance, distance),
+                trackDistance(buyDistance, lastTlc.distance, distance)
+                const buyLog = prevState.buyTriggerSource || (prevState.buyTriggerSource = [])
+                if (nextTlcState.SMAPositiveCrossover) trackTrigger(buyLog, 'SMAPositiveCrossover')
+                if (nextTlcState.BouncePositiveCrossover) trackTrigger(buyLog, 'BouncePositiveCrossover')
                 console.log('[onChart] response 3:', response)
                 return {
                     state: {
                         ...prevState,
                         mode: LongShortMode.Long,
                         buyDistance: [...buyDistance],
+                        buyTriggerSource: [...buyLog],
                     },
                     effects: [
                         // FOR WEBSOCKET
