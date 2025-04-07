@@ -42,7 +42,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const DistancePeakNegativeCrossover = (prevState.distance > 4.50 && distance < 6.50 && distancePeak === true)
         const negativeCrossover =  SMANegativeCrossover || LikelyNegativeCrossover || BigDistancePullback || MomentumPeakNegativeCrossover || DistancePeakNegativeCrossover
 
-        const triggerSource = []
+        const triggerSource = [...(prevState.triggerSource || [])]
 
         if (positiveCrossover) {
             if (SMAPositiveCrossover) triggerSource.push('SMAPositiveCrossover')
@@ -99,6 +99,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             distancePeak: false,
             updatedMomentumPeak: Array(10).fill(false), // Initialize with an array of 10 falses
             updatedDistancePeak: Array(10).fill(false), // Initialize with an array of 10 falses
+            triggerSource: []
         }
     }
 
