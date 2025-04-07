@@ -24,7 +24,8 @@ const drawEffect = (state, action) => {
             return sellTriggerSourceArray && sellTriggerSourceArray.length > 0 ? sellTriggerSourceArray.join(', ') : 'No Triggers'
         }
 
-        //const triggers = formattedTriggerSource(triggerSource)
+        const buyTriggers = formattedBuyTriggers(buyTriggerSource)
+        const sellTriggers = formattedSellTriggers(sellTriggerSource)
 
         drawToConsole({
             mode,
@@ -46,9 +47,9 @@ const drawEffect = (state, action) => {
                 }).toFixed(2)}` 
                 : '$0.00',
             realizedPnL: `$${realizedPnL.toFixed(2)}`,
-            buyTriggerSource: formattedBuyTriggers,
+            buyTriggerSource: buyTriggers,
             buyDistance: formattedBuyDistance,
-            sellTriggerSource: formattedSellTriggers,
+            sellTriggerSource: sellTriggers,
             sellDistance: formattedSellDistance,
         })    
     }
