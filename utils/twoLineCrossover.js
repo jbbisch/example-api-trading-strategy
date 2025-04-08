@@ -32,28 +32,29 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         if (updatedDistancePeak.length > 10) updatedDistancePeak.shift()
 
         const SMAPositiveCrossover = (prevState.shortSma <= prevState.longSma && distance > 0.00)
-        const BouncePositiveCrossover = (prevState.distance > 0.50 && distance < 1.50 && (shortSma - prevState.shortSma) > 0.15)
+        const BouncePositiveCrossover = (prevState.distance > 0.50 && distance < 3.50 && (shortSma - prevState.shortSma) > 0.25)
         const positiveCrossover = SMAPositiveCrossover || BouncePositiveCrossover
 
         const SMANegativeCrossover = (prevState.distance >= -0.17 && distance < -0.17) || (prevState.shortSma >= prevState.longSma && distance < 0.00)
         const LikelyNegativeCrossover = (prevState.distance > 0.28 && distance < 0.31)
         const BigDistancePullback = (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00)
-        const MomentumPeakNegativeCrossover = (prevState.distance > 4.50 && distance < 6.50 && momentumPeak === true)
-        const DistancePeakNegativeCrossover = (prevState.distance > 4.50 && distance < 6.50 && distancePeak === true)
+        const MomentumPeakNegativeCrossover = (prevState.distance > 4.50 && distance < 20.50 && momentumPeak === true)
+        const DistancePeakNegativeCrossover = (prevState.distance > 4.50 && distance < 20.50 && distancePeak === true)
         const negativeCrossover =  SMANegativeCrossover || LikelyNegativeCrossover || BigDistancePullback || MomentumPeakNegativeCrossover || DistancePeakNegativeCrossover
 
-        const triggerSource = [...(prevState.triggerSource || [])]
+        const buyTriggerSource = [...(prevState.triggerSource || [])]
+        const sellTriggerSource = [...(prevState.triggerSource || [])]
 
         if (positiveCrossover) {
-            if (SMAPositiveCrossover) triggerSource.push('SMAPositiveCrossover')
-            if (BouncePositiveCrossover) triggerSource.push('BouncePositiveCrossover')
+            if (SMAPositiveCrossover) buyTriggerSource.push('SMAPositiveCrossover')
+            if (BouncePositiveCrossover) buyTriggerSource.push('BouncePositiveCrossover')
         }
         if (negativeCrossover) {
-            if (SMANegativeCrossover) triggerSource.push('SMANegativeCrossover')
-            if (LikelyNegativeCrossover) triggerSource.push('LikelyNegativeCrossover')
-            if (BigDistancePullback) triggerSource.push('BigDistancePullback')
-            if (MomentumPeakNegativeCrossover) triggerSource.push('MomentumPeakNegativeCrossover')
-            if (DistancePeakNegativeCrossover) triggerSource.push('DistancePeakNegativeCrossover')
+            if (SMANegativeCrossover) sellTriggerSource.push('SMANegativeCrossover')
+            if (LikelyNegativeCrossover) sellTriggerSource.push('LikelyNegativeCrossover')
+            if (BigDistancePullback) sellTriggerSource.push('BigDistancePullback')
+            if (MomentumPeakNegativeCrossover) sellTriggerSource.push('MomentumPeakNegativeCrossover')
+            if (DistancePeakNegativeCrossover) sellTriggerSource.push('DistancePeakNegativeCrossover')
         }
 
         const next = {
@@ -72,7 +73,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             distancePeak: distancePeak,
             updatedMomentumPeak: updatedMomentumPeak,
             updatedDistancePeak: updatedDistancePeak,
-            triggerSource: triggerSource,
+            buyTriggerSource: buyTriggerSource,
+            sellTriggerSource: sellTriggerSource,
         }
 
         console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover, ' Momentum: ', next.momentum, ' Distance Momentum: ', next.distanceMomentum, 'MomentumPeak: ', next.momentumPeak, 'DistancePeak: ', next.distancePeak, 'Updated Momentum Peak: ', next.updatedMomentumPeak, 'Updated Distance Peak: ', next.updatedDistancePeak)
@@ -99,7 +101,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             distancePeak: false,
             updatedMomentumPeak: Array(10).fill(false), // Initialize with an array of 10 falses
             updatedDistancePeak: Array(10).fill(false), // Initialize with an array of 10 falses
-            triggerSource: []
+            buyTriggerSource: [],
+            sellTriggerSource: [],
         }
     }
 
