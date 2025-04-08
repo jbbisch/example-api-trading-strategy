@@ -298,7 +298,17 @@ const onChart = (prevState, {data, props}) => {
             return { state: prevState, effects: [] }
         }
     }
-    return { state: prevState, effects: [] }
+    
+    tlc.state = nextTlcState
+
+    return { 
+        state: {
+            ...prevState,
+            buyTriggerSource: [...(prevState.buyTriggerSource || []), ...(nextTlcState.buyTriggerSource || [])],
+            sellTriggerSource: [...(prevState.sellTriggerSource || []), ...(nextTlcState.sellTriggerSource || [])],
+        },
+        effects: [] 
+    }
 }
 
 module.exports = { onChart }
