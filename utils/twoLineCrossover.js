@@ -10,6 +10,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const distance = shortSma - longSma
         const currentPrice = newData[newData.length - 1].close || newData[newData.length - 1].price
 
+        const now = new Date().toLocaleTimeString('en-US', { hour12: false})
+
         // Calculate momentum over the last 4 periods plus the current period
         const updatedShortSmaValues = [...prevState.shortSmaValues.slice(1), shortSma]
         const momentum = updatedShortSmaValues.reduce((sum, value, index, arr) => {
@@ -46,15 +48,15 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const sellTriggerSource = [...(prevState.triggerSource || [])]
 
         if (positiveCrossover) {
-            if (SMAPositiveCrossover) buyTriggerSource.push('SMAPositiveCrossover')
-            if (BouncePositiveCrossover) buyTriggerSource.push('BouncePositiveCrossover')
+            if (SMAPositiveCrossover) buyTriggerSource.push(`${now} - SMAPositiveCrossover`)
+            if (BouncePositiveCrossover) buyTriggerSource.push(`${now} - BouncePositiveCrossover`)
         }
         if (negativeCrossover) {
-            if (SMANegativeCrossover) sellTriggerSource.push('SMANegativeCrossover')
-            if (LikelyNegativeCrossover) sellTriggerSource.push('LikelyNegativeCrossover')
-            if (BigDistancePullback) sellTriggerSource.push('BigDistancePullback')
-            if (MomentumPeakNegativeCrossover) sellTriggerSource.push('MomentumPeakNegativeCrossover')
-            if (DistancePeakNegativeCrossover) sellTriggerSource.push('DistancePeakNegativeCrossover')
+            if (SMANegativeCrossover) sellTriggerSource.push(`${now} - SMANegativeCrossover`)
+            if (LikelyNegativeCrossover) sellTriggerSource.push(`${now} - LikelyNegativeCrossover`)
+            if (BigDistancePullback) sellTriggerSource.push(`${now} - BigDistancePullback`)
+            if (MomentumPeakNegativeCrossover) sellTriggerSource.push(`${now} - MomentumPeakNegativeCrossover`)
+            if (DistancePeakNegativeCrossover) sellTriggerSource.push(`${now} - DistancePeakNegativeCrossover`)
         }
 
         const next = {
