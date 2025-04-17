@@ -86,6 +86,12 @@ const onChart = (prevState, {data, props}) => {
     
     const currentPositionSize = prevState.position?.netPos || 0
 
+    function isNineAMEastern() {
+        const nowUTC = new Date()
+        const nowET = new Date(nowUTC.toLocaleString("en-US", {timeZone: "America/New_York"}))
+        return nowET.getHours() === 9 && nowET.getMinutes() === 0
+    }
+
     // USE DURING BEAR MARKET INSTEAD OF WATCH AND LONG ##########
     // if(mode === LongShortMode.Watch && negativeCrossover ) {
     //    if(currentPositionSize === 0) {
@@ -205,8 +211,9 @@ const onChart = (prevState, {data, props}) => {
                 trackDistance(sellDistance, lastTlc.distance, distance)
                 const sellLog = prevState.sellTriggerSource || (prevState.sellTriggerSource = [])
                 if (nextTlcState.SMANegativeCrossover) trackTrigger(sellLog, 'SMANegativeCrossover')
+                    //else if (nextTlcState.SMAPositiveCrossover) trackTrigger(sellLog, 'SMAPositiveCrossover')
                 if (nextTlcState.LikelyNegativeCrossover) trackTrigger(sellLog, 'LikelyNegativeCrossover')
-                if (nextTlcState.BigDistancePullback) trackTrigger(sellLog, 'BigDistancePullback')
+                //if (nextTlcState.BigDistancePullback) trackTrigger(sellLog, 'BigDistancePullback')
                 if (nextTlcState.MomentumPeakNegativeCrossover) trackTrigger(sellLog, 'MomentumPeakNegativeCrossover')
                 if (nextTlcState.DistancePeakNegativeCrossover) trackTrigger(sellLog, 'DistancePeakNegativeCrossover')
                 console.log('[onChart] response 2:', response)
@@ -301,11 +308,13 @@ const onChart = (prevState, {data, props}) => {
     
     tlc.state = nextTlcState
 
+    const clearTriggers = isNineAMEastern()
+
     return { 
         state: {
             ...prevState,
-            buyTriggerSource: [...(prevState.buyTriggerSource || []), ...(nextTlcState.buyTriggerSource || [])],
-            sellTriggerSource: [...(prevState.sellTriggerSource || []), ...(nextTlcState.sellTriggerSource || [])],
+            buyTriggerSource: clearTriggers ? [] : [...(prevState.buyTriggerSource || []), ...(nextTlcState.buyTriggerSource || [])],
+            sellTriggerSource: clearTriggers ? [] : [...(prevState.sellTriggerSource || []), ...(nextTlcState.sellTriggerSource || [])],
         },
         effects: [] 
     }
