@@ -20,7 +20,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         }, 0) / (updatedShortSmaValues.length - 1)
 
         const momentumDifference = momentum - prevState.prevMomentum
-        const updatedMomentumDifferences = [...prevState(prevState.momentumDifferences || []). slice(1), momentumDifference]
+        const updatedMomentumDifferences = [...(prevState.momentumDifferences || []). slice(1), momentumDifference]
         const slowingMomentum = momentumDifference < prevState.momentumDifference
         const updatedSlowingMomentum = [...prevState.slowingMomentum.slice(1), slowingMomentum]
 
