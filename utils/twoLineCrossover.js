@@ -20,6 +20,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         }, 0) / (updatedShortSmaValues.length - 1)
 
         const momentumDifference = momentum - prevState.prevMomentum
+        const updatedMomentumDifferences = [...prevState(prevState.momentumDifferences || []). slice(1), momentumDifference]
         const slowingMomentum = momentumDifference < prevState.momentumDifference
         const updatedSlowingMomentum = [...prevState.slowingMomentum.slice(1), slowingMomentum]
 
@@ -70,7 +71,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             positiveCrossover: positiveCrossover,
             negativeCrossover: negativeCrossover,
             momentum: momentum,
-            momentumDifference: momentumDifference,
+            momentumDifferences: updatedMomentumDifferences,
             slowingMomentum: updatedSlowingMomentum,
             distanceMomentum: distanceMomentum,
             shortSmaValues: updatedShortSmaValues,
@@ -111,7 +112,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             updatedDistancePeak: Array(10).fill(false), // Initialize with an array of 10 falses
             buyTriggerSource: [],
             sellTriggerSource: [],
-            momentumDifference: 0,
+            momentumDifferences: Array(10).fill(0), // Initialize with an array of 10 zeros
             slowingMomentum: Array(10).fill(false), // Initialize with an array of 5 falses
         }
     }
