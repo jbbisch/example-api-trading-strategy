@@ -8,7 +8,7 @@ const drawEffect = (state, action) => {
         const { props } = payload
         const { contract } = props
         const { product, position, mode, buffer, tlc, realizedPnL, buyDistance, sellDistance, buyTriggerSource, sellTriggerSource,} = state
-        const { distance, shortSma, longSma, momentum, shortSmaValues,distanceMomentum, distanceValues, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource } = tlc.state  
+        const { distance, shortSma, longSma, momentum, momentumDifferences, shortSmaValues,distanceMomentum, distanceValues, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference } = tlc.state  
 
         const formatDistanceArray = (distanceArray) => {
             return distanceArray && distanceArray.length > 0 ? distanceArray.map(item => `Pre: ${item.prevDistance !== undefined ? item.prevDistance.toFixed(2) : 'N/A'}, Distance: ${item.distance !== undefined ? item.distance.toFixed(2) : 'N/A'}`).join(', ') : 'No Distance'
@@ -39,6 +39,9 @@ const drawEffect = (state, action) => {
             ShortSmaMomentum: momentum.toFixed(8),
             'Short SMA Values': shortSmaValues.map(value => value.toFixed(2)).join(', '),
             LONGsma: longSma.toFixed(2),
+            slowingMomentum: slowingMomentum.join(', '),
+            momentumDifference: momentumDifference.toFixed(8),
+            'Momentum Differences': momentumDifferences.map(value => value.toFixed(8)).join(', '),
             // 'p&l': position && position.netPos !== 0 && product 
             //     ? `$${calculatePnL({
             //         price: buffer.last()?.price || buffer.last()?.price || 0, 
