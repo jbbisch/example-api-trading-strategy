@@ -39,29 +39,31 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         if (updatedDistancePeak.length > 10) updatedDistancePeak.shift()
 
         const SMAPositiveCrossover = (prevState.shortSma <= prevState.longSma && distance > 0.00)
-        const BouncePositiveCrossover = (prevState.distance > 0.50 && distance < 3.50 && (shortSma - prevState.shortSma) > 0.25)
-        const positiveCrossover = SMAPositiveCrossover || BouncePositiveCrossover
+        //const BouncePositiveCrossover = (prevState.distance > 0.50 && distance < 3.50 && (shortSma - prevState.shortSma) > 0.25)
+        const positiveCrossover = SMAPositiveCrossover //|| BouncePositiveCrossover
 
         const SMANegativeCrossover = (prevState.distance >= -0.17 && distance < -0.17) || (prevState.shortSma >= prevState.longSma && distance < 0.00)
         const LikelyNegativeCrossover = (prevState.distance > 0.28 && distance < 0.31)
+        const SlowingMomentumNegativeCrossover = nextTlcState.slowingMomentum.slice(-5).filter(v => v).length >= 4
         //const BigDistancePullback = (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00)
-        const MomentumPeakNegativeCrossover = (prevState.distance > 2.50 && distance < 20.50 && momentumPeak === true)
-        const DistancePeakNegativeCrossover = (prevState.distance > 2.50 && distance < 20.50 && distancePeak === true)
-        const negativeCrossover =  SMANegativeCrossover || LikelyNegativeCrossover || MomentumPeakNegativeCrossover || DistancePeakNegativeCrossover
+        //const MomentumPeakNegativeCrossover = (prevState.distance > 2.50 && distance < 20.50 && momentumPeak === true)
+        //const DistancePeakNegativeCrossover = (prevState.distance > 2.50 && distance < 20.50 && distancePeak === true)
+        const negativeCrossover =  SMANegativeCrossover || LikelyNegativeCrossover || SlowingMomentumNegativeCrossover //|| MomentumPeakNegativeCrossover || DistancePeakNegativeCrossover
 
         const buyTriggerSource = [...(prevState.triggerSource || [])]
         const sellTriggerSource = [...(prevState.triggerSource || [])]
 
         if (positiveCrossover) {
-            if (SMAPositiveCrossover) buyTriggerSource.push(`${now} - SMAPositiveCrossover`)
-            if (BouncePositiveCrossover) buyTriggerSource.push(`${now} - BouncePositiveCrossover`)
+            if (SMAPositiveCrossover) buyTriggerSource.push(`${now} - SMApc`)
+            //if (BouncePositiveCrossover) buyTriggerSource.push(`${now} - Bpc`)
         }
         if (negativeCrossover) {
-            if (SMANegativeCrossover) sellTriggerSource.push(`${now} - SMANegativeCrossover`)
-            if (LikelyNegativeCrossover) sellTriggerSource.push(`${now} - LikelyNegativeCrossover`)
+            if (SMANegativeCrossover) sellTriggerSource.push(`${now} - SMAnc`)
+            if (LikelyNegativeCrossover) sellTriggerSource.push(`${now} - Lnc`)
+            if (SlowingMomentumNegativeCrossover) sellTriggerSource.push(`${now} - SLnc`)    
             //if (BigDistancePullback) sellTriggerSource.push(`${now} - BigDistancePullback`)
-            if (MomentumPeakNegativeCrossover) sellTriggerSource.push(`${now} - MomentumPeakNegativeCrossover`)
-            if (DistancePeakNegativeCrossover) sellTriggerSource.push(`${now} - DistancePeakNegativeCrossover`)
+            //if (MomentumPeakNegativeCrossover) sellTriggerSource.push(`${now} - MPnc`)
+            //if (DistancePeakNegativeCrossover) sellTriggerSource.push(`${now} - DPnc`)
         }
 
         const next = {
