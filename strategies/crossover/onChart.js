@@ -210,12 +210,13 @@ const onChart = (prevState, {data, props}) => {
             }).then(response => {
                 trackDistance(sellDistance, lastTlc.distance, distance)
                 const sellLog = prevState.sellTriggerSource || (prevState.sellTriggerSource = [])
-                if (nextTlcState.SMANegativeCrossover) trackTrigger(sellLog, 'SMANegativeCrossover')
+                if (nextTlcState.SMANegativeCrossover) trackTrigger(sellLog, 'SMAnc')
                     //else if (nextTlcState.SMAPositiveCrossover) trackTrigger(sellLog, 'SMAPositiveCrossover')
-                    else if (nextTlcState.LikelyNegativeCrossover) trackTrigger(sellLog, 'LikelyNegativeCrossover')
+                    else if (nextTlcState.LikelyNegativeCrossover) trackTrigger(sellLog, 'Lnc')
+                    else if (nextTlcState.SlowingMomentumNegativeCrossover) trackTrigger(sellLog, 'SLnc')
                 //if (nextTlcState.BigDistancePullback) trackTrigger(sellLog, 'BigDistancePullback')
-                    else if (nextTlcState.MomentumPeakNegativeCrossover) trackTrigger(sellLog, 'MomentumPeakNegativeCrossover')
-                    else if (nextTlcState.DistancePeakNegativeCrossover) trackTrigger(sellLog, 'DistancePeakNegativeCrossover')
+                    else if (nextTlcState.MomentumPeakNegativeCrossover) trackTrigger(sellLog, 'MPnc')
+                    else if (nextTlcState.DistancePeakNegativeCrossover) trackTrigger(sellLog, 'DPnc')
                 console.log('[onChart] response 2:', response)
                 return {
                     state: {
@@ -270,8 +271,8 @@ const onChart = (prevState, {data, props}) => {
             }).then(response => {
                 trackDistance(buyDistance, lastTlc.distance, distance)
                 const buyLog = prevState.buyTriggerSource || (prevState.buyTriggerSource = [])
-                if (nextTlcState.SMAPositiveCrossover) trackTrigger(buyLog, 'SMAPositiveCrossover')
-                    else if (nextTlcState.BouncePositiveCrossover) trackTrigger(buyLog, 'BouncePositiveCrossover')
+                if (nextTlcState.SMAPositiveCrossover) trackTrigger(buyLog, 'SMApc')
+                    else if (nextTlcState.BouncePositiveCrossover) trackTrigger(buyLog, 'Bpc')
                 console.log('[onChart] response 3:', response)
                 return {
                     state: {
