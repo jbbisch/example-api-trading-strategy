@@ -250,6 +250,79 @@ TradovateSocket.prototype.isConnected = function() {
 /**
  * Attempts to reconnect the WebSocket after an unexpected closure.
  */
+TradovateSocket.prototype.reconnect = async function () {
+    if (!this.wsUrl) {
+        console.error('[TsReconnect] No WebSocket URL available for reconnection.');
+        return;
+    }
+
+    if (!this.isConnected()) {
+        const backoff = Math.min(30000, Math.pow(2, this.reconnectAttempts) * 1000);
+        console.log(`[TsReconnect] Waiting ${backoff}ms before reconnect attempt...`);
+
+        setTimeout(async () => {
+            try {
+                console.log('[TsReconnect] Renewing access token...');
+                const tokenResult = await renewAccessToken();
+                if (!tokenResult) {
+                    console.error('[TsReconnect] Token renewal failed.');
+                    this.reconnectAttempts += 1;
+                    return;
+                }
+                console.log('[TsReconnect] Token successfully renewed.');
+
+                // Clean up any existing connection
+                if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
+                    this.disconnect();
+                }
+
+                console.log('[TsReconnect] Reconnecting to:', this.wsUrl);
+                await this.connect(this.wsUrl);
+                console.log('[TsReconnect] WebSocket reconnected.');
+
+                // Resubscribe to stored subscriptions
+                this.subscriptions.forEach(sub => sub.subscription());
+                console.log('[TsReconnect] Resubscriptions complete.');
+
+                // Reinitialize strategy
+                if (this.strategy) {
+                    const strategyProps = this.strategy.props;
+                    this.strategy = new this.strategy.constructor(strategyProps);
+                    if (typeof this.strategy.init === 'function') {
+                        await this.strategy.init();
+                        console.log('[TsReconnect] Strategy reinitialized.');
+                    }
+                } else {
+                    console.log('[TsReconnect] No strategy to reinitialize.');
+                }
+
+                // Resynchronize with server
+                this.synchronize(data => {
+                    console.log('[TsReconnect] Synchronized with server.');
+                    if (typeof this.onSync === 'function') {
+                        this.onSync(data);
+                        console.log('[TsReconnect] Subscribed to sync events.');
+                    }
+
+                    // Trigger next() manually if we have buffer data
+                    if (this.buffer && this.buffer.length && typeof this.strategy?.next === 'function') {
+                        const last = this.buffer[this.buffer.length - 1];
+                        this.strategy.next(last);
+                        console.log('[TsReconnect] Manually triggered strategy.next() with last buffer bar.');
+                    }
+                });
+
+                this.reconnectAttempts = 0; // success — reset counter
+            } catch (err) {
+                console.error('[TsReconnect] Reconnection failed:', err);
+                this.reconnectAttempts += 1;
+                this.reconnect(); // try again
+            }
+        }, backoff);
+    }
+}
+
+
 TradovateSocket.prototype.reconnect = async function() {
     if (!this.isConnected()) {
         setTimeout(async() => {
