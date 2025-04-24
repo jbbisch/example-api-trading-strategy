@@ -8,7 +8,7 @@ const drawEffect = (state, action) => {
         const { props } = payload
         const { contract } = props
         const { product, position, mode, buffer, tlc, realizedPnL, buyDistance, sellDistance, buyTriggerSource, sellTriggerSource,} = state
-        const { distance, shortSma, longSma, momentum, momentumDifferences, shortSmaValues,distanceMomentum, distanceValues, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference } = tlc.state  
+        const { distance, shortSma, longSma, momentum, momentumDifferences, shortSmaValues,distanceMomentum, distanceValues, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount} = tlc.state  
 
         const formatDistanceArray = (distanceArray) => {
             return distanceArray && distanceArray.length > 0 ? distanceArray.map(item => `Pre: ${item.prevDistance !== undefined ? item.prevDistance.toFixed(2) : 'N/A'}, Distance: ${item.distance !== undefined ? item.distance.toFixed(2) : 'N/A'}`).join(', ') : 'No Distance'
@@ -52,6 +52,7 @@ const drawEffect = (state, action) => {
             //     : '$0.00',
             buyTriggerSource: buyTriggers,
             buyDistance: formattedBuyDistance,
+            SLMncCount: slowingMomentumNegativeCrossoverCount,
             sellTriggerSource: sellTriggers,
             sellDistance: formattedSellDistance,
         })    
