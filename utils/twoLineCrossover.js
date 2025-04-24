@@ -42,13 +42,14 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         //const BouncePositiveCrossover = (prevState.distance > 0.50 && distance < 3.50 && (shortSma - prevState.shortSma) > 0.25)
         const positiveCrossover = SMAPositiveCrossover //|| BouncePositiveCrossover
 
-        const SMANegativeCrossover = (prevState.distance >= -0.17 && distance < -0.17) || (prevState.shortSma >= prevState.longSma && distance < 0.00)
+        const SMANegativeCrossover = (prevState.shortSma >= prevState.longSma && distance < 0.00)
+        const NegativeBounceNegativeCrossover = (prevState.distance >= -0.17 && distance < -0.17)
         const LikelyNegativeCrossover = (prevState.distance > 0.28 && distance < 0.31)
-        const SlowingMomentumNegativeCrossover = nextTlcState.slowingMomentum.slice(-5).filter(v => v).length >= 4
+        const SlowingMomentumNegativeCrossover = (distance > 3.70 && updatedSlowingMomentum.slice(-5).filter(v => v).length >= 4 && distancePeak === true)
         //const BigDistancePullback = (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00)
         //const MomentumPeakNegativeCrossover = (prevState.distance > 2.50 && distance < 20.50 && momentumPeak === true)
         //const DistancePeakNegativeCrossover = (prevState.distance > 2.50 && distance < 20.50 && distancePeak === true)
-        const negativeCrossover =  SMANegativeCrossover || LikelyNegativeCrossover || SlowingMomentumNegativeCrossover //|| MomentumPeakNegativeCrossover || DistancePeakNegativeCrossover
+        const negativeCrossover =  SMANegativeCrossover || LikelyNegativeCrossover || NegativeBounceNegativeCrossover || SlowingMomentumNegativeCrossover //|| MomentumPeakNegativeCrossover || DistancePeakNegativeCrossover
 
         const buyTriggerSource = [...(prevState.triggerSource || [])]
         const sellTriggerSource = [...(prevState.triggerSource || [])]
@@ -60,7 +61,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         if (negativeCrossover) {
             if (SMANegativeCrossover) sellTriggerSource.push(`${now} - SMAnc`)
             if (LikelyNegativeCrossover) sellTriggerSource.push(`${now} - Lnc`)
-            if (SlowingMomentumNegativeCrossover) sellTriggerSource.push(`${now} - SLnc`)    
+            if (NegativeBounceNegativeCrossover) sellTriggerSource.push(`${now} - NBnc`)
+            if (SlowingMomentumNegativeCrossover) sellTriggerSource.push(`${now} - SLMnc`)    
             //if (BigDistancePullback) sellTriggerSource.push(`${now} - BigDistancePullback`)
             //if (MomentumPeakNegativeCrossover) sellTriggerSource.push(`${now} - MPnc`)
             //if (DistancePeakNegativeCrossover) sellTriggerSource.push(`${now} - DPnc`)
@@ -75,6 +77,9 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             momentum: momentum,
             momentumDifferences: updatedMomentumDifferences,
             momentumDifference: momentumDifference,
+            NegativeBounceNegativeCrossover: NegativeBounceNegativeCrossover,
+            LikelyNegativeCrossover: LikelyNegativeCrossover,
+            SlowingMomentumNegativeCrossover: SlowingMomentumNegativeCrossover,
             slowingMomentum: updatedSlowingMomentum,
             distanceMomentum: distanceMomentum,
             shortSmaValues: updatedShortSmaValues,
@@ -111,13 +116,13 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             prevDistanceMomentum: 0,
             momentumPeak: false,
             distancePeak: false,
-            updatedMomentumPeak: Array(10).fill(false), // Initialize with an array of 10 falses
-            updatedDistancePeak: Array(10).fill(false), // Initialize with an array of 10 falses
+            updatedMomentumPeak: Array(5).fill(false), // Initialize with an array of 5 falses
+            updatedDistancePeak: Array(5).fill(false), // Initialize with an array of 5 falses
             buyTriggerSource: [],
-            sellTriggerSource: [],
+            sellTriggerSource: [],                                                                                                        
             momentumDifference: 0,
-            momentumDifferences: Array(10).fill(0), // Initialize with an array of 10 zeros
-            slowingMomentum: Array(10).fill(false), // Initialize with an array of 5 falses
+            momentumDifferences: Array(5).fill(0), // Initialize with an array of 5 zeros
+            slowingMomentum: Array(5).fill(false), // Initialize with an array of 5 falses
         }
     }
 
