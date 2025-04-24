@@ -84,7 +84,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             NegativeBounceNegativeCrossover: NegativeBounceNegativeCrossover,
             LikelyNegativeCrossover: LikelyNegativeCrossover,
             SlowingMomentumNegativeCrossover: SlowingMomentumNegativeCrossover,
-            SlowingMomentumNegativeCrossoverCount: updatedSlowingMomentumNegativeCrossoverCount,
+            slowingMomentumNegativeCrossoverCount: updatedSlowingMomentumNegativeCrossoverCount,
             slowingMomentum: updatedSlowingMomentum,
             distanceMomentum: distanceMomentum,
             shortSmaValues: updatedShortSmaValues,
