@@ -21,6 +21,7 @@ function TradovateSocket() {
     this.reconnectAttempts = 0
     this.subscriptions = []
     this.strategy = null
+    this.wsUrl = null
 }
 
 TradovateSocket.prototype.getSocket = function() {
@@ -145,8 +146,9 @@ TradovateSocket.prototype.setupHeartbeat = function() {
  * Modify the connect method to handle connection failures and auto-reconnect.
  */
 TradovateSocket.prototype.connect = async function(url) {
-
+    //console.log('connecting to url:', url)
     this.ws = new WebSocket(url)
+    this.wsUrl = url
     this.ws.setMaxListeners(24)
     this.counter = new Counter()
     
@@ -185,6 +187,7 @@ TradovateSocket.prototype.connect = async function(url) {
         })
 
         this.ws.addEventListener('message', async msg => {
+            //console.log('[ConnectMessageEvent] Message received:', msg.data)
             const { type, data } = msg
 
             const kind = data.slice(0,1)
@@ -251,63 +254,59 @@ TradovateSocket.prototype.reconnect = async function() {
     if (!this.isConnected()) {
         setTimeout(async() => {
             console.log('[TsReconnect] Attempting to reconnect...')
-            await renewAccessToken()
-            console.log('[tsReconnect-renewAccessToken] Token successfully renewed.')
+            const wsUrl = this.ws ? this.ws.url : null
+            if (wsUrl) {
+                console.error('[TsReconnect] No WebSocket URL available for reconnection.');
+                return
+            }
+            try {
+                const tokenResult = await renewAccessToken()
+                if (!tokenResult) {
+                    console.error('[TsReconnect] Token renewal failed.')
+                    this.reconnectAttempts += 1
+                    return
+                }
+                console.log('[TsReconnect] Token successfully renewed.')
+            } catch(error) {
+                console.error('[TsReconnect] Error renewing token:', error)
+                this.reconnectAttempts += 1
+                return
+            }
             if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
                 console.log('[TsReconnect] Closing current connection...')
                 this.ws.close(1000, '[TsReconnect] Client initiated disconnect.')
             }
-            const reconnectAttempt = async () => {
-                if(this.ws.readyState === WebSocket.CLOSED) {
-                    try {
-                        console.log('[TsReconnect] Connecting to URL:', this.ws.url)
-                        await this.connect(this.ws.url)
-                        console.log('[TsReconnect] Reconnected to server.')
-                        
-                        this.subscriptions.forEach(sub => sub.subscription())
-                        console.log('[TsReconnect] Resubscribed to data.')
-                        
-                        if (this.strategy) {
-                            const strategyProps = this.strategy.props
-                            this.strategy = new this.strategy.constructor(strategyProps)
-                            console.log('[TsReconnect] Initialized strategy: ', this.strategy.constructor.name)
-                        } else {
-                            console.log('[TsReconnect] No strategy to initialize.')
-                        }
-                    
-                        this.synchronize(data => {
-                            console.log('[TsReconnect] Synchronized with server.')
-                            this.onSync(data)
-                            console.log('[TsReconnect] Subscribed to sync events.')
-                        })
-                        // Reattach event listeners if necessary
-                        this.ws.onmessage = (msg) => {
-                            try {
-                                const messageData = msg.data
-                                if (messageData.trim().startsWith('{') && messageData.trim().endsWith('}')) {
-                                    const [event, payload] = JSON.parse(msg.data);
-                                    if (event === 'crossover/draw') {
-                                        drawEffect(this.state, [event, payload]);
-                                    } else {
-                                        console.log('[mdResubscribe] Unhandled event/payload:', event, payload);
-                                    }
-                                } else {
-                                    console.log('[mdResubscribe] Message received invalid:', messageData)
-                                }
-                            } catch(error) {
-                                console.error('[mdResubscribe] Error parsing message', error)
-                            }
-                        }
-                    } catch(error) {
-                        console.error('[TsReconnect] Error subscribing to data:', error)
-                    }
-                } else {
-                    setTimeout(reconnectAttempt, 1000)
-                }
+            const MAX_RECONNECT_ATTEMPTS = 5
+            if (this.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+                console.error('[TsReconnect] Maximum reconnect attempts reached.')
+                return
             }
-            reconnectAttempt()
-        },Math.pow(2, this.reconnectAttempts) * 1000)
-        this.reconnectAttempts += 1
+            try {
+                console.log('[TsReconnect] Connecting to URL:', wsUrl)
+                await this.connect(this.wsUrl)
+                console.log('[TsReconnect] Reconnected to server.')
+                this.subscriptions.forEach(sub => sub.subscription())
+                console.log('[TsReconnect] Resubscribed to data.')
+                if (this.strategy) {
+                    const strategyProps = this.strategy.props
+                    this.strategy = new this.strategy.constructor(strategyProps)
+                    console.log('[TsReconnect] Initialized strategy:', this.strategy.constructor.name)
+                } else {
+                    console.log('[TsReconnect] No strategy to initialize.')
+                }
+                this.synchronize(data => {
+                    console.log('[TsReconnect] Synchronized with server.')
+                    if (typeof this.onSync === 'function') {
+                        this.onSync(data)
+                        console.log('[TsReconnect] Subscribed to sync events.')
+                    }
+                })
+                this.reconnectAttempts = 0
+            } catch(error) {
+                console.error('[TsReconnect] Error reconnecting to server:', error)
+                this.reconnectAttempts += 1
+            }
+        }, Math.min(30000, Math.pow(2, this.reconnectAttempts) * 1000))
     }
 }
 
