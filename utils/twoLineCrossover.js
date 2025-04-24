@@ -38,6 +38,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const updatedDistancePeak = [...prevState.updatedDistancePeak.slice(1), distancePeak]
         if (updatedDistancePeak.length > 10) updatedDistancePeak.shift()
 
+        const slowingMomentumNegativeCrossoverCount = prevState.slowingMomentumNegativeCrossoverCount || 0
+
         const SMAPositiveCrossover = (prevState.shortSma <= prevState.longSma && distance > 0.00)
         //const BouncePositiveCrossover = (prevState.distance > 0.50 && distance < 3.50 && (shortSma - prevState.shortSma) > 0.25)
         const positiveCrossover = SMAPositiveCrossover //|| BouncePositiveCrossover
@@ -45,11 +47,13 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const SMANegativeCrossover = (prevState.shortSma >= prevState.longSma && distance < 0.00)
         const NegativeBounceNegativeCrossover = (prevState.distance >= -0.17 && distance < -0.17)
         const LikelyNegativeCrossover = (prevState.distance > 0.28 && distance < 0.31)
-        const SlowingMomentumNegativeCrossover = (distance > 3.70 && updatedSlowingMomentum.slice(-5).filter(v => v).length >= 4 && distancePeak === true)
+        const SlowingMomentumNegativeCrossover = (distance > 3.70 && updatedSlowingMomentum.slice(-5).filter(v => v).length >= 4 && updatedDistancePeak.slice(-5).filter(v => v).length >= 1)
         //const BigDistancePullback = (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00)
         //const MomentumPeakNegativeCrossover = (prevState.distance > 2.50 && distance < 20.50 && momentumPeak === true)
         //const DistancePeakNegativeCrossover = (prevState.distance > 2.50 && distance < 20.50 && distancePeak === true)
         const negativeCrossover =  SMANegativeCrossover || LikelyNegativeCrossover || NegativeBounceNegativeCrossover || SlowingMomentumNegativeCrossover //|| MomentumPeakNegativeCrossover || DistancePeakNegativeCrossover
+
+        const updatedSlowingMomentumNegativeCrossoverCount = SlowingMomentumNegativeCrossover ? slowingMomentumNegativeCrossoverCount + 1 : 0 
 
         const buyTriggerSource = [...(prevState.triggerSource || [])]
         const sellTriggerSource = [...(prevState.triggerSource || [])]
@@ -80,6 +84,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             NegativeBounceNegativeCrossover: NegativeBounceNegativeCrossover,
             LikelyNegativeCrossover: LikelyNegativeCrossover,
             SlowingMomentumNegativeCrossover: SlowingMomentumNegativeCrossover,
+            SlowingMomentumNegativeCrossoverCount: updatedSlowingMomentumNegativeCrossoverCount,
             slowingMomentum: updatedSlowingMomentum,
             distanceMomentum: distanceMomentum,
             shortSmaValues: updatedShortSmaValues,
@@ -123,6 +128,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             momentumDifference: 0,
             momentumDifferences: Array(5).fill(0), // Initialize with an array of 5 zeros
             slowingMomentum: Array(5).fill(false), // Initialize with an array of 5 falses
+            slowingMomentumNegativeCrossoverCount: 0,
         }
     }
 
