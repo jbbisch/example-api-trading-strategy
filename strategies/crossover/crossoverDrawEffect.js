@@ -8,7 +8,7 @@ const drawEffect = (state, action) => {
         const { props } = payload
         const { contract } = props
         const { product, position, mode, buffer, tlc, realizedPnL, buyDistance, sellDistance, buyTriggerSource, sellTriggerSource,} = state
-        const { distance, shortSma, longSma, momentum, momentumDifferences, shortSmaValues,distanceMomentum, distanceValues, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount} = tlc.state  
+        const { distance, shortSma, longSma, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, slowingDistanceMomentumCrossover, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount} = tlc.state  
 
         const formatDistanceArray = (distanceArray) => {
             return distanceArray && distanceArray.length > 0 ? distanceArray.map(item => `Pre: ${item.prevDistance !== undefined ? item.prevDistance.toFixed(2) : 'N/A'}, Distance: ${item.distance !== undefined ? item.distance.toFixed(2) : 'N/A'}`).join(', ') : 'No Distance'
@@ -32,13 +32,16 @@ const drawEffect = (state, action) => {
             contract: contract.name,      
             netPos: position?.netPos || 0,
             realizedPnL: `$${realizedPnL.toFixed(2)}`,
-            DistanceMomentum: distanceMomentum.toFixed(8),
             'Distance Values': distanceValues.map(value => value.toFixed(2)).join(', '),
+            DistanceMomentum: distanceMomentum.toFixed(8),
+            slowingDistanceMomentum: slowingDistanceMomentum.join(', '),
+            distanceMomentumDifference: distanceMomentumDifference.toFixed(8),
+            'Distance Momentum Differences': distanceMomentumDifferences.map(v => v.toFixed(8)).join(', '),
             DistancePeak: updatedDistancePeak ? updatedDistancePeak.join(', ') : 'N/A',
             MomentumPeak: updatedMomentumPeak ? updatedMomentumPeak.join(', ') : 'N/A',
             ShortSmaMomentum: momentum.toFixed(8),
-            'Short SMA Values': shortSmaValues.map(value => value.toFixed(2)).join(', '),
-            LONGsma: longSma.toFixed(2),
+            //'Short SMA Values': shortSmaValues.map(value => value.toFixed(2)).join(', '),
+            //LONGsma: longSma.toFixed(2),
             slowingMomentum: slowingMomentum.join(', '),
             momentumDifference: momentumDifference.toFixed(8),
             'Momentum Differences': momentumDifferences.map(value => value.toFixed(8)).join(', '),
@@ -53,6 +56,7 @@ const drawEffect = (state, action) => {
             buyTriggerSource: buyTriggers,
             buyDistance: formattedBuyDistance,
             SLMncCount: slowingMomentumNegativeCrossoverCount,
+            SDMncCount: slowingDistanceMomentumCrossoverCount,
             sellTriggerSource: sellTriggers,
             sellDistance: formattedSellDistance,
         })    
