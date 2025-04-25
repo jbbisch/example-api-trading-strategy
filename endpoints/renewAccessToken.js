@@ -1,10 +1,17 @@
 const axios = require("axios")
 
-async function renewAccessToken() {
-    console.log('[renewAccessToken ENDPOINT] is being called')
-    
-    const URL = process.env.HTTP_URL + '/auth/renewAccessToken'
+let tokenRetries = 0
+const MAX_TOKEN_RETRIES = 5
 
+async function renewAccessToken() {
+    console.log('[renewAccessToken] Attempting to renew access token...');
+
+    if (tokenRetries >= MAX_TOKEN_RETRIES) {
+        console.error(`[renewAccessToken] Failed ${tokenRetries} times. Aborting further attempts.`);
+        return false
+    }
+
+    const URL = process.env.HTTP_URL + '/auth/renewAccessToken'
     const data = {
         name: process.env.USER,
         password: process.env.PASS,
@@ -14,7 +21,6 @@ async function renewAccessToken() {
         cid: parseInt(process.env.CID, 10),
         sec: process.env.SEC
     }
-    console.log('[renewAccessToken ENDPOINT] data:', data)
 
     const config = {
         headers: {
@@ -26,14 +32,21 @@ async function renewAccessToken() {
 
     try {
         const response = await axios.post(URL, data, config)
-        console.log('[renewAccessToken ENDPOINT] RESPONSE:', response.data)
+        console.log('[renewAccessToken] Token successfully renewed.')
+
+        // Update env variables
         process.env.ACCESS_TOKEN = response.data.accessToken
         process.env.MD_ACCESS_TOKEN = response.data.mdAccessToken
         process.env.EXPIRATION_TIME = response.data.expirationTime
+
+        tokenRetries = 0 // reset on success
         return response.data
     } catch (err) {
-        console.error('[renewAccessToken ENDPOINT] Error in renewAccessToken ENDPOINT:', err.response)
+        tokenRetries += 1
+        const code = err?.response?.status || 'Unknown'
+        console.error(`[renewAccessToken] Error (attempt ${tokenRetries}):`, code)
+        return false
     }
-
 }
+
 module.exports = { renewAccessToken }
