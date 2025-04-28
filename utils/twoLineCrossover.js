@@ -25,11 +25,15 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const updatedSlowingMomentum = [...prevState.slowingMomentum.slice(1), slowingMomentum]
 
         const updatedDistanceValues = [...prevState.distanceValues.slice(1), distance]
-        const distanceMomentum = updatedDistanceValues.reduce((sum, value, index, arr) => {
-            if (index === 0) return sum
-            if(arr[index -1] === 0) return sum
-            return sum + (value - arr[index -1]) / arr[index -1]
-        }, 0) / (updatedDistanceValues.length || 1)
+        const distanceMomentumSum = updatedDistanceValues.reduce((sum, value, index, arr) => {
+            if (index === 0 || arr[index - 1] === 0) return sum
+            return sum + (value - arr[index - 1]) / arr[index - 1]
+            }, 0) 
+        const distanceMomentumCount = updatedDistanceValues.reduce((count, value, index, arr) => {
+            if (index === 0 || arr[index - 1] === 0) return count
+            return count + 1
+        }, 0)
+        const distanceMomentum = distanceMomentumSum / (distanceMomentumCount || 1)
 
         const absDistanceValues = updatedDistanceValues.map(value => Math.abs(value))
         const absoluteGapMomentum = absDistanceValues.reduce((sum, value, index, arr) => {
@@ -106,7 +110,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             slowingMomentum: updatedSlowingMomentum,
             distanceMomentum: distanceMomentum,
             absoluteGapMomentum: absoluteGapMomentum,
-            absoluteGapMmomentums: updatedAbsoluteGapMomentums,
+            absoluteGapMomentums: updatedAbsoluteGapMomentums,
             distanceMomentumDifferences: updatedDistanceMomentumDifferences,
             distanceMomentumDifference: distanceMomentumDifference,
             slowingDistanceMomentum: updatedSlowingDistanceMomentum,
