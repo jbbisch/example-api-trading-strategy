@@ -27,8 +27,9 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const updatedDistanceValues = [...prevState.distanceValues.slice(1), distance]
         const distanceMomentum = updatedDistanceValues.reduce((sum, value, index, arr) => {
             if (index === 0) return sum
-            return sum + (arr[index - 1] !== 0 ? (value - arr[index - 1]) / arr[index - 1] : 0)
-        }, 0) / (updatedDistanceValues.length - 1)
+            if(arr[index -1] === 0) return sum
+            return sum + (value - arr[index -1]) / arr[index -1]
+        }, 0) / (updatedDistanceValues.length || 1)
 
         const absDistanceValues = updatedDistanceValues.map(value => Math.abs(value))
         const absoluteGapMomentum = absDistanceValues.reduce((sum, value, index, arr) => {
@@ -105,7 +106,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             slowingMomentum: updatedSlowingMomentum,
             distanceMomentum: distanceMomentum,
             absoluteGapMomentum: absoluteGapMomentum,
-            absoluteGapmomentums: updatedAbsoluteGapMomentums,
+            absoluteGapMmomentums: updatedAbsoluteGapMomentums,
             distanceMomentumDifferences: updatedDistanceMomentumDifferences,
             distanceMomentumDifference: distanceMomentumDifference,
             slowingDistanceMomentum: updatedSlowingDistanceMomentum,
@@ -156,7 +157,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             slowingMomentumNegativeCrossoverCount: 0,
             slowingDistanceMomentumCrossoverCount: 0,
             absoluteGapMomentum: 0,
-            absoluteGapmomentums: Array(5).fill(0), // Initialize with an array of 5 zeros
+            absoluteGapMomentums: Array(5).fill(0), // Initialize with an array of 5 zeros
         }
     }
 
