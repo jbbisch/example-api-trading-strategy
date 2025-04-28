@@ -36,15 +36,20 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const distanceMomentum = distanceMomentumSum / (distanceMomentumCount || 1)
 
         const absDistanceValues = updatedDistanceValues.map(value => Math.abs(value))
-        const absoluteGapMomentumSum = absDistanceValues.reduce((sum, value, index, arr) => {
-            if (index === 0 || arr[index - 1] === 0) return sum
-            return sum + (value - arr[index - 1]) / arr[index - 1]
-        }, 0)
-        const absoluteGapMomentumCount = absDistanceValues.reduce((count, value, index, arr) => {
-            if (index === 0 || arr[index - 1] === 0) return count
-            return count + 1
-        }, 0)
-        const absoluteGapMomentum = absoluteGapMomentumSum / (absoluteGapMomentumCount || 1)
+
+        let absoluteGapMomentum = 0
+
+        if (absDistanceValues.length > 1 && absDistanceValues.every(v => typeof v === 'number')) {
+            const absoluteGapMomentumSum = absDistanceValues.reduce((sum, value, index, arr) => {
+                if (index === 0 || arr[index - 1] === 0) return sum
+                return sum + (value - arr[index - 1]) / arr[index - 1]
+            }, 0)
+            const absoluteGapMomentumCount = absDistanceValues.reduce((count, value, index, arr) => {
+                if (index === 0 || arr[index - 1] === 0) return count
+                return count + 1
+            }, 0)
+            absoluteGapMomentum = absoluteGapMomentumSum / (absoluteGapMomentumCount || 1)
+        }
 
         const updatedAbsoluteGapMomentums = [...(prevState.absoluteGapMomentums || []).slice(1), absoluteGapMomentum]
         const absoluteGapMomentumDifference = absoluteGapMomentum - prevState.prevAbsoluteGapMomentum
