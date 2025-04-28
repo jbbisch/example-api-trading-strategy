@@ -110,6 +110,8 @@ TradovateSocket.prototype.onSync = function(callback) {
                 let schemaOk = {}
                 const schemafields = ['users']
                 parsedData.forEach(data => {
+                    if (!data.d || typeof data.d !== 'object') 
+                        return
                     schemafields.forEach(k => {
                         if(schemaOk && !schemaOk.value) {
                             return
@@ -319,67 +321,6 @@ TradovateSocket.prototype.reconnect = async function () {
                 this.reconnect(); // try again
             }
         }, backoff);
-    }
-}
-
-
-TradovateSocket.prototype.reconnect = async function() {
-    if (!this.isConnected()) {
-        setTimeout(async() => {
-            console.log('[TsReconnect] Attempting to reconnect...')
-            const wsUrl = this.ws ? this.ws.url : null
-            if (wsUrl) {
-                console.error('[TsReconnect] No WebSocket URL available for reconnection.');
-                return
-            }
-            try {
-                const tokenResult = await renewAccessToken()
-                if (!tokenResult) {
-                    console.error('[TsReconnect] Token renewal failed.')
-                    this.reconnectAttempts += 1
-                    return
-                }
-                console.log('[TsReconnect] Token successfully renewed.')
-            } catch(error) {
-                console.error('[TsReconnect] Error renewing token:', error)
-                this.reconnectAttempts += 1
-                return
-            }
-            if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
-                console.log('[TsReconnect] Closing current connection...')
-                this.ws.close(1000, '[TsReconnect] Client initiated disconnect.')
-            }
-            const MAX_RECONNECT_ATTEMPTS = 5
-            if (this.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-                console.error('[TsReconnect] Maximum reconnect attempts reached.')
-                return
-            }
-            try {
-                console.log('[TsReconnect] Connecting to URL:', wsUrl)
-                await this.connect(this.wsUrl)
-                console.log('[TsReconnect] Reconnected to server.')
-                this.subscriptions.forEach(sub => sub.subscription())
-                console.log('[TsReconnect] Resubscribed to data.')
-                if (this.strategy) {
-                    const strategyProps = this.strategy.props
-                    this.strategy = new this.strategy.constructor(strategyProps)
-                    console.log('[TsReconnect] Initialized strategy:', this.strategy.constructor.name)
-                } else {
-                    console.log('[TsReconnect] No strategy to initialize.')
-                }
-                this.synchronize(data => {
-                    console.log('[TsReconnect] Synchronized with server.')
-                    if (typeof this.onSync === 'function') {
-                        this.onSync(data)
-                        console.log('[TsReconnect] Subscribed to sync events.')
-                    }
-                })
-                this.reconnectAttempts = 0
-            } catch(error) {
-                console.error('[TsReconnect] Error reconnecting to server:', error)
-                this.reconnectAttempts += 1
-            }
-        }, Math.min(30000, Math.pow(2, this.reconnectAttempts) * 1000))
     }
 }
 
