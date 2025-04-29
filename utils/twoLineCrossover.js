@@ -129,7 +129,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             absoluteGapMomentumDifference: absoluteGapMomentumDifference,
             absoluteGapMomentumDifferences: updatedAbsoluteGapMomentumDifferences,
             slowingAbsoluteGapMomentum: updatedSlowingAbsoluteGapMomentum,
-            prevAbsoluteGapmomentum: absoluteGapMomentum,
+            prevAbsoluteGapMomentum: absoluteGapMomentum,
             distanceMomentumDifferences: updatedDistanceMomentumDifferences,
             distanceMomentumDifference: distanceMomentumDifference,
             slowingDistanceMomentum: updatedSlowingDistanceMomentum,
