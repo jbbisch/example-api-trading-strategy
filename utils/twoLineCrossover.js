@@ -80,15 +80,16 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const SMANegativeCrossover = (prevState.shortSma >= prevState.longSma && distance < 0.00)
         const NegativeBounceNegativeCrossover = (prevState.distance >= -0.17 && distance < -0.17)
         //const LikelyNegativeCrossover = (prevState.distance > 0.28 && distance < 0.31)
-        const SlowingDistanceMomentumCrossover = (distance > 2.70 && updatedSlowingDistanceMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistancePeak.slice(-3).filter(v => v).length >= 1)
+        const SlowingAbsoluteGapMomentumCrossover = (distance > 2.70 && updatedSlowingAbsoluteGapMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistancePeak.slice(-3).filter(v => v).length >= 1)
         const SlowingMomentumNegativeCrossover = (distance > 2.70 && updatedSlowingMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistancePeak.slice(-3).filter(v => v).length >= 1)
         //const BigDistancePullback = (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00)
         //const MomentumPeakNegativeCrossover = (prevState.distance > 2.50 && distance < 20.50 && momentumPeak === true)
         //const DistancePeakNegativeCrossover = (prevState.distance > 2.50 && distance < 20.50 && distancePeak === true)
-        const negativeCrossover =  SMANegativeCrossover || SlowingDistanceMomentumCrossover || NegativeBounceNegativeCrossover || SlowingMomentumNegativeCrossover //|| MomentumPeakNegativeCrossover || DistancePeakNegativeCrossover
+        const negativeCrossover =  SMANegativeCrossover || SlowingAbsoluteGapMomentumCrossover || NegativeBounceNegativeCrossover || SlowingMomentumNegativeCrossover //|| MomentumPeakNegativeCrossover || DistancePeakNegativeCrossover
 
         const updatedSlowingMomentumNegativeCrossoverCount = SlowingMomentumNegativeCrossover ? slowingMomentumNegativeCrossoverCount + 1 : slowingMomentumNegativeCrossoverCount
-        const updatedSlowingDistanceMomentumCrossoverCount = SlowingDistanceMomentumCrossover ? slowingDistanceMomentumCrossoverCount + 1 : slowingDistanceMomentumCrossoverCount
+        //const updatedSlowingDistanceMomentumCrossoverCount = SlowingDistanceMomentumCrossover ? slowingDistanceMomentumCrossoverCount + 1 : slowingDistanceMomentumCrossoverCount
+        const updatedSlowingAbsoluteGapMomentumCrossoverCount = SlowingAbsoluteGapMomentumCrossover ? (prevState.slowingAbsoluteGapMomentumCrossoverCount || 0) + 1 : (prevState.slowingAbsoluteGapMomentumCrossoverCount || 0)
 
         const buyTriggerSource = [...(prevState.triggerSource || [])]
         const sellTriggerSource = [...(prevState.triggerSource || [])]
@@ -99,7 +100,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         }
         if (negativeCrossover) {
             if (SMANegativeCrossover) sellTriggerSource.push(`${now} - SMAnc`)
-            if (SlowingDistanceMomentumCrossover) sellTriggerSource.push(`${now} - SDMnc`)
+            if (SlowingAbsoluteGapMomentumCrossover) sellTriggerSource.push(`${now} - SAGMnc`)
             if (NegativeBounceNegativeCrossover) sellTriggerSource.push(`${now} - NBnc`)
             if (SlowingMomentumNegativeCrossover) sellTriggerSource.push(`${now} - SLMnc`)    
             //if (BigDistancePullback) sellTriggerSource.push(`${now} - BigDistancePullback`)
@@ -120,8 +121,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             //LikelyNegativeCrossover: LikelyNegativeCrossover,
             SlowingMomentumNegativeCrossover: SlowingMomentumNegativeCrossover,
             slowingMomentumNegativeCrossoverCount: updatedSlowingMomentumNegativeCrossoverCount,
-            SlowingDistanceMomentumCrossover: SlowingDistanceMomentumCrossover,
-            slowingDistanceMomentumCrossoverCount: updatedSlowingDistanceMomentumCrossoverCount,
+            //SlowingDistanceMomentumCrossover: SlowingDistanceMomentumCrossover,
+            //slowingDistanceMomentumCrossoverCount: updatedSlowingDistanceMomentumCrossoverCount,
             slowingMomentum: updatedSlowingMomentum,
             distanceMomentum: distanceMomentum,
             absoluteGapMomentum: absoluteGapMomentum,
@@ -129,6 +130,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             absoluteGapMomentumDifference: absoluteGapMomentumDifference,
             absoluteGapMomentumDifferences: updatedAbsoluteGapMomentumDifferences,
             slowingAbsoluteGapMomentum: updatedSlowingAbsoluteGapMomentum,
+            SlowingAbsoluteGapMomentumCrossover: SlowingAbsoluteGapMomentumCrossover,
+            slowingAbsoluteGapMomentumCrossoverCount: updatedSlowingAbsoluteGapMomentumCrossoverCount,
             prevAbsoluteGapMomentum: absoluteGapMomentum,
             distanceMomentumDifferences: updatedDistanceMomentumDifferences,
             distanceMomentumDifference: distanceMomentumDifference,
@@ -184,7 +187,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             absoluteGapMomentumDifference: 0,
             absoluteGapMomentumDifferences: Array(5).fill(0), // Initialize with an array of 5 zeros
             slowingAbsoluteGapMomentum: Array(6).fill(false), // Initialize with an array of 6 falses
-            prevAbsoluteGapmomentum: 0,
+            SlowingAbsoluteGapMomentumCrossoverCount: 0,
+            prevAbsoluteGapMomentum: 0,
         }
     }
 
