@@ -83,8 +83,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const SlowingAbsoluteGapMomentumCrossover = (distance > 2.70 && updatedSlowingAbsoluteGapMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistancePeak.slice(-3).filter(v => v).length >= 1)
         const SlowingMomentumNegativeCrossover = (distance > 2.70 && updatedSlowingMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistancePeak.slice(-3).filter(v => v).length >= 1)
         //const BigDistancePullback = (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00)
-        //const MomentumPeakNegativeCrossover = (prevState.distance > 2.50 && distance < 20.50 && momentumPeak === true)
-        //const DistancePeakNegativeCrossover = (prevState.distance > 2.50 && distance < 20.50 && distancePeak === true)
+        const MomentumPeakNegativeCrossover = (distance < 2.70 && momentumPeak === true && updatedSlowingAbsoluteGapMomentum.slice(-6).filter(v => v).length >= 4)
+        //const DistancePeakNegativeCrossover = (distance < 2.70 && distancePeak === true)
         const negativeCrossover =  SMANegativeCrossover || SlowingAbsoluteGapMomentumCrossover || NegativeBounceNegativeCrossover || SlowingMomentumNegativeCrossover //|| MomentumPeakNegativeCrossover || DistancePeakNegativeCrossover
 
         const updatedSlowingMomentumNegativeCrossoverCount = SlowingMomentumNegativeCrossover ? slowingMomentumNegativeCrossoverCount + 1 : slowingMomentumNegativeCrossoverCount
@@ -166,27 +166,27 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             distanceMomentum: 0,
             distanceMomentumDifferences: Array(5).fill(0), // Initialize with an array of 5 zeros
             distanceMomentumDifference: 0,
-            slowingDistanceMomentum: Array(6).fill(false), // Initialize with an array of 6 falses
+            slowingDistanceMomentum: Array(5).fill(false), // Initialize with an array of 6 falses
             shortSmaValues: Array(5).fill(0), // Initialize with an array of 5 zeros
             distanceValues: Array(5).fill(0), // Initialize with an array of 5 zeros
             prevMomentum: 0,
             prevDistanceMomentum: 0,
             momentumPeak: false,
             distancePeak: false,
-            updatedMomentumPeak: Array(5).fill(false), // Initialize with an array of 5 falses
-            updatedDistancePeak: Array(6).fill(false), // Initialize with an array of 6 falses
+            updatedMomentumPeak: Array(3).fill(false), // Initialize with an array of 5 falses
+            updatedDistancePeak: Array(3).fill(false), // Initialize with an array of 6 falses
             buyTriggerSource: [],
             sellTriggerSource: [],                                                                                                        
             momentumDifference: 0,
             momentumDifferences: Array(5).fill(0), // Initialize with an array of 5 zeros
-            slowingMomentum: Array(6).fill(false), // Initialize with an array of 6 falses
+            slowingMomentum: Array(5).fill(false), // Initialize with an array of 6 falses
             slowingMomentumNegativeCrossoverCount: 0,
             //slowingDistanceMomentumCrossoverCount: 0,
             absoluteGapMomentum: 0,
             absoluteGapMomentums: Array(5).fill(0), // Initialize with an array of 5 zeros
             absoluteGapMomentumDifference: 0,
             absoluteGapMomentumDifferences: Array(5).fill(0), // Initialize with an array of 5 zeros
-            slowingAbsoluteGapMomentum: Array(6).fill(false), // Initialize with an array of 6 falses
+            slowingAbsoluteGapMomentum: Array(5).fill(false), // Initialize with an array of 6 falses
             SlowingAbsoluteGapMomentumCrossoverCount: 0,
             prevAbsoluteGapMomentum: 0,
         }
