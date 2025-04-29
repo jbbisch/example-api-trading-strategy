@@ -71,7 +71,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         if (updatedDistancePeak.length > 10) updatedDistancePeak.shift()
 
         const slowingMomentumNegativeCrossoverCount = prevState.slowingMomentumNegativeCrossoverCount || 0
-        const slowingDistanceMomentumCrossoverCount = prevState.slowingDistanceMomentumCrossoverCount || 0
+        //const slowingDistanceMomentumCrossoverCount = prevState.slowingDistanceMomentumCrossoverCount || 0
 
         const SMAPositiveCrossover = (prevState.shortSma <= prevState.longSma && distance > 0.00)
         //const BouncePositiveCrossover = (prevState.distance > 0.50 && distance < 3.50 && (shortSma - prevState.shortSma) > 0.25)
@@ -131,7 +131,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             absoluteGapMomentumDifferences: updatedAbsoluteGapMomentumDifferences,
             slowingAbsoluteGapMomentum: updatedSlowingAbsoluteGapMomentum,
             SlowingAbsoluteGapMomentumCrossover: SlowingAbsoluteGapMomentumCrossover,
-            slowingAbsoluteGapMomentumCrossoverCount: updatedSlowingAbsoluteGapMomentumCrossoverCount,
+            SlowingAbsoluteGapMomentumCrossoverCount: updatedSlowingAbsoluteGapMomentumCrossoverCount,
             prevAbsoluteGapMomentum: absoluteGapMomentum,
             distanceMomentumDifferences: updatedDistanceMomentumDifferences,
             distanceMomentumDifference: distanceMomentumDifference,
@@ -181,7 +181,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             momentumDifferences: Array(5).fill(0), // Initialize with an array of 5 zeros
             slowingMomentum: Array(6).fill(false), // Initialize with an array of 6 falses
             slowingMomentumNegativeCrossoverCount: 0,
-            slowingDistanceMomentumCrossoverCount: 0,
+            //slowingDistanceMomentumCrossoverCount: 0,
             absoluteGapMomentum: 0,
             absoluteGapMomentums: Array(5).fill(0), // Initialize with an array of 5 zeros
             absoluteGapMomentumDifference: 0,
