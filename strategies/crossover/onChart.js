@@ -215,7 +215,7 @@ const onChart = (prevState, {data, props}) => {
                     //else if (nextTlcState.LikelyNegativeCrossover) trackTrigger(sellLog, 'Lnc')
                     else if (nextTlcState.NegativeBounceNegativeCrossover) trackTrigger(sellLog, 'NBnc')
                     else if (nextTlcState.SlowingMomentumNegativeCrossover) trackTrigger(sellLog, 'SLMnc')
-                    else if (nextTlcState.SlowingDistanceMomentumNegativeCrossover) trackTrigger(sellLog, 'SDMnc')
+                    else if (nextTlcState.SlowingAbsoluteGapMomentumCrossover) trackTrigger(sellLog, 'SAGMnc')
                 //if (nextTlcState.BigDistancePullback) trackTrigger(sellLog, 'BigDistancePullback')
                     else if (nextTlcState.MomentumPeakNegativeCrossover) trackTrigger(sellLog, 'MPnc')
                     else if (nextTlcState.DistancePeakNegativeCrossover) trackTrigger(sellLog, 'DPnc')
