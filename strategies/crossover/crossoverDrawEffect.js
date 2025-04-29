@@ -8,7 +8,7 @@ const drawEffect = (state, action) => {
         const { props } = payload
         const { contract } = props
         const { product, position, mode, buffer, tlc, realizedPnL, buyDistance, sellDistance, buyTriggerSource, sellTriggerSource,} = state
-        const { distance, shortSma, longSma, absoluteGapMomentum, absoluteGapMomentums, absoluteGapMomentumDifference, absoluteGapMomentumDifferences, slowingAbsoluteGapMomentum, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount} = tlc.state  
+        const { distance, shortSma, longSma, absoluteGapMomentum, absoluteGapMomentums, absoluteGapMomentumDifference, absoluteGapMomentumDifferences, slowingAbsoluteGapMomentum, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount, SlowingAbsoluteGapMomentumCrossoverCount} = tlc.state  
 
         const formatDistanceArray = (distanceArray) => {
             return distanceArray && distanceArray.length > 0 ? distanceArray.map(item => `Pre: ${item.prevDistance !== undefined ? item.prevDistance.toFixed(2) : 'N/A'}, Distance: ${item.distance !== undefined ? item.distance.toFixed(2) : 'N/A'}`).join(', ') : 'No Distance'
@@ -33,9 +33,9 @@ const drawEffect = (state, action) => {
             netPos: position?.netPos || 0,
             realizedPnL: `$${realizedPnL.toFixed(2)}`,
             'Distance Values': distanceValues.map(value => value.toFixed(2)).join(', '),
-            AbsoluteGapMomentum: absoluteGapMomentum !== undefined ? absoluteGapMomentum.toFixed(8) : 'N/A',
+            //AbsoluteGapMomentum: absoluteGapMomentum !== undefined ? absoluteGapMomentum.toFixed(8) : 'N/A',
             AbsoluteGapMomentums: (absoluteGapMomentums || []).map(v => v.toFixed(8)).join(', '),
-            AbsoluteGapMomentumDifference: absoluteGapMomentumDifference !== undefined ? absoluteGapMomentumDifference.toFixed(8) : 'N/A',
+            //AbsoluteGapMomentumDifference: absoluteGapMomentumDifference !== undefined ? absoluteGapMomentumDifference.toFixed(8) : 'N/A',
             AbsoluteGapMomentumDifferences: (absoluteGapMomentumDifferences || []).map(v => v.toFixed(8)).join(', '),
             slowingAbsoluteGapMomentum: (slowingAbsoluteGapMomentum || []).join(', '),
             //DistanceMomentum: distanceMomentum.toFixed(8),
@@ -48,7 +48,7 @@ const drawEffect = (state, action) => {
             //'Short SMA Values': shortSmaValues.map(value => value.toFixed(2)).join(', '),
             //LONGsma: longSma.toFixed(2),
             slowingMomentum: slowingMomentum.join(', '),
-            momentumDifference: momentumDifference.toFixed(8),
+            //momentumDifference: momentumDifference.toFixed(8),
             'Momentum Differences': momentumDifferences.map(value => value.toFixed(8)).join(', '),
             // 'p&l': position && position.netPos !== 0 && product 
             //     ? `$${calculatePnL({
@@ -61,7 +61,8 @@ const drawEffect = (state, action) => {
             buyTriggerSource: buyTriggers,
             buyDistance: formattedBuyDistance,
             SLMncCount: slowingMomentumNegativeCrossoverCount,
-            SDMncCount: slowingDistanceMomentumCrossoverCount,
+            //SDMncCount: slowingDistanceMomentumCrossoverCount,
+            SAGMncCount: SlowingAbsoluteGapMomentumCrossoverCount,
             sellTriggerSource: sellTriggers,
             sellDistance: formattedSellDistance,
         })    
