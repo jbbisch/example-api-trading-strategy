@@ -8,7 +8,7 @@ const drawEffect = (state, action) => {
         const { props } = payload
         const { contract } = props
         const { product, position, mode, buffer, tlc, realizedPnL, buyDistance, sellDistance, buyTriggerSource, sellTriggerSource,} = state
-        const { distance, shortSma, longSma, absoluteGapMomentum, absoluteGapMomentums, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, slowingDistanceMomentumCrossover, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount} = tlc.state  
+        const { distance, shortSma, longSma, absoluteGapMomentum, absoluteGapMomentums, absoluteGapMomentumDifference, absoluteGapMomentumDifferences, slowingAbsoluteGapMomentum, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount} = tlc.state  
 
         const formatDistanceArray = (distanceArray) => {
             return distanceArray && distanceArray.length > 0 ? distanceArray.map(item => `Pre: ${item.prevDistance !== undefined ? item.prevDistance.toFixed(2) : 'N/A'}, Distance: ${item.distance !== undefined ? item.distance.toFixed(2) : 'N/A'}`).join(', ') : 'No Distance'
@@ -35,10 +35,13 @@ const drawEffect = (state, action) => {
             'Distance Values': distanceValues.map(value => value.toFixed(2)).join(', '),
             AbsoluteGapMomentum: absoluteGapMomentum !== undefined ? absoluteGapMomentum.toFixed(8) : 'N/A',
             AbsoluteGapMomentums: (absoluteGapMomentums || []).map(v => v.toFixed(8)).join(', '),
-            DistanceMomentum: distanceMomentum.toFixed(8),
-            slowingDistanceMomentum: slowingDistanceMomentum.join(', '),
-            distanceMomentumDifference: distanceMomentumDifference.toFixed(8),
-            'Distance Momentum Differences': distanceMomentumDifferences.map(v => v.toFixed(8)).join(', '),
+            AbsoluteGapMomentumDifference: absoluteGapMomentumDifference !== undefined ? absoluteGapMomentumDifference.toFixed(8) : 'N/A',
+            AbsoluteGapMomentumDifferences: (absoluteGapMomentumDifferences || []).map(v => v.toFixed(8)).join(', '),
+            slowingAbsoluteGapMomentum: (slowingAbsoluteGapMomentum || []).join(', '),
+            //DistanceMomentum: distanceMomentum.toFixed(8),
+            //slowingDistanceMomentum: slowingDistanceMomentum.join(', '),
+            //distanceMomentumDifference: distanceMomentumDifference.toFixed(8),
+            //'Distance Momentum Differences': distanceMomentumDifferences.map(v => v.toFixed(8)).join(', '),
             DistancePeak: updatedDistancePeak ? updatedDistancePeak.join(', ') : 'N/A',
             MomentumPeak: updatedMomentumPeak ? updatedMomentumPeak.join(', ') : 'N/A',
             ShortSmaMomentum: momentum.toFixed(8),
