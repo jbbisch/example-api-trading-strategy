@@ -76,7 +76,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const slowingAbsoluteGapMomentumCrossoverCount = prevState.slowingAbsoluteGapMomentumCrossoverCount || 0
 
         const SMAPositiveCrossover = (prevState.shortSma <= prevState.longSma && distance > 0.00)
-        //const BouncePositiveCrossover = (prevState.distance > 0.50 && distance < 3.50 && (shortSma - prevState.shortSma) > 0.25)
+        const BouncePositiveCrossover = (prevState.distance > 0.50 && distance < 3.50 && (shortSma.slice(-3).every((val, i, arr) => i === 0 || val > arr[i - 1]))) // - prevState.shortSma) > 1.25)
         const positiveCrossover = SMAPositiveCrossover //|| BouncePositiveCrossover
 
         const SMANegativeCrossover = (prevState.shortSma >= prevState.longSma && distance < 0.00)
@@ -85,6 +85,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const SlowingAbsoluteGapMomentumCrossover = (distance > 2.70 && updatedSlowingAbsoluteGapMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistancePeak.slice(-3).filter(v => v).length >= 1)
         const SlowingMomentumNegativeCrossover = (distance > 2.70 && updatedSlowingMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistancePeak.slice(-3).filter(v => v).length >= 1)
         //const BigDistancePullback = (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00)
+        const GapMomentumLowCrossover = (distance < 2.70 && momentumPeak === true && updatedAbsoluteGapMomentums.slice(-4).every(v => v > 0.00) && updatedAbsoluteGapMomentums.slice(-4).every(v => v < 0.00485211))
         const MomentumPeakNegativeCrossover = (distance < 2.70 && momentumPeak === true && updatedSlowingAbsoluteGapMomentum.slice(-6).filter(v => v).length >= 4)
         //const DistancePeakNegativeCrossover = (distance < 2.70 && distancePeak === true)
         const negativeCrossover =  SMANegativeCrossover || SlowingAbsoluteGapMomentumCrossover || NegativeBounceNegativeCrossover || SlowingMomentumNegativeCrossover || MomentumPeakNegativeCrossover //|| DistancePeakNegativeCrossover
