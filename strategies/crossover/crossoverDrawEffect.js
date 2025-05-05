@@ -8,7 +8,7 @@ const drawEffect = (state, action) => {
         const { props } = payload
         const { contract } = props
         const { product, position, mode, buffer, tlc, realizedPnL, buyDistance, sellDistance, buyTriggerSource, sellTriggerSource,} = state
-        const { distance, shortSma, SMANegativeCrossoverCount, distanceValley, AcceleratingAbsoluteGapMomentumCrossoverCount, longSma, distanceOpen, GapMomentumLowCrossover, gapMomentumLowCrossoverCount, absoluteGapMomentum, absoluteGapMomentums, absoluteGapMomentumDifference, absoluteGapMomentumDifferences, slowingAbsoluteGapMomentum, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceOpenValues, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount, slowingAbsoluteGapMomentumCrossoverCount, momentumPeakNegativeCrossoverCount} = tlc.state  
+        const { distance, shortSma, SMANegativeCrossoverCount, updatedDistanceValley, AcceleratingAbsoluteGapMomentumCrossoverCount, longSma, distanceOpen, GapMomentumLowCrossover, gapMomentumLowCrossoverCount, absoluteGapMomentum, absoluteGapMomentums, absoluteGapMomentumDifference, absoluteGapMomentumDifferences, slowingAbsoluteGapMomentum, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceOpenValues, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount, slowingAbsoluteGapMomentumCrossoverCount, momentumPeakNegativeCrossoverCount} = tlc.state  
 
         const formatDistanceArray = (distanceArray) => {
             return distanceArray && distanceArray.length > 0 ? distanceArray.map(item => `Pre: ${item.prevDistance !== undefined ? item.prevDistance.toFixed(2) : 'N/A'}, Distance: ${item.distance !== undefined ? item.distance.toFixed(2) : 'N/A'}`).join(', ') : 'No Distance'
@@ -43,7 +43,7 @@ const drawEffect = (state, action) => {
             //slowingDistanceMomentum: slowingDistanceMomentum.join(', '),
             //distanceMomentumDifference: distanceMomentumDifference.toFixed(8),
             //'Distance Momentum Differences': distanceMomentumDifferences.map(v => v.toFixed(8)).join(', '),
-            distanceValley: distanceValley ? distanceValley.join(', ') : 'N/A',
+            DistanceValley: updatedDistanceValley ? updatedDistanceValley.join(', ') : 'N/A',
             DistancePeak: updatedDistancePeak ? updatedDistancePeak.join(', ') : 'N/A',
             MomentumPeak: updatedMomentumPeak ? updatedMomentumPeak.join(', ') : 'N/A',
             //ShortSmaMomentum: momentum.toFixed(8),
