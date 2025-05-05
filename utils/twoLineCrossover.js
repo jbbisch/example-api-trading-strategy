@@ -230,7 +230,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             slowingAbsoluteGapMomentum: Array(5).fill(false), // Initialize with an array of 6 falses
             slowingAbsoluteGapMomentumCrossoverCount: 0,
             AcceleratingAbsoluteGapMomentumCrossoverCount: 0,
-            distanceValley: Array(3).fill(false), // Initialize with an array of 6 falses
+            distanceValley: false,
+            updatedDistanceValley: Array(3).fill(false), // Initialize with an array of 5 falses
             prevAbsoluteGapMomentum: 0,
             gapMomentumLowCrossoverCount: 0,
         }
