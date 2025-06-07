@@ -89,9 +89,9 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const AcceleratingAbsoluteGapMomentumCrossoverCount = prevState.AcceleratingAbsoluteGapMomentumCrossoverCount || 0
         const BouncePositiveCrossoverCount = prevState.BouncePositiveCrossoverCount || 0
 
-        const SMAPositiveCrossover = false //(prevState.shortSmaOpen <= prevState.longSmaOpen && distanceOpen > 0.00)
+        const SMAPositiveCrossover = (prevState.shortSmaOpen <= prevState.longSmaOpen && distanceOpen > 0.00)
         const AcceleratingAbsoluteGapMomentumCrossover = (distanceOpen < -2.70 && updatedSlowingAbsoluteGapMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistanceValley.slice(-3).filter(v => v).length >= 1)
-        const BouncePositiveCrossover = (prevState.distanceOpen > 0.50 && distanceOpen < 3.50 && (prevState.shortSmaValues.slice(-3).every((val, i, arr) => i === 0 || val > arr[i - 1]))) // - prevState.shortSma) > 1.25)
+        const BouncePositiveCrossover = false //(prevState.distanceOpen > 0.50 && distanceOpen < 3.50 && (prevState.shortSmaValues.slice(-4).every((val, i, arr) => i === 0 || val > arr[i - 1]))) // - prevState.shortSma) > 1.25)
         const positiveCrossover = SMAPositiveCrossover || AcceleratingAbsoluteGapMomentumCrossover || BouncePositiveCrossover
 
         const SMANegativeCrossover = (prevState.shortSma >= prevState.longSma && distance < 0.00)
