@@ -311,6 +311,10 @@ TradovateSocket.prototype.reconnect = async function () {
                         const last = this.buffer[this.buffer.length - 1];
                         this.strategy.next(last);
                         console.log('[TsReconnect] Manually triggered strategy.next() with last buffer bar.');
+                        if (typeof this.strategy?.drawEffect === 'function') {
+                            this.strategy.drawEffect(this.strategy.state, ['crossover/draw', {props: thisstrategy.props}])
+                            console.log('[TsReconnect] Manually triggered strategy.drawEffect() with last buffer bar.');
+                        }
                     }
                 });
 
