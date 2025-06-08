@@ -193,6 +193,9 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             updatedDistancePeak: updatedDistancePeak,
             buyTriggerSource: buyTriggerSource,
             sellTriggerSource: sellTriggerSource,
+            shortSmaVelocities: updatedShortSmaVelocities,
+            longSmaVelocities: updatedLongSmaVelocities,
+            distanceVelocities: updatedDistanceVelocities,
         }
 
         console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover, ' Momentum: ', next.momentum, ' Distance Momentum: ', next.distanceMomentum, 'MomentumPeak: ', next.momentumPeak, 'DistancePeak: ', next.distancePeak, 'Updated Momentum Peak: ', next.updatedMomentumPeak, 'Updated Distance Peak: ', next.updatedDistancePeak)
@@ -247,6 +250,9 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             updatedDistanceValley: Array(3).fill(false), // Initialize with an array of 5 falses
             prevAbsoluteGapMomentum: 0,
             gapMomentumLowCrossoverCount: 0,
+            shortSmaVelocities: Array(5).fill(0),
+            longSmaVelocities: Array(5).fill(0),
+            distanceVelocities: Array(5).fill(0),
         }
     }
 
