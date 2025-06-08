@@ -11,6 +11,10 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const distance = shortSma - longSma
         const currentPrice = newData[newData.length - 1].close || newData[newData.length - 1].price
 
+        const shortSmaVelocity = (shortSma - prevState.prevShortSma) / (prevState.prevShortSma || 1);
+        const longSmaVelocity = (longSma - prevState.prevLongSma) / (prevState.prevLongSma || 1);
+        const distanceVelocity = (distance - prevState.prevDistance) / (Math.abs(prevState.prevDistance) || 1);
+
         const shortSmaOpen = newData.slice(newData.length - shortPeriod).reduce((a, b) => a + b.open || b.price, 0) / shortPeriod
         const longSmaOpen = newData.slice(newData.length - longPeriod).reduce((a, b) => a + b.open || b.price, 0) / longPeriod
         const distanceOpen = shortSmaOpen - longSmaOpen
