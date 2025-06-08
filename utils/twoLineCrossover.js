@@ -15,6 +15,10 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const longSmaVelocity = (longSma - prevState.prevLongSma) / (prevState.prevLongSma || 1);
         const distanceVelocity = (distance - prevState.prevDistance) / (Math.abs(prevState.prevDistance) || 1);
 
+        const updatedShortSmaVelocities = [...prevState.shortSmaVelocities.slice(1), shortSmaVelocity]
+        const updatedLongSmaVelocities = [...prevState.longSmaVelocities.slice(1), longSmaVelocity]
+        const updatedDistanceVelocities = [...prevState.distanceVelocities.slice(1), distanceVelocity]
+
         const shortSmaOpen = newData.slice(newData.length - shortPeriod).reduce((a, b) => a + b.open || b.price, 0) / shortPeriod
         const longSmaOpen = newData.slice(newData.length - longPeriod).reduce((a, b) => a + b.open || b.price, 0) / longPeriod
         const distanceOpen = shortSmaOpen - longSmaOpen
