@@ -112,7 +112,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const GapMomentumLowCrossover = (distance < 2.70 && momentumPeak === true && updatedAbsoluteGapMomentums.slice(-4).every(v => v > 0.00) && updatedAbsoluteGapMomentums.slice(-4).every(v => v < 0.90485211))
         const MomentumPeakNegativeCrossover = (distance < 2.70 && momentumPeak === true && updatedSlowingAbsoluteGapMomentum.slice(-6).filter(v => v).length >= 4)
         //const DistancePeakNegativeCrossover = (distance < 2.70 && distancePeak === true)
-        const DriftingVelocityNegativeCrossover = (distance > 1.25 && updatedDistanceOpenValues.slice(-3).every(v => v > 0.000 && v < 1.00)) && updatedShortSmaVelocities.slice(-3).every(v => Math.abs(v) < 0.0004) && updatedLongSmaVelocities.slice(-3).every(v => Math.abs(v) < 0.0004) && updatedDistanceVelocities.slice(-3).every(v => Math.abs(v) < 0.002)
+        const DriftingVelocityNegativeCrossover = (updatedDistanceOpenValues.slice(-3).every(v => v > 0.00 && v < 1.50)) && updatedShortSmaVelocities.slice(-3).every(v => Math.abs(v) < 0.0008) && updatedLongSmaVelocities.slice(-3).every(v => Math.abs(v) < 0.0008) && updatedDistanceVelocities.slice(-3).every(v => Math.abs(v) < 0.004)
         const negativeCrossover =  SMANegativeCrossover || SlowingAbsoluteGapMomentumCrossover || GapMomentumLowCrossover || NegativeBounceNegativeCrossover || SlowingMomentumNegativeCrossover || MomentumPeakNegativeCrossover || DriftingVelocityNegativeCrossover //|| DistancePeakNegativeCrossover
 
         const updatedAcceleratingAbsoluteGapMomentumCrossoverCount = AcceleratingAbsoluteGapMomentumCrossover ? AcceleratingAbsoluteGapMomentumCrossoverCount + 1 : AcceleratingAbsoluteGapMomentumCrossoverCount
