@@ -11,21 +11,43 @@ const drawEffect = (state, action) => {
         const { DriftingVelocityNegativeCrossover, DriftingVelocityNegativeCrossoverCount, shortSmaVelocities, longSmaVelocities, distanceVelocities, distance, shortSma, SMANegativeCrossoverCount, BouncePositiveCrossoverCount, updatedDistanceValley, AcceleratingAbsoluteGapMomentumCrossoverCount, longSma, distanceOpen, GapMomentumLowCrossover, gapMomentumLowCrossoverCount, absoluteGapMomentum, absoluteGapMomentums, absoluteGapMomentumDifference, absoluteGapMomentumDifferences, slowingAbsoluteGapMomentum, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceOpenValues, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount, slowingAbsoluteGapMomentumCrossoverCount, momentumPeakNegativeCrossoverCount} = tlc.state  
 
         const formatDistanceArray = (distanceArray) => {
-            return distanceArray && distanceArray.length > 0 ? distanceArray.map(item => `Pre: ${item.prevDistance !== undefined ? item.prevDistance.toFixed(2) : 'N/A'}, Distance: ${item.distance !== undefined ? item.distance.toFixed(2) : 'N/A'}`).join(', ') : 'No Distance'
+            if (!distanceArray || distanceArray.length === 0) return 'No Distance'
+
+            const formatted = distanceArray.map(item => {
+                const pre = item.prevDistance !== undefined ? item.prevDistance.toFixed(2) : 'N/A'
+                const dist = item.distance !== undefined ? item.distance.toFixed(2) : 'N/A'
+                return `Pre: ${pre}, Dist: ${dist}`
+            })
+
+            const rows = []
+            for (let i = 0; i < formatted.length; i += 5) {
+                rows.push(formatted.slice(i, i + 5).join(' | '))
+            }
+            return rows.join('\n')
         }
 
         const formattedBuyDistance = formatDistanceArray(buyDistance)
         const formattedSellDistance = formatDistanceArray(sellDistance)
 
-        const formattedBuyTriggers = (buyTriggerSourceArray) => {
-            return buyTriggerSourceArray && buyTriggerSourceArray.length > 0 ? buyTriggerSourceArray.join(', ') : 'No Triggers'
-        }
-        const formattedSellTriggers = (sellTriggerSourceArray) => {
-            return sellTriggerSourceArray && sellTriggerSourceArray.length > 0 ? sellTriggerSourceArray.join(', ') : 'No Triggers'
+        //const formattedBuyTriggers = (buyTriggerSourceArray) => {
+            //return buyTriggerSourceArray && buyTriggerSourceArray.length > 0 ? buyTriggerSourceArray.join(', ') : 'No Triggers'
+        //}
+        //const formattedSellTriggers = (sellTriggerSourceArray) => {
+            //return sellTriggerSourceArray && sellTriggerSourceArray.length > 0 ? sellTriggerSourceArray.join(', ') : 'No Triggers'
+        //}
+
+        const formatTriggerSourceArray = (arr) => {
+            if (!arr || arr.length === 0) return 'No Triggers'
+
+            const rows = []
+            for (let i = 0; i < arr.length; i += 6) {
+                rows.push(arr.slice(i, i + 6).join(' | '))
+            }
+            return rows.join('\n')
         }
 
-        const buyTriggers = formattedBuyTriggers(buyTriggerSource)
-        const sellTriggers = formattedSellTriggers(sellTriggerSource)
+        const buyTriggers = formatTriggerSourceArray(buyTriggerSource)
+        const sellTriggers = formatTriggerSourceArray(sellTriggerSource)
 
         drawToConsole({
             mode,
@@ -37,7 +59,7 @@ const drawEffect = (state, action) => {
             //AbsoluteGapMomentum: absoluteGapMomentum !== undefined ? absoluteGapMomentum.toFixed(8) : 'N/A',
             AbsoluteGapMomentums: (absoluteGapMomentums || []).map(v => v.toFixed(8)).join(', '),
             //AbsoluteGapMomentumDifference: absoluteGapMomentumDifference !== undefined ? absoluteGapMomentumDifference.toFixed(8) : 'N/A',
-            AbsoluteGapMomentumDifferences: (absoluteGapMomentumDifferences || []).map(v => v.toFixed(8)).join(', '),
+            //AbsoluteGapMomentumDifferences: (absoluteGapMomentumDifferences || []).map(v => v.toFixed(8)).join(', '),
             slowingAbsoluteGapMomentum: (slowingAbsoluteGapMomentum || []).join(', '),
             //DistanceMomentum: distanceMomentum.toFixed(8),
             //slowingDistanceMomentum: slowingDistanceMomentum.join(', '),
