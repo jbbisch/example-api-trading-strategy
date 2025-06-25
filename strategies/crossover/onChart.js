@@ -225,7 +225,6 @@ const onChart = (prevState, {data, props}) => {
                     state: {
                         ...prevState,
                         mode: LongShortMode.Short,
-                        sellDistance: [...sellDistance],
                         sellTriggerSource: [...sellLog],
                     },
                     effects: [
@@ -282,7 +281,6 @@ const onChart = (prevState, {data, props}) => {
                     state: {
                         ...prevState,
                         mode: LongShortMode.Long,
-                        buyDistance: [...buyDistance],
                         buyTriggerSource: [...buyLog],
                     },
                     effects: [
