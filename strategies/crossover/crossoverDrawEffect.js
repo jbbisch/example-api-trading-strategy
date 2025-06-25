@@ -8,7 +8,7 @@ const drawEffect = (state, action) => {
         const { props } = payload
         const { contract } = props
         const { product, position, mode, buffer, tlc, realizedPnL, buyDistance, sellDistance, buyTriggerSource, sellTriggerSource,} = state
-        const { DriftingVelocityNegativeCrossover, DriftingVelocityNegativeCrossoverCount, shortSmaVelocities, longSmaVelocities, distanceVelocities, distance, shortSma, SMANegativeCrossoverCount, BouncePositiveCrossoverCount, updatedDistanceValley, AcceleratingAbsoluteGapMomentumCrossoverCount, longSma, distanceOpen, GapMomentumLowCrossover, gapMomentumLowCrossoverCount, absoluteGapMomentum, absoluteGapMomentums, absoluteGapMomentumDifference, absoluteGapMomentumDifferences, slowingAbsoluteGapMomentum, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceOpenValues, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount, slowingAbsoluteGapMomentumCrossoverCount, momentumPeakNegativeCrossoverCount} = tlc.state  
+        const { DriftingVelocityNegativeCrossoverHistory, DriftingVelocityNegativeCrossoverCount, shortSmaVelocities, longSmaVelocities, distanceVelocities, distance, shortSma, SMANegativeCrossoverCount, BouncePositiveCrossoverCount, updatedDistanceValley, AcceleratingAbsoluteGapMomentumCrossoverCount, longSma, distanceOpen, GapMomentumLowCrossover, gapMomentumLowCrossoverCount, absoluteGapMomentum, absoluteGapMomentums, absoluteGapMomentumDifference, absoluteGapMomentumDifferences, slowingAbsoluteGapMomentum, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceOpenValues, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount, slowingAbsoluteGapMomentumCrossoverCount, momentumPeakNegativeCrossoverCount} = tlc.state  
 
         const formatDistanceArray = (distanceArray) => {
             if (!distanceArray || distanceArray.length === 0) return 'No Distance'
@@ -71,6 +71,7 @@ const drawEffect = (state, action) => {
             shortSmaVelocities: (shortSmaVelocities || []).map(v => v.toFixed(8)).join(", "),
             longSmaVelocities: (longSmaVelocities || []).map(v => v.toFixed(8)).join(", "),
             distanceVelocities: (distanceVelocities || []).map(v => v.toFixed(8)).join(", "),
+            DVncHistory: (DriftingVelocityNegativeCrossoverHistory || []).map(v => v ? 'true' : 'false').join(', '),
             //ShortSmaMomentum: momentum.toFixed(8),
             //'Short SMA Values': shortSmaValues.map(value => value.toFixed(2)).join(', '),
             //LONGsma: longSma.toFixed(2),
