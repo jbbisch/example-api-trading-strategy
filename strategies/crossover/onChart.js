@@ -226,6 +226,7 @@ const onChart = (prevState, {data, props}) => {
                         ...prevState,
                         mode: LongShortMode.Short,
                         sellTriggerSource: [...sellLog],
+                        sellDistance: [...sellDistance],
                     },
                     effects: [
                         // FOR WEBSOCKET Liquidates any existing position
@@ -282,6 +283,7 @@ const onChart = (prevState, {data, props}) => {
                         ...prevState,
                         mode: LongShortMode.Long,
                         buyTriggerSource: [...buyLog],
+                        buyDistance: [...buyDistance],
                     },
                     effects: [
                         // FOR WEBSOCKET
@@ -318,8 +320,8 @@ const onChart = (prevState, {data, props}) => {
             ...prevState,
             buyTriggerSource: clearTriggers ? [] : [...(prevState.buyTriggerSource || []), ...(nextTlcState.buyTriggerSource || [])],
             sellTriggerSource: clearTriggers ? [] : [...(prevState.sellTriggerSource || []), ...(nextTlcState.sellTriggerSource || [])],
-            buyDistance: clearTriggers ? [] : [...(prevState.buyDistance || [])],
-            sellDistance: clearTriggers ? [] : [...(prevState.sellDistance || [])],
+            buyDistance: clearTriggers ? [] : [...(prevState.buyDistance || []), ...(nextTlcState.buyDistance || [])],
+            sellDistance: clearTriggers ? [] : [...(prevState.sellDistance || []), ...(nextTlcState.sellDistance || [])],
         },
         effects: [] 
     }
