@@ -145,7 +145,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             if (MomentumPeakNegativeCrossover) sellTriggerSource.push(`${now} - MPnc`)
             //if (DistancePeakNegativeCrossover) sellTriggerSource.push(`${now} - DPnc`)
             if (DriftingVelocityNegativeCrossover) sellTriggerSource.push(`${now} - DVnc`)
-            if (DVncConfirmed) sellTriggerSource.push(`${now} - DVnc`)
+            if (DVncConfirmed) sellTriggerSource.push(`${now} - DVncC`)
         }
 
         const next = {
