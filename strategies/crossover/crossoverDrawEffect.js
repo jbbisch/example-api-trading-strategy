@@ -87,7 +87,7 @@ const drawEffect = (state, action) => {
             //     }).toFixed(2)}` 
             //     : '$0.00',
             buyTriggerSource: buyTriggers,
-            buyDistance: formattedBuyDistance,
+            //buyDistance: formattedBuyDistance,
             AAGMpcCount: AcceleratingAbsoluteGapMomentumCrossoverCount,
             BpcCount: BouncePositiveCrossoverCount,
             SMAncCount: SMANegativeCrossoverCount,
@@ -98,7 +98,7 @@ const drawEffect = (state, action) => {
             SAGMncCount: slowingAbsoluteGapMomentumCrossoverCount,
             GMLncCount: gapMomentumLowCrossoverCount,
             sellTriggerSource: sellTriggers,
-            sellDistance: formattedSellDistance,
+            //sellDistance: formattedSellDistance,
         })    
     }
 
