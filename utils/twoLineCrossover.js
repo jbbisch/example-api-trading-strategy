@@ -106,6 +106,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const AcceleratingAbsoluteGapMomentumCrossoverCount = prevState.AcceleratingAbsoluteGapMomentumCrossoverCount || 0
         const BouncePositiveCrossoverCount = prevState.BouncePositiveCrossoverCount || 0
         const DriftingVelocityNegativeCrossoverCount = prevState.DriftingVelocityNegativeCrossoverCount || 0
+        const flatMarketEntryConditionCount = prevState.flatMarketEntryConditionCount || 0
+        const flatMarketExitConditionCount = prevState.flatMarketExitConditionCount || 0
 
         const SMAPositiveCrossover = (prevState.shortSmaOpen <= prevState.longSmaOpen && distanceOpen > 0.00)
         const AcceleratingAbsoluteGapMomentumCrossover = (distanceOpen < -2.70 && updatedSlowingAbsoluteGapMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistanceValley.slice(-3).filter(v => v).length >= 1)
@@ -137,6 +139,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const updatedMomentumPeakNegativeCrossoverCount = MomentumPeakNegativeCrossover ? momentumPeakNegativeCrossoverCount + 1 : momentumPeakNegativeCrossoverCount
         const updatedBouncePositiveCrossoverCount = BouncePositiveCrossover ? BouncePositiveCrossoverCount + 1 : BouncePositiveCrossoverCount
         const updatedDriftingVelocityNegativeCrossoverCount = DriftingVelocityNegativeCrossover ? DriftingVelocityNegativeCrossoverCount + 1 : DriftingVelocityNegativeCrossoverCount
+        const updatedFlatMatketEntryConditionCount = flatMarketEntryCondition ? flatMarketEntryConditionCount + 1 : flatMarketEntryConditionCount
+        const updatedFlatMarketExitConditionCount = flatMarketExitCondition ? flatMarketExitConditionCount + 1 : flatMarketExitConditionCount
 
         const buyTriggerSource = [...(prevState.triggerSource || [])]
         const sellTriggerSource = [...(prevState.triggerSource || [])]
@@ -225,7 +229,9 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             longSmaValues: updatedLongSmaValues,
             stdDevLongSma: stdDevLongSma,
             flatMarketExitCondition: flatMarketExitCondition,
-            flatMarketEntryCondition: flatMarketEntryCondition
+            flatMarketEntryCondition: flatMarketEntryCondition,
+            flatMarlketEntryCount: flatMarketEntryConditionCount,
+            flatmarketExitCount: flatMarketExitConditionCount,
         }
 
         console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover, ' Momentum: ', next.momentum, ' Distance Momentum: ', next.distanceMomentum, 'MomentumPeak: ', next.momentumPeak, 'DistancePeak: ', next.distancePeak, 'Updated Momentum Peak: ', next.updatedMomentumPeak, 'Updated Distance Peak: ', next.updatedDistancePeak)
@@ -293,6 +299,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             stdDevLongSma: 0,
             flatMarketExitCondition: false,
             flatMarketEntryCondition: false,
+            flatMarketEntryConditionCount: 0,
+            flatMarketExitConditionCount: 0,
         }
     }
 
