@@ -11,6 +11,15 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const distance = shortSma - longSma
         const currentPrice = newData[newData.length - 1].close || newData[newData.length - 1].price
 
+        const updatedLongSmaValues = [...prevState.longSmaValues.slice(1), longSma]
+        const meanLongSma = updatedlongSmaValues.reduce((sum, val) => sum + val, 0) / updatedLongSmaValues.length
+        const stdDevLongSma = Math.sqrt(
+            updatedLongSmaValues.reduce((sum, val) => sum + Math.pow(val - meanLongSma, 2), 0) / updatedLongSmaValues.length
+        )
+
+        const longSmaReady = updatedLongSmaVelocities.filter(v => v !== 0).length >= 10
+        const flatValocity = longSmaReady && updatedLongSmaVelocities.slice(-10).filter(v => Math.abs(v) < 0.00005).length >= 7
+
         const shortSmaVelocity = (shortSma - prevState.prevShortSma) / (prevState.prevShortSma || 1);
         const longSmaVelocity = (longSma - prevState.prevLongSma) / (prevState.prevLongSma || 1);
         const distanceVelocity = (distance - prevState.prevDistance) / (Math.abs(prevState.prevDistance) || 1);
@@ -101,7 +110,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const SMAPositiveCrossover = (prevState.shortSmaOpen <= prevState.longSmaOpen && distanceOpen > 0.00)
         const AcceleratingAbsoluteGapMomentumCrossover = (distanceOpen < -2.70 && updatedSlowingAbsoluteGapMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistanceValley.slice(-3).filter(v => v).length >= 1)
         const BouncePositiveCrossover = false //(prevState.distanceOpen > 0.50 && distanceOpen < 3.50 && (prevState.shortSmaValues.slice(-4).every((val, i, arr) => i === 0 || val > arr[i - 1]))) // - prevState.shortSma) > 1.25)
-        const positiveCrossover = SMAPositiveCrossover || AcceleratingAbsoluteGapMomentumCrossover || BouncePositiveCrossover
+        const flatMarketEntryCondition = flatValocity && currentPrice <= longSma - stdDevLongSma
+        const positiveCrossover = SMAPositiveCrossover || AcceleratingAbsoluteGapMomentumCrossover || BouncePositiveCrossover || flatMarketEntryCondition
 
         const SMANegativeCrossover = (prevState.shortSma >= prevState.longSma && distance < 0.00)
         const NegativeBounceNegativeCrossover = (prevState.distance >= -0.28 && distance < -0.28)
@@ -115,7 +125,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const DriftingVelocityNegativeCrossover = (updatedDistanceOpenValues.slice(-3).every(v => v > 0.00 && v < 2.50)) && updatedShortSmaVelocities.slice(-5).filter(v => Math.abs(v) < 0.0012).length >= 3 && updatedLongSmaVelocities.slice(-5).filter(v => Math.abs(v) < 0.0012).length >= 3 && updatedDistanceVelocities.slice(-5).filter(v => Math.abs(v) < 0.25).length >= 3
         const updatedDVncHistory = [...prevState.DriftingVelocityNegativeCrossoverHistory.slice(1), DriftingVelocityNegativeCrossover]
         const DVncConfirmed = updatedDVncHistory.slice(-3).every(v => v === true)
-        const negativeCrossover =  SMANegativeCrossover || SlowingAbsoluteGapMomentumCrossover || GapMomentumLowCrossover || NegativeBounceNegativeCrossover || SlowingMomentumNegativeCrossover || MomentumPeakNegativeCrossover || DVncConfirmed //|| DistancePeakNegativeCrossover
+        const flatMarketExitCondition = flatValocity && currentPrice >= longSma + stdDevLongSma
+        const negativeCrossover =  SMANegativeCrossover || SlowingAbsoluteGapMomentumCrossover || GapMomentumLowCrossover || NegativeBounceNegativeCrossover || SlowingMomentumNegativeCrossover || MomentumPeakNegativeCrossover || DVncConfirmed || flatMarketExitCondition //|| DistancePeakNegativeCrossover
 
         const updatedAcceleratingAbsoluteGapMomentumCrossoverCount = AcceleratingAbsoluteGapMomentumCrossover ? AcceleratingAbsoluteGapMomentumCrossoverCount + 1 : AcceleratingAbsoluteGapMomentumCrossoverCount
         const updatedSMANegativeCrossoverCount = SMANegativeCrossover ? SMANegativeCrossoverCount + 1 : SMANegativeCrossoverCount
@@ -134,6 +145,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             if (SMAPositiveCrossover) buyTriggerSource.push(`${now} - SMApc`)
             if (AcceleratingAbsoluteGapMomentumCrossover) buyTriggerSource.push(`${now} - AAGMpc`)
             if (BouncePositiveCrossover) buyTriggerSource.push(`${now} - Bpc`)
+            if (flatMarketEntryCondition) buyTriggerSource.push(`${now} - FMEpc`)
         }
         if (negativeCrossover) {
             if (SMANegativeCrossover) sellTriggerSource.push(`${now} - SMAnc`)
@@ -146,6 +158,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             //if (DistancePeakNegativeCrossover) sellTriggerSource.push(`${now} - DPnc`)
             if (DriftingVelocityNegativeCrossover) sellTriggerSource.push(`${now} - DVnc`)
             if (DVncConfirmed) sellTriggerSource.push(`${now} - DVncC`)
+            if (flatMarketExitCondition) sellTriggerSource.push(`${now} - FMEnc`)
         }
 
         const next = {
@@ -209,6 +222,10 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             DriftingVelocityNegativeCrossover: DriftingVelocityNegativeCrossover,
             DriftingVelocityNegativeCrossoverCount: updatedDriftingVelocityNegativeCrossoverCount,
             DriftingVelocityNegativeCrossoverHistory: updatedDVncHistory,
+            longSmaValues: updatedLongSmaValues,
+            stdDevLongSma: stdDevLongSma,
+            flatMarketExitCondition: flatMarketExitCondition,
+            flatMarketEntryCondition: flatMarketEntryCondition
         }
 
         console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover, ' Momentum: ', next.momentum, ' Distance Momentum: ', next.distanceMomentum, 'MomentumPeak: ', next.momentumPeak, 'DistancePeak: ', next.distancePeak, 'Updated Momentum Peak: ', next.updatedMomentumPeak, 'Updated Distance Peak: ', next.updatedDistancePeak)
@@ -272,6 +289,10 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             DriftingVelocityNegativeCrossover: false,
             DriftingVelocityNegativeCrossoverCount: 0,
             DriftingVelocityNegativeCrossoverHistory: Array(3).fill(false),
+            longSmaValues: Array(10).fill(0),
+            stdDevLongSma: 0,
+            flatMarketExitCondition: false
+            flatMarketEntryCondition: false
         }
     }
 
