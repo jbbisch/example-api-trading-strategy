@@ -28,6 +28,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const longSmaReady = updatedLongSmaVelocities.length >= 10 && updatedLongSmaVelocities.filter(v => v !== 0).length >= 7
         const flatVelocity = longSmaReady && updatedLongSmaVelocities.slice(-10).filter(v => Math.abs(v) < 0.00005).length >= 7
 
+        const updatedFlatVelocityHistory = [...prevState.flatVelocityHistory.slice(1), flatVelocity]
+
         const shortSmaOpen = newData.slice(newData.length - shortPeriod).reduce((a, b) => a + b.open || b.price, 0) / shortPeriod
         const longSmaOpen = newData.slice(newData.length - longPeriod).reduce((a, b) => a + b.open || b.price, 0) / longPeriod
         const distanceOpen = shortSmaOpen - longSmaOpen
@@ -228,10 +230,12 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             DriftingVelocityNegativeCrossoverHistory: updatedDVncHistory,
             longSmaValues: updatedLongSmaValues,
             stdDevLongSma: stdDevLongSma,
+            flatVelocity: flatVelocity,
+            flatVelocityHistory: updatedFlatVelocityHistory,
             flatMarketExitCondition: flatMarketExitCondition,
             flatMarketEntryCondition: flatMarketEntryCondition,
-            flatMarketEntryCount: updatedFlatMarketEntryConditionCount,
-            flatMarketExitCount: updatedFlatMarketExitConditionCount,
+            flatMarketEntryConditionCount: updatedFlatMarketEntryConditionCount,
+            flatMarketExitConditionCount: updatedFlatMarketExitConditionCount,
         }
 
         console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover, ' Momentum: ', next.momentum, ' Distance Momentum: ', next.distanceMomentum, 'MomentumPeak: ', next.momentumPeak, 'DistancePeak: ', next.distancePeak, 'Updated Momentum Peak: ', next.updatedMomentumPeak, 'Updated Distance Peak: ', next.updatedDistancePeak)
@@ -286,9 +290,9 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             updatedDistanceValley: Array(3).fill(false), // Initialize with an array of 5 falses
             prevAbsoluteGapMomentum: 0,
             gapMomentumLowCrossoverCount: 0,
-            shortSmaVelocities: Array(5).fill(0),
-            longSmaVelocities: Array(5).fill(0),
-            distanceVelocities: Array(5).fill(0),
+            shortSmaVelocities: Array(10).fill(0),
+            longSmaVelocities: Array(10).fill(0),
+            distanceVelocities: Array(10).fill(0),
             prevShortSma: 0,
             prevLongSma: 0,
             prevDistance: 0,
@@ -297,6 +301,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             DriftingVelocityNegativeCrossoverHistory: Array(3).fill(false),
             longSmaValues: Array(10).fill(0),
             stdDevLongSma: 0,
+            flatVelocity: false,
+            flatVelocityHistory: Array(5).fill(false),
             flatMarketExitCondition: false,
             flatMarketEntryCondition: false,
             flatMarketEntryConditionCount: 0,
