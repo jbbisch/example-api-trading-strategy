@@ -230,7 +230,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             stdDevLongSma: stdDevLongSma,
             flatMarketExitCondition: flatMarketExitCondition,
             flatMarketEntryCondition: flatMarketEntryCondition,
-            flatMarketEntryCount: updatedFlatMarketExitConditionCount,
+            flatMarketEntryCount: updatedFlatMarketEntryConditionCount,
             flatMarketExitCount: updatedFlatMarketExitConditionCount,
         }
 
