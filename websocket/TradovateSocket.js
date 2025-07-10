@@ -273,6 +273,9 @@ TradovateSocket.prototype.reconnect = async function () {
                 }
                 console.log('[TsReconnect] Token successfully renewed.');
 
+                // Save current buffer before disconnecting
+                const oldBuffer = this.strategy?.state?.buffer?.getData() || [];
+
                 // Clean up any existing connection
                 if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
                     this.disconnect();
@@ -290,9 +293,26 @@ TradovateSocket.prototype.reconnect = async function () {
                 if (this.strategy) {
                     const strategyProps = this.strategy.props;
                     this.strategy = new this.strategy.constructor(strategyProps);
-                    if (typeof this.strategy.init === 'function') {
-                        await this.strategy.init();
-                        console.log('[TsReconnect] Strategy reinitialized.');
+
+                    const state = await this.strategy.init();
+                    if (oldBuffer.length && state?.buffer) {
+                        oldBuffer.forEach(data => state.buffer.softPush(data));
+                    }
+                    this.strategy.state = state;
+                    console.log('[TsReconnect] Strategy reinitialized and buffer restored.');
+
+                    // Manually trigger next() and drawEffect
+                    const last = state.buffer?.last?.() || oldBuffer[oldBuffer.length - 1];
+                    if (last) {
+                        if (typeof this.strategy.next === 'function') {
+                            this.strategy.state = this.strategy.next(state, ['Chart', { data: last, props: strategyProps }]).state;
+                            console.log('[TsReconnect] Manually triggered strategy.next()');
+                        }
+
+                        if (typeof this.strategy.drawEffect === 'function') {
+                            this.strategy.drawEffect(this.strategy.state, ['crossover/draw', { props: strategyProps }]);
+                            console.log('[TsReconnect] Manually triggered strategy.drawEffect()');
+                        }
                     }
                 } else {
                     console.log('[TsReconnect] No strategy to reinitialize.');
@@ -305,17 +325,6 @@ TradovateSocket.prototype.reconnect = async function () {
                         this.onSync(data);
                         console.log('[TsReconnect] Subscribed to sync events.');
                     }
-
-                    // Trigger next() manually if we have buffer data
-                    if (this.buffer && this.buffer.length && typeof this.strategy?.next === 'function') {
-                        const last = this.buffer[this.buffer.length - 1];
-                        this.strategy.next(last);
-                        console.log('[TsReconnect] Manually triggered strategy.next() with last buffer bar.');
-                        if (typeof this.strategy?.drawEffect === 'function') {
-                            this.strategy.drawEffect(this.strategy.state, ['crossover/draw', {props: thisstrategy.props}])
-                            console.log('[TsReconnect] Manually triggered strategy.drawEffect() with last buffer bar.');
-                        }
-                    }
                 });
 
                 this.reconnectAttempts = 0; // success — reset counter
@@ -327,5 +336,4 @@ TradovateSocket.prototype.reconnect = async function () {
         }, backoff);
     }
 }
-
 module.exports = { TradovateSocket }
