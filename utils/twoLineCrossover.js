@@ -33,7 +33,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const updatedDistanceVelocities = [...prevState.distanceVelocities.slice(1), distanceVelocity]
 
         const longSmaReady = updatedLongSmaVelocities.length >= 10 && updatedLongSmaVelocities.filter(v => v !== 0).length >= 7
-        const flatVelocity = longSmaReady && updatedLongSmaVelocities.slice(-10).filter(v => Math.abs(v) < 0.00007000).length >= 7
+        const flatVelocity = longSmaReady && updatedLongSmaVelocities.slice(-10).filter(v => Math.abs(v) < 0.00009000).length >= 7
         const velocityBreakingOut = updatedLongSmaVelocities.slice(-3).some(v => Math.abs(v) >= 0.00009000)
 
         const updatedFlatVelocityHistory = [...prevState.flatVelocityHistory.slice(1), flatVelocity]
