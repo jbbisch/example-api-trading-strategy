@@ -26,8 +26,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const updatedDistanceVelocities = [...prevState.distanceVelocities.slice(1), distanceVelocity]
 
         const longSmaReady = updatedLongSmaVelocities.length >= 10 && updatedLongSmaVelocities.filter(v => v !== 0).length >= 7
-        const flatVelocity = longSmaReady && updatedLongSmaVelocities.slice(-10).filter(v => Math.abs(v) < 0.00005).length >= 7
-        const velocityBreakingOut = updatedLongSmaVelocities.slice(-3).some(v => Math.abs(v) >= 0.00005)
+        const flatVelocity = longSmaReady && updatedLongSmaVelocities.slice(-10).filter(v => Math.abs(v) < 0.00007000).length >= 7
+        const velocityBreakingOut = updatedLongSmaVelocities.slice(-3).some(v => Math.abs(v) >= 0.00009000)
 
         const updatedFlatVelocityHistory = [...prevState.flatVelocityHistory.slice(1), flatVelocity]
 
@@ -115,7 +115,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const SMAPositiveCrossover = (prevState.shortSmaOpen <= prevState.longSmaOpen && distanceOpen > 0.00)
         const AcceleratingAbsoluteGapMomentumCrossover = (distanceOpen < -2.70 && updatedSlowingAbsoluteGapMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistanceValley.slice(-3).filter(v => v).length >= 1)
         const BouncePositiveCrossover = false //(prevState.distanceOpen > 0.50 && distanceOpen < 3.50 && (prevState.shortSmaValues.slice(-4).every((val, i, arr) => i === 0 || val > arr[i - 1]))) // - prevState.shortSma) > 1.25)
-        const flatMarketEntryCondition = (flatVelocity && !velocityBreakingOut && currentPrice <= longSma - stdDevLongSma && currentPrice > longSma - 1.5 * stdDevLongSma)
+        const flatMarketEntryCondition = (flatVelocity && !velocityBreakingOut && currentPrice <= longSma - 1.3 * stdDevLongSma && currentPrice > longSma - 1.8 * stdDevLongSma)
         const positiveCrossover = SMAPositiveCrossover || AcceleratingAbsoluteGapMomentumCrossover || BouncePositiveCrossover || flatMarketEntryCondition
 
         const SMANegativeCrossover = (prevState.shortSma >= prevState.longSma && distance < 0.00)
