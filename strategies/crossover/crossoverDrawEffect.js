@@ -50,10 +50,6 @@ const drawEffect = (state, action) => {
         const sellTriggers = formatTriggerSourceArray(sellTriggerSource)
 
         drawToConsole({
-            mode,
-            contract: contract.name,      
-            netPos: position?.netPos || 0,
-            realizedPnL: `$${realizedPnL.toFixed(2)}`,
             'Distance on prevClose': distanceValues.map(value => value.toFixed(2)).join(', '),
             'Distance on currentOpen': distanceOpenValues.map(value => value.toFixed(2)).join(', '),
             //AbsoluteGapMomentum: absoluteGapMomentum !== undefined ? absoluteGapMomentum.toFixed(8) : 'N/A',
@@ -68,11 +64,11 @@ const drawEffect = (state, action) => {
             DistanceValley: updatedDistanceValley ? updatedDistanceValley.join(', ') : 'N/A',
             DistancePeak: updatedDistancePeak ? updatedDistancePeak.join(', ') : 'N/A',
             MomentumPeak: updatedMomentumPeak ? updatedMomentumPeak.join(', ') : 'N/A',
+            DVncHistory: (DriftingVelocityNegativeCrossoverHistory || []).map(v => v ? 'true' : 'false').join(', '),
+            flatVelocityHistory: flatVelocityHistory.map(v => v ? 'true' : 'false').join(', '),
             shortSmaVelocities: (shortSmaVelocities || []).map(v => v.toFixed(8)).join(", "),
             longSmaVelocities: (longSmaVelocities || []).map(v => v.toFixed(8)).join(", "),
             distanceVelocities: (distanceVelocities || []).map(v => v.toFixed(8)).join(", "),
-            flatVelocityHistory: flatVelocityHistory.map(v => v ? 'true' : 'false').join(', '),
-            DVncHistory: (DriftingVelocityNegativeCrossoverHistory || []).map(v => v ? 'true' : 'false').join(', '),
             //ShortSmaMomentum: momentum.toFixed(8),
             //'Short SMA Values': shortSmaValues.map(value => value.toFixed(2)).join(', '),
             //LONGsma: longSma.toFixed(2),
@@ -92,6 +88,8 @@ const drawEffect = (state, action) => {
             AAGMpcCount: AcceleratingAbsoluteGapMomentumCrossoverCount,
             BpcCount: BouncePositiveCrossoverCount,
             FMEpcCount: flatMarketEntryConditionCount,
+            sellTriggerSource: sellTriggers,
+            //sellDistance: formattedSellDistance,
             SMAncCount: SMANegativeCrossoverCount,
             FMEncCount: flatMarketExitConditionCount,
             DVncCount: DriftingVelocityNegativeCrossoverCount,
@@ -100,8 +98,10 @@ const drawEffect = (state, action) => {
             //SDMncCount: slowingDistanceMomentumCrossoverCount,
             SAGMncCount: slowingAbsoluteGapMomentumCrossoverCount,
             GMLncCount: gapMomentumLowCrossoverCount,
-            sellTriggerSource: sellTriggers,
-            //sellDistance: formattedSellDistance,
+            mode,
+            contract: contract.name,      
+            netPos: position?.netPos || 0,
+            realizedPnL: `$${realizedPnL.toFixed(2)}`,
         })    
     }
 
