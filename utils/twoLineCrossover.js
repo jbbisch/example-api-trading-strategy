@@ -8,6 +8,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
 
         const shortSma = newData.slice(newData.length - shortPeriod).reduce((a, b) => a + b.close || b.price, 0) / shortPeriod
         const longSma = newData.slice(newData.length - longPeriod).reduce((a, b) => a + b.close || b.price, 0) / longPeriod
+        const twentySma = newData.slice(-20).reduce((sum, d) => sum + (d.close || d.price), 0) / 20
         const distance = shortSma - longSma
         const currentPrice = newData[newData.length - 1].close || newData[newData.length - 1].price
 
@@ -171,6 +172,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const next = {
             shortSma: shortSma,
             longSma: longSma,
+            twentySma: twentySma,
             distance: distance,
             distanceOpen: distanceOpen,
             shortSmaOpen: shortSmaOpen,
@@ -250,6 +252,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         nextTLC.state = {
             shortSma: 0,
             longSma: 0,
+            twentySma: 0,
             distance: 0,
             distanceOpen: 0,
             shortSmaOpen: 0,
