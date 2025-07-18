@@ -121,11 +121,11 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const updatedDistanceValley = [...prevState.updatedDistanceValley.slice(1), distanceValley]
         if (updatedDistanceValley.length > 10) updatedDistanceValley.shift()
 
-        //const slowingMomentumNegativeCrossoverCount = prevState.slowingMomentumNegativeCrossoverCount || 0
+        const slowingMomentumNegativeCrossoverCount = prevState.slowingMomentumNegativeCrossoverCount || 0
         //const slowingDistanceMomentumCrossoverCount = prevState.slowingDistanceMomentumCrossoverCount || 0
-        //const momentumPeakNegativeCrossoverCount = prevState.momentumPeakNegativeCrossoverCount || 0
+        const momentumPeakNegativeCrossoverCount = prevState.momentumPeakNegativeCrossoverCount || 0
         const slowingAbsoluteGapMomentumCrossoverCount = prevState.slowingAbsoluteGapMomentumCrossoverCount || 0
-        //const gapMomentumLowCrossoverCount = prevState.gapMomentumLowCrossoverCount || 0
+        const gapMomentumLowCrossoverCount = prevState.gapMomentumLowCrossoverCount || 0
         const SMANegativeCrossoverCount = prevState.SMANegativeCrossoverCount || 0
         const SMAPositiveCrossoverCount = prevState.SMAPositiveCrossoverCount || 0
         const AcceleratingAbsoluteGapMomentumCrossoverCount = prevState.AcceleratingAbsoluteGapMomentumCrossoverCount || 0
@@ -133,7 +133,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const NegativeBounceNegativeCrossoverCount = prevState.NegativeBounceNegativeCrossoverCount || 0
         const DriftingVelocityNegativeCrossoverCount = prevState.DriftingVelocityNegativeCrossoverCount || 0
         const flatMarketEntryConditionCount = prevState.flatMarketEntryConditionCount || 0
-        //const flatMarketExitConditionCount = prevState.flatMarketExitConditionCount || 0
+        const flatMarketExitConditionCount = prevState.flatMarketExitConditionCount || 0
 
         const SMAPositiveCrossover = (prevState.shortSmaOpen <= prevState.longSmaOpen && distanceOpen > 0.00)
         const AcceleratingAbsoluteGapMomentumCrossover = (distanceOpen < -2.70 && updatedSlowingAbsoluteGapMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistanceValley.slice(-3).filter(v => v).length >= 1)
@@ -159,16 +159,16 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const updatedAcceleratingAbsoluteGapMomentumCrossoverCount = AcceleratingAbsoluteGapMomentumCrossover ? AcceleratingAbsoluteGapMomentumCrossoverCount + 1 : AcceleratingAbsoluteGapMomentumCrossoverCount
         const updatedSMANegativeCrossoverCount = SMANegativeCrossover ? SMANegativeCrossoverCount + 1 : SMANegativeCrossoverCount
         const updatedSMAPositiveCrossoverCount = SMAPositiveCrossover ? SMAPositiveCrossoverCount + 1 : SMAPositiveCrossoverCount
-        //const updatedSlowingMomentumNegativeCrossoverCount = SlowingMomentumNegativeCrossover ? slowingMomentumNegativeCrossoverCount + 1 : slowingMomentumNegativeCrossoverCount
+        const updatedSlowingMomentumNegativeCrossoverCount = SlowingMomentumNegativeCrossover ? slowingMomentumNegativeCrossoverCount + 1 : slowingMomentumNegativeCrossoverCount
         //const updatedSlowingDistanceMomentumCrossoverCount = SlowingDistanceMomentumCrossover ? slowingDistanceMomentumCrossoverCount + 1 : slowingDistanceMomentumCrossoverCount
         const updatedSlowingAbsoluteGapMomentumCrossoverCount = SlowingAbsoluteGapMomentumCrossover ? slowingAbsoluteGapMomentumCrossoverCount + 1 : slowingAbsoluteGapMomentumCrossoverCount
-        //const updatedGapMomentumLowCrossoverCount = GapMomentumLowCrossover ? gapMomentumLowCrossoverCount + 1 : gapMomentumLowCrossoverCount
-        //const updatedMomentumPeakNegativeCrossoverCount = MomentumPeakNegativeCrossover ? momentumPeakNegativeCrossoverCount + 1 : momentumPeakNegativeCrossoverCount
+        const updatedGapMomentumLowCrossoverCount = GapMomentumLowCrossover ? gapMomentumLowCrossoverCount + 1 : gapMomentumLowCrossoverCount
+        const updatedMomentumPeakNegativeCrossoverCount = MomentumPeakNegativeCrossover ? momentumPeakNegativeCrossoverCount + 1 : momentumPeakNegativeCrossoverCount
         const updatedBouncePositiveCrossoverCount = BouncePositiveCrossover ? BouncePositiveCrossoverCount + 1 : BouncePositiveCrossoverCount
         const updatedNegativeBounceNegativeCrossoverCount = NegativeBounceNegativeCrossover ? NegativeBounceNegativeCrossoverCount + 1 : NegativeBounceNegativeCrossoverCount
         const updatedDriftingVelocityNegativeCrossoverCount = DriftingVelocityNegativeCrossover ? DriftingVelocityNegativeCrossoverCount + 1 : DriftingVelocityNegativeCrossoverCount
         const updatedFlatMarketEntryConditionCount = flatMarketEntryCondition ? flatMarketEntryConditionCount + 1 : flatMarketEntryConditionCount
-        //const updatedFlatMarketExitConditionCount = flatMarketExitCondition ? flatMarketExitConditionCount + 1 : flatMarketExitConditionCount
+        const updatedFlatMarketExitConditionCount = flatMarketExitCondition ? flatMarketExitConditionCount + 1 : flatMarketExitConditionCount
 
         const buyTriggerSource = [...(prevState.triggerSource || [])]
         const sellTriggerSource = [...(prevState.triggerSource || [])]
