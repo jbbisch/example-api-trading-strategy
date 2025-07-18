@@ -8,7 +8,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
 
         const shortSma = newData.slice(newData.length - shortPeriod).reduce((a, b) => a + b.close || b.price, 0) / shortPeriod
         const longSma = newData.slice(newData.length - longPeriod).reduce((a, b) => a + b.close || b.price, 0) / longPeriod
-        const twentySma = newData.slice(-20).reduce((sum, d) => sum + (d.open || d.price), 0) / 20
+        const twentySma = newData.slice(-20).reduce((sum, d) => sum + (d.close || d.price), 0) / 20
         const distance = shortSma - longSma
         const currentPrice = newData[newData.length - 1].close || newData[newData.length - 1].price
 
@@ -137,7 +137,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const DriftingVelocityNegativeCrossover = (updatedDistanceOpenValues.slice(-3).every(v => v > 0.00 && v < 2.50)) && updatedShortSmaVelocities.slice(-5).filter(v => Math.abs(v) < 0.0012).length >= 3 && updatedLongSmaVelocities.slice(-5).filter(v => Math.abs(v) < 0.0012).length >= 3 && updatedDistanceVelocities.slice(-5).filter(v => Math.abs(v) < 0.25).length >= 3
         const updatedDVncHistory = [...prevState.DriftingVelocityNegativeCrossoverHistory.slice(1), DriftingVelocityNegativeCrossover]
         const DVncConfirmed = updatedDVncHistory.slice(-3).every(v => v === true)
-        const flatMarketExitCondition = (distanceOpen > 0.00 && flatVelocity && !velocityBreakingOut && currentPrice >= twentySma + stdDevTwentySma)
+        const flatMarketExitCondition = false //(distanceOpen > 0.00 && flatVelocity && !velocityBreakingOut && currentPrice >= twentySma + stdDevTwentySma)
         const negativeCrossover =  SMANegativeCrossover || SlowingAbsoluteGapMomentumCrossover || GapMomentumLowCrossover || NegativeBounceNegativeCrossover || SlowingMomentumNegativeCrossover || MomentumPeakNegativeCrossover || DVncConfirmed || flatMarketExitCondition //|| DistancePeakNegativeCrossover
 
         const updatedAcceleratingAbsoluteGapMomentumCrossoverCount = AcceleratingAbsoluteGapMomentumCrossover ? AcceleratingAbsoluteGapMomentumCrossoverCount + 1 : AcceleratingAbsoluteGapMomentumCrossoverCount
