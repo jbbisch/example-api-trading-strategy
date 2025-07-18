@@ -8,7 +8,7 @@ const drawEffect = (state, action) => {
         const { props } = payload
         const { contract } = props
         const { product, position, mode, buffer, tlc, realizedPnL, buyDistance, sellDistance, buyTriggerSource, sellTriggerSource,} = state
-        const { flatVelocityHistory, flatMarketEntryConditionCount, flatMarketExitConditionCount, DriftingVelocityNegativeCrossoverHistory, DriftingVelocityNegativeCrossoverCount, shortSmaVelocities, longSmaVelocities, distanceVelocities, distance, shortSma, SMANegativeCrossoverCount, BouncePositiveCrossoverCount, updatedDistanceValley, AcceleratingAbsoluteGapMomentumCrossoverCount, longSma, distanceOpen, GapMomentumLowCrossover, gapMomentumLowCrossoverCount, absoluteGapMomentum, absoluteGapMomentums, absoluteGapMomentumDifference, absoluteGapMomentumDifferences, slowingAbsoluteGapMomentum, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceOpenValues, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount, slowingAbsoluteGapMomentumCrossoverCount, momentumPeakNegativeCrossoverCount} = tlc.state  
+        const { flatVelocityHistory, flatMarketEntryConditionCount, flatMarketExitConditionCount, DriftingVelocityNegativeCrossoverHistory, DriftingVelocityNegativeCrossoverCount, shortSmaVelocities, longSmaVelocities, distanceVelocities, distance, shortSma, SMAPositiveCrossoverCount, SMANegativeCrossoverCount, NegativeBounceNegativeCrossoverCount, BouncePositiveCrossoverCount, updatedDistanceValley, AcceleratingAbsoluteGapMomentumCrossoverCount, longSma, distanceOpen, GapMomentumLowCrossover, gapMomentumLowCrossoverCount, absoluteGapMomentum, absoluteGapMomentums, absoluteGapMomentumDifference, absoluteGapMomentumDifferences, slowingAbsoluteGapMomentum, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceOpenValues, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount, slowingAbsoluteGapMomentumCrossoverCount, momentumPeakNegativeCrossoverCount} = tlc.state  
 
         const formatDistanceArray = (distanceArray) => {
             if (!distanceArray || distanceArray.length === 0) return 'No Distance'
@@ -85,19 +85,21 @@ const drawEffect = (state, action) => {
             //     : '$0.00',
             buyTriggerSource: buyTriggers,
             //buyDistance: formattedBuyDistance,
+            SMApcCount: SMAPositiveCrossoverCount,
+            FMEpcCount: flatMarketEntryConditionCount,
             AAGMpcCount: AcceleratingAbsoluteGapMomentumCrossoverCount,
             BpcCount: BouncePositiveCrossoverCount,
-            FMEpcCount: flatMarketEntryConditionCount,
             sellTriggerSource: sellTriggers,
             //sellDistance: formattedSellDistance,
             SMAncCount: SMANegativeCrossoverCount,
-            FMEncCount: flatMarketExitConditionCount,
             DVncCount: DriftingVelocityNegativeCrossoverCount,
-            MPncCount: momentumPeakNegativeCrossoverCount,
+            //FMEncCount: flatMarketExitConditionCount,
+            SAGMncCount: slowingAbsoluteGapMomentumCrossoverCount,
+            NBncCount: NegativeBounceNegativeCrossoverCount,
+            //MPncCount: momentumPeakNegativeCrossoverCount,
             //SLMncCount: slowingMomentumNegativeCrossoverCount,
             //SDMncCount: slowingDistanceMomentumCrossoverCount,
-            SAGMncCount: slowingAbsoluteGapMomentumCrossoverCount,
-            GMLncCount: gapMomentumLowCrossoverCount,
+            //GMLncCount: gapMomentumLowCrossoverCount,
             mode,
             contract: contract.name,      
             netPos: position?.netPos || 0,
