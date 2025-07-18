@@ -18,6 +18,20 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             updatedLongSmaValues.reduce((sum, val) => sum + Math.pow(val - meanLongSma, 2), 0) / updatedLongSmaValues.length
         )
 
+        const longSmaSlope = []
+        for (let i = 1; i < updatedLongSmaValues.length; i ++) {
+            const slope = updatedLongSmaValues[i] - updatedLongSmaValues[i - 1]
+            longSmaSlope.push(slope)
+        }
+
+        const baselineSlopes = longSmaSlope.slice(0, 3)
+        const meanSlope = baselineSlopes.reduce((sum, val) => sum + val, 0) / baselineSlopes.length
+        const stdDevSlope = Math.sqrt(
+            baselineSlopes.reduce((sum, val) => sum + Math.pow(val - meanSlope, 2), 0) / baselineSlopes.length
+        )
+
+        const slopeFlat = longSmaSlope.every(slope => Math.abs(slope - meanSlope) <= stdDevSlope * 0.75)
+
         const updatedTwentySmaValues = [...prevState.twentySmaValues.slice(1), twentySma]
         const meanTwentySma = updatedTwentySmaValues.reduce((sum, val) => sum + val, 0) / updatedTwentySmaValues.length
         const stdDevTwentySma = Math.sqrt(
@@ -32,8 +46,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const updatedLongSmaVelocities = [...prevState.longSmaVelocities.slice(1), longSmaVelocity]
         const updatedDistanceVelocities = [...prevState.distanceVelocities.slice(1), distanceVelocity]
 
-        const longSmaReady = updatedLongSmaVelocities.length >= 10 && updatedLongSmaVelocities.filter(v => v !== 0).length >= 7
-        const flatVelocity = longSmaReady && updatedLongSmaVelocities.slice(-10).filter(v => Math.abs(v) < 0.00009000).length >= 7
+        const longSmaReady = updatedLongSmaValues.length >= 10 && updatedLongSmaValues.filter(v => v !== 0).length >= 7
+        const flatVelocity = slopeFlat && longSmaReady //&& updatedLongSmaVelocities.slice(-10).filter(v => Math.abs(v) < 0.00009000).length >= 7
         const velocityBreakingOut = updatedLongSmaVelocities.slice(-3).some(v => Math.abs(v) >= 0.00009000)
 
         const updatedFlatVelocityHistory = [...prevState.flatVelocityHistory.slice(1), flatVelocity]
@@ -107,50 +121,54 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const updatedDistanceValley = [...prevState.updatedDistanceValley.slice(1), distanceValley]
         if (updatedDistanceValley.length > 10) updatedDistanceValley.shift()
 
-        const slowingMomentumNegativeCrossoverCount = prevState.slowingMomentumNegativeCrossoverCount || 0
+        //const slowingMomentumNegativeCrossoverCount = prevState.slowingMomentumNegativeCrossoverCount || 0
         //const slowingDistanceMomentumCrossoverCount = prevState.slowingDistanceMomentumCrossoverCount || 0
-        const momentumPeakNegativeCrossoverCount = prevState.momentumPeakNegativeCrossoverCount || 0
+        //const momentumPeakNegativeCrossoverCount = prevState.momentumPeakNegativeCrossoverCount || 0
         const slowingAbsoluteGapMomentumCrossoverCount = prevState.slowingAbsoluteGapMomentumCrossoverCount || 0
-        const gapMomentumLowCrossoverCount = prevState.gapMomentumLowCrossoverCount || 0
+        //const gapMomentumLowCrossoverCount = prevState.gapMomentumLowCrossoverCount || 0
         const SMANegativeCrossoverCount = prevState.SMANegativeCrossoverCount || 0
+        const SMAPositiveCrossoverCount = prevState.SMAPositiveCrossoverCount || 0
         const AcceleratingAbsoluteGapMomentumCrossoverCount = prevState.AcceleratingAbsoluteGapMomentumCrossoverCount || 0
         const BouncePositiveCrossoverCount = prevState.BouncePositiveCrossoverCount || 0
+        const NegativeBounceNegativeCrossoverCount = prevState.NegativeBounceNegativeCrossoverCount || 0
         const DriftingVelocityNegativeCrossoverCount = prevState.DriftingVelocityNegativeCrossoverCount || 0
         const flatMarketEntryConditionCount = prevState.flatMarketEntryConditionCount || 0
-        const flatMarketExitConditionCount = prevState.flatMarketExitConditionCount || 0
+        //const flatMarketExitConditionCount = prevState.flatMarketExitConditionCount || 0
 
         const SMAPositiveCrossover = (prevState.shortSmaOpen <= prevState.longSmaOpen && distanceOpen > 0.00)
         const AcceleratingAbsoluteGapMomentumCrossover = (distanceOpen < -2.70 && updatedSlowingAbsoluteGapMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistanceValley.slice(-3).filter(v => v).length >= 1)
-        const BouncePositiveCrossover = false //(prevState.distanceOpen > 0.50 && distanceOpen < 3.50 && (prevState.shortSmaValues.slice(-4).every((val, i, arr) => i === 0 || val > arr[i - 1]))) // - prevState.shortSma) > 1.25)
+        const BouncePositiveCrossover = (prevState.distanceOpen > 0.50 && distanceOpen < 3.50 && (prevState.shortSmaValues.slice(-4).every((val, i, arr) => i === 0 || val > arr[i - 1]))) // - prevState.shortSma) > 1.25)
         const flatMarketEntryCondition = (distanceOpen < 0.00 && flatVelocity && !velocityBreakingOut && currentPrice <= twentySma - 1.3 * stdDevTwentySma)
         const positiveCrossover = SMAPositiveCrossover || AcceleratingAbsoluteGapMomentumCrossover || BouncePositiveCrossover || flatMarketEntryCondition
 
         const SMANegativeCrossover = (prevState.shortSma >= prevState.longSma && distance < 0.00)
         const NegativeBounceNegativeCrossover = (prevState.distance >= -0.28 && distance < -0.28)
-        //const LikelyNegativeCrossover = (prevState.distance > 0.28 && distance < 0.31)
+        //const LikelyNegativeCrossover = false //(prevState.distance > 0.28 && distance < 0.31)
         const SlowingAbsoluteGapMomentumCrossover = (distance > 2.70 && updatedSlowingAbsoluteGapMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistancePeak.slice(-3).filter(v => v).length >= 1)
-        const SlowingMomentumNegativeCrossover = false //(distance > 2.70 && updatedSlowingMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistancePeak.slice(-3).filter(v => v).length >= 1)
-        //const BigDistancePullback = (prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00)
-        const GapMomentumLowCrossover = false //(distance < 2.70 && momentumPeak === true && updatedAbsoluteGapMomentums.slice(-4).every(v => v > 0.00) && updatedAbsoluteGapMomentums.slice(-4).every(v => v < 0.90485211))
-        const MomentumPeakNegativeCrossover = false //(distance > 0.00 && distance < 2.70 && momentumPeak === true && updatedSlowingAbsoluteGapMomentum.slice(-6).filter(v => v).length >= 4)
-        //const DistancePeakNegativeCrossover = (distance < 2.70 && distancePeak === true)
+        //const SlowingMomentumNegativeCrossover = false //(distance > 2.70 && updatedSlowingMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistancePeak.slice(-3).filter(v => v).length >= 1)
+        //const BigDistancePullback = false //(prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00)
+        //const GapMomentumLowCrossover = false //(distance < 2.70 && momentumPeak === true && updatedAbsoluteGapMomentums.slice(-4).every(v => v > 0.00) && updatedAbsoluteGapMomentums.slice(-4).every(v => v < 0.90485211))
+        //const MomentumPeakNegativeCrossover = false //(distance > 0.00 && distance < 2.70 && momentumPeak === true && updatedSlowingAbsoluteGapMomentum.slice(-6).filter(v => v).length >= 4)
+        //const DistancePeakNegativeCrossover = false //(distance < 2.70 && distancePeak === true)
         const DriftingVelocityNegativeCrossover = (updatedDistanceOpenValues.slice(-3).every(v => v > 0.00 && v < 2.50)) && updatedShortSmaVelocities.slice(-5).filter(v => Math.abs(v) < 0.0012).length >= 3 && updatedLongSmaVelocities.slice(-5).filter(v => Math.abs(v) < 0.0012).length >= 3 && updatedDistanceVelocities.slice(-5).filter(v => Math.abs(v) < 0.25).length >= 3
         const updatedDVncHistory = [...prevState.DriftingVelocityNegativeCrossoverHistory.slice(1), DriftingVelocityNegativeCrossover]
         const DVncConfirmed = updatedDVncHistory.slice(-3).every(v => v === true)
-        const flatMarketExitCondition = false //(distanceOpen > 0.00 && flatVelocity && !velocityBreakingOut && currentPrice >= twentySma + stdDevTwentySma)
+        //const flatMarketExitCondition = false //(distanceOpen > 0.00 && flatVelocity && !velocityBreakingOut && currentPrice >= twentySma + stdDevTwentySma)
         const negativeCrossover =  SMANegativeCrossover || SlowingAbsoluteGapMomentumCrossover || GapMomentumLowCrossover || NegativeBounceNegativeCrossover || SlowingMomentumNegativeCrossover || MomentumPeakNegativeCrossover || DVncConfirmed || flatMarketExitCondition //|| DistancePeakNegativeCrossover
 
         const updatedAcceleratingAbsoluteGapMomentumCrossoverCount = AcceleratingAbsoluteGapMomentumCrossover ? AcceleratingAbsoluteGapMomentumCrossoverCount + 1 : AcceleratingAbsoluteGapMomentumCrossoverCount
         const updatedSMANegativeCrossoverCount = SMANegativeCrossover ? SMANegativeCrossoverCount + 1 : SMANegativeCrossoverCount
-        const updatedSlowingMomentumNegativeCrossoverCount = SlowingMomentumNegativeCrossover ? slowingMomentumNegativeCrossoverCount + 1 : slowingMomentumNegativeCrossoverCount
+        const updatedSMAPositiveCrossoverCount = SMAPositiveCrossover ? SMAPositiveCrossoverCount + 1 : SMAPositiveCrossoverCount
+        //const updatedSlowingMomentumNegativeCrossoverCount = SlowingMomentumNegativeCrossover ? slowingMomentumNegativeCrossoverCount + 1 : slowingMomentumNegativeCrossoverCount
         //const updatedSlowingDistanceMomentumCrossoverCount = SlowingDistanceMomentumCrossover ? slowingDistanceMomentumCrossoverCount + 1 : slowingDistanceMomentumCrossoverCount
         const updatedSlowingAbsoluteGapMomentumCrossoverCount = SlowingAbsoluteGapMomentumCrossover ? slowingAbsoluteGapMomentumCrossoverCount + 1 : slowingAbsoluteGapMomentumCrossoverCount
-        const updatedGapMomentumLowCrossoverCount = GapMomentumLowCrossover ? gapMomentumLowCrossoverCount + 1 : gapMomentumLowCrossoverCount
-        const updatedMomentumPeakNegativeCrossoverCount = MomentumPeakNegativeCrossover ? momentumPeakNegativeCrossoverCount + 1 : momentumPeakNegativeCrossoverCount
+        //const updatedGapMomentumLowCrossoverCount = GapMomentumLowCrossover ? gapMomentumLowCrossoverCount + 1 : gapMomentumLowCrossoverCount
+        //const updatedMomentumPeakNegativeCrossoverCount = MomentumPeakNegativeCrossover ? momentumPeakNegativeCrossoverCount + 1 : momentumPeakNegativeCrossoverCount
         const updatedBouncePositiveCrossoverCount = BouncePositiveCrossover ? BouncePositiveCrossoverCount + 1 : BouncePositiveCrossoverCount
+        const updatedNegativeBounceNegativeCrossoverCount = NegativeBounceNegativeCrossover ? NegativeBounceNegativeCrossoverCount + 1 : NegativeBounceNegativeCrossoverCount
         const updatedDriftingVelocityNegativeCrossoverCount = DriftingVelocityNegativeCrossover ? DriftingVelocityNegativeCrossoverCount + 1 : DriftingVelocityNegativeCrossoverCount
         const updatedFlatMarketEntryConditionCount = flatMarketEntryCondition ? flatMarketEntryConditionCount + 1 : flatMarketEntryConditionCount
-        const updatedFlatMarketExitConditionCount = flatMarketExitCondition ? flatMarketExitConditionCount + 1 : flatMarketExitConditionCount
+        //const updatedFlatMarketExitConditionCount = flatMarketExitCondition ? flatMarketExitConditionCount + 1 : flatMarketExitConditionCount
 
         const buyTriggerSource = [...(prevState.triggerSource || [])]
         const sellTriggerSource = [...(prevState.triggerSource || [])]
@@ -165,14 +183,14 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             if (SMANegativeCrossover) sellTriggerSource.push(`${now} - SMAnc`)
             if (SlowingAbsoluteGapMomentumCrossover) sellTriggerSource.push(`${now} - SAGMnc`)
             if (NegativeBounceNegativeCrossover) sellTriggerSource.push(`${now} - NBnc`)
-            if (SlowingMomentumNegativeCrossover) sellTriggerSource.push(`${now} - SLMnc`)
-            if (GapMomentumLowCrossover) sellTriggerSource.push(`${now} - GMLnc`)
+            //if (SlowingMomentumNegativeCrossover) sellTriggerSource.push(`${now} - SLMnc`)
+            //if (GapMomentumLowCrossover) sellTriggerSource.push(`${now} - GMLnc`)
             //if (BigDistancePullback) sellTriggerSource.push(`${now} - BigDistancePullback`)
-            if (MomentumPeakNegativeCrossover) sellTriggerSource.push(`${now} - MPnc`)
+            //if (MomentumPeakNegativeCrossover) sellTriggerSource.push(`${now} - MPnc`)
             //if (DistancePeakNegativeCrossover) sellTriggerSource.push(`${now} - DPnc`)
             if (DriftingVelocityNegativeCrossover) sellTriggerSource.push(`${now} - DVnc`)
             if (DVncConfirmed) sellTriggerSource.push(`${now} - DVncC`)
-            if (flatMarketExitCondition) sellTriggerSource.push(`${now} - FMEnc`)
+            //if (flatMarketExitCondition) sellTriggerSource.push(`${now} - FMEnc`)
         }
 
         const next = {
@@ -187,6 +205,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             longSmaOpen: longSmaOpen,
             positiveCrossover: positiveCrossover,
             negativeCrossover: negativeCrossover,
+            SMAPositiveCrossoverCount: updatedSMAPositiveCrossoverCount,
             SMANegativeCrossoverCount: updatedSMANegativeCrossoverCount,
             momentum: momentum,
             MomentumPeakNegativeCrossover: MomentumPeakNegativeCrossover,
@@ -211,7 +230,9 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             AcceleratingAbsoluteGapMomentumCrossover: AcceleratingAbsoluteGapMomentumCrossover,
             AcceleratingAbsoluteGapMomentumCrossoverCount: updatedAcceleratingAbsoluteGapMomentumCrossoverCount,
             BouncePositiveCrossover: BouncePositiveCrossover,
+            NegativeBounceNegativeCrossover: NegativeBounceNegativeCrossover,
             BouncePositiveCrossoverCount: updatedBouncePositiveCrossoverCount,  
+            NegativeBounceNegativeCrossoverCount: updatedNegativeBounceNegativeCrossoverCount,
             updatedDistanceValley: updatedDistanceValley,
             GapMomentumLowCrossover: GapMomentumLowCrossover,
             gapMomentumLowCrossoverCount: updatedGapMomentumLowCrossoverCount,
@@ -247,6 +268,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             flatMarketEntryCondition: flatMarketEntryCondition,
             flatMarketEntryConditionCount: updatedFlatMarketEntryConditionCount,
             flatMarketExitConditionCount: updatedFlatMarketExitConditionCount,
+            meanSlope: meanSlope,
+            stdDevSlope: stdDevSlope,
         }
 
         console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover, ' Momentum: ', next.momentum, ' Distance Momentum: ', next.distanceMomentum, 'MomentumPeak: ', next.momentumPeak, 'DistancePeak: ', next.distancePeak, 'Updated Momentum Peak: ', next.updatedMomentumPeak, 'Updated Distance Peak: ', next.updatedDistancePeak)
@@ -269,6 +292,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             longSmaOpen: 0,
             positiveCrossover: false,
             negativeCrossover: false,
+            SMAPositiveCrossoverCount: 0,
             SMANegativeCrossoverCount: 0,
             momentum: 0,
             distanceMomentum: 0,
@@ -300,6 +324,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             slowingAbsoluteGapMomentumCrossoverCount: 0,
             AcceleratingAbsoluteGapMomentumCrossoverCount: 0,
             BouncePositiveCrossoverCount: 0,
+            NegativeBounceNegativeCrossoverCount: 0,
             distanceValley: false,
             updatedDistanceValley: Array(3).fill(false), // Initialize with an array of 5 falses
             prevAbsoluteGapMomentum: 0,
@@ -321,6 +346,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             flatMarketEntryCondition: false,
             flatMarketEntryConditionCount: 0,
             flatMarketExitConditionCount: 0,
+            meanSlope: 0,
+            stdDevSlope: 0,
         }
     }
 
