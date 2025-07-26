@@ -162,6 +162,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const DVncConfirmed = updatedDVncHistory.slice(-3).every(v => v === true)
         const flatMarketExitCondition = false //(distanceOpen > 0.00 && flatVelocity && !velocityBreakingOut && currentPrice >= twentySma + stdDevTwentySma)
         const SharpDroppingVelocityNegativeCrossover = (distanceVelocity < -0.25 && distance < 0.00)
+        const updatedSharpDroppingVelocityNegativeCrossoverHistory = [...prevState.SharpDroppingVelocityNegativeCrossoverHistory.slice(1), SharpDroppingVelocityNegativeCrossover]
         const negativeCrossover =  SMANegativeCrossover || SlowingAbsoluteGapMomentumCrossover || GapMomentumLowCrossover || NegativeBounceNegativeCrossover || SlowingMomentumNegativeCrossover || MomentumPeakNegativeCrossover || DVncConfirmed || flatMarketExitCondition || DistancePeakNegativeCrossover || SharpDroppingVelocityNegativeCrossover
 
         const updatedAcceleratingAbsoluteGapMomentumCrossoverCount = AcceleratingAbsoluteGapMomentumCrossover ? AcceleratingAbsoluteGapMomentumCrossoverCount + 1 : AcceleratingAbsoluteGapMomentumCrossoverCount
@@ -291,7 +292,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             meanSlope: meanSlope,
             stdDevSlope: stdDevSlope,
             SharpDroppingVelocityNegativeCrossover: SharpDroppingVelocityNegativeCrossover,
-            SharpDroppingVelocityNegativeCrossoverCount: updatedSharpDroppingVelocityNegativeCrossoverCount
+            SharpDroppingVelocityNegativeCrossoverCount: updatedSharpDroppingVelocityNegativeCrossoverCount,
+            SharpDroppingVelocityNegativeCrossoverHistory: updatedSharpDroppingVelocityNegativeCrossoverHistory,
         }
 
         console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover, ' Momentum: ', next.momentum, ' Distance Momentum: ', next.distanceMomentum, 'MomentumPeak: ', next.momentumPeak, 'DistancePeak: ', next.distancePeak, 'Updated Momentum Peak: ', next.updatedMomentumPeak, 'Updated Distance Peak: ', next.updatedDistancePeak)
@@ -377,6 +379,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             stdDevSlope: 0,
             SharpDroppingVelocityNegativeCrossover: false,
             SharpDroppingVelocityNegativeCrossoverCount: 0,
+            SharpDroppingVelocityNegativeCrossoverHistory: Array(5).fill(false),
         }
     }
 
