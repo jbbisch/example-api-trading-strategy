@@ -8,7 +8,7 @@ const drawEffect = (state, action) => {
         const { props } = payload
         const { contract } = props
         const { product, position, mode, buffer, tlc, realizedPnL, buyDistance, sellDistance, buyTriggerSource, sellTriggerSource,} = state
-        const { flatVelocityHistory, flatMarketEntryConditionCount, flatMarketExitConditionCount, DriftingVelocityNegativeCrossoverHistory, DriftingVelocityNegativeCrossoverCount, shortSmaVelocities, longSmaVelocities, distanceVelocities, distance, shortSma, SMAPositiveCrossoverCount, SMANegativeCrossoverCount, NegativeBounceNegativeCrossoverCount, BouncePositiveCrossoverCount, updatedDistanceValley, AcceleratingAbsoluteGapMomentumCrossoverCount, longSma, distanceOpen, GapMomentumLowCrossover, gapMomentumLowCrossoverCount, absoluteGapMomentum, absoluteGapMomentums, absoluteGapMomentumDifference, absoluteGapMomentumDifferences, slowingAbsoluteGapMomentum, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceOpenValues, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount, slowingAbsoluteGapMomentumCrossoverCount, momentumPeakNegativeCrossoverCount} = tlc.state  
+        const { SharpDroppingVelocityNegativeCrossover, SharpDroppingVelocityNegativeCrossoverCount, flatVelocityHistory, flatMarketEntryConditionCount, flatMarketExitConditionCount, DriftingVelocityPositiveCrossoverConfirmedCount, DriftingVelocityPositiveCrossoverHistory, DriftingVelocityNegativeCrossoverHistory, DriftingVelocityNegativeCrossoverConfirmedCount, shortSmaVelocities, longSmaVelocities, distanceVelocities, distance, shortSma, SMAPositiveCrossoverCount, SMANegativeCrossoverCount, NegativeBounceNegativeCrossoverCount, BouncePositiveCrossoverCount, updatedDistanceValley, AcceleratingAbsoluteGapMomentumCrossoverCount, longSma, distanceOpen, GapMomentumLowCrossover, gapMomentumLowCrossoverCount, absoluteGapMomentum, absoluteGapMomentums, absoluteGapMomentumDifference, absoluteGapMomentumDifferences, slowingAbsoluteGapMomentum, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceOpenValues, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount, slowingAbsoluteGapMomentumCrossoverCount, momentumPeakNegativeCrossoverCount} = tlc.state  
 
         const formatDistanceArray = (distanceArray) => {
             if (!distanceArray || distanceArray.length === 0) return 'No Distance'
@@ -64,8 +64,10 @@ const drawEffect = (state, action) => {
             DistanceValley: updatedDistanceValley ? updatedDistanceValley.join(', ') : 'N/A',
             DistancePeak: updatedDistancePeak ? updatedDistancePeak.join(', ') : 'N/A',
             MomentumPeak: updatedMomentumPeak ? updatedMomentumPeak.join(', ') : 'N/A',
+            DVpcHistory: (DriftingVelocityPositiveCrossoverHistory || []).map(v => v ? 'true' : 'false').join(', '),
             DVncHistory: (DriftingVelocityNegativeCrossoverHistory || []).map(v => v ? 'true' : 'false').join(', '),
             flatVelocityHistory: flatVelocityHistory.map(v => v ? 'true' : 'false').join(', '),
+            SharpDroppingVelocityNegativeCrossover: SharpDroppingVelocityNegativeCrossover ? 'true' : 'false',
             shortSmaVelocities: (shortSmaVelocities || []).map(v => v.toFixed(8)).join(", "),
             longSmaVelocities: (longSmaVelocities || []).map(v => v.toFixed(8)).join(", "),
             distanceVelocities: (distanceVelocities || []).map(v => v.toFixed(8)).join(", "),
@@ -86,16 +88,18 @@ const drawEffect = (state, action) => {
             buyTriggerSource: buyTriggers,
             //buyDistance: formattedBuyDistance,
             SMApcCount: SMAPositiveCrossoverCount,
+            DVpcCount: DriftingVelocityPositiveCrossoverConfirmedCount,
             FMEpcCount: flatMarketEntryConditionCount,
             AAGMpcCount: AcceleratingAbsoluteGapMomentumCrossoverCount,
-            BpcCount: BouncePositiveCrossoverCount,
+            //BpcCount: BouncePositiveCrossoverCount,
             sellTriggerSource: sellTriggers,
             //sellDistance: formattedSellDistance,
             SMAncCount: SMANegativeCrossoverCount,
-            DVncCount: DriftingVelocityNegativeCrossoverCount,
+            DVncCount: DriftingVelocityNegativeCrossoverConfirmedCount,
             //FMEncCount: flatMarketExitConditionCount,
             SAGMncCount: slowingAbsoluteGapMomentumCrossoverCount,
             NBncCount: NegativeBounceNegativeCrossoverCount,
+            SDVncCount: SharpDroppingVelocityNegativeCrossoverCount,
             //MPncCount: momentumPeakNegativeCrossoverCount,
             //SLMncCount: slowingMomentumNegativeCrossoverCount,
             //SDMncCount: slowingDistanceMomentumCrossoverCount,
