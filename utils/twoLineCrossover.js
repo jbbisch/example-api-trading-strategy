@@ -161,7 +161,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const updatedDVncHistory = [...prevState.DriftingVelocityNegativeCrossoverHistory.slice(1), DriftingVelocityNegativeCrossover]
         const DVncConfirmed = updatedDVncHistory.slice(-3).every(v => v === true)
         const flatMarketExitCondition = false //(distanceOpen > 0.00 && flatVelocity && !velocityBreakingOut && currentPrice >= twentySma + stdDevTwentySma)
-        const SharpDroppingVelocityNegativeCrossover = (distanceVelocity < -0.25 && distance < 0.00)
+        const SharpDroppingVelocityNegativeCrossover = (updatedLongSmaVelocities.slice(-1).every(v => Math.abs(v) >= 0.00009000) && distance < -0.32)
         const updatedSharpDroppingVelocityNegativeCrossoverHistory = [...prevState.SharpDroppingVelocityNegativeCrossoverHistory.slice(1), SharpDroppingVelocityNegativeCrossover]
         const negativeCrossover =  SMANegativeCrossover || SlowingAbsoluteGapMomentumCrossover || GapMomentumLowCrossover || NegativeBounceNegativeCrossover || SlowingMomentumNegativeCrossover || MomentumPeakNegativeCrossover || DVncConfirmed || flatMarketExitCondition || DistancePeakNegativeCrossover || SharpDroppingVelocityNegativeCrossover
 
