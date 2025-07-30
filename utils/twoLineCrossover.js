@@ -30,8 +30,9 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             baselineSlopes.reduce((sum, val) => sum + Math.pow(val - meanSlope, 2), 0) / baselineSlopes.length
         )
 
-        const recentSlopes = longSmaSlope.slice(-7)
+        const recentSlopes = longSmaSlope.slice(-3)
         const slopeFlat = recentSlopes.every(slope => Math.abs(slope - meanSlope) <= stdDevSlope * 1.05)
+        const updatedSlopeFlatHistory = [...prevState.slopeFlatHistory.slice(1), slopeFlat]
 
         const updatedTwentySmaValues = [...prevState.twentySmaValues.slice(1), twentySma]
         const meanTwentySma = updatedTwentySmaValues.reduce((sum, val) => sum + val, 0) / updatedTwentySmaValues.length
@@ -291,6 +292,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             flatMarketEntryConditionCount: updatedFlatMarketEntryConditionCount,
             flatMarketExitConditionCount: updatedFlatMarketExitConditionCount,
             meanSlope: meanSlope,
+            slopeFlat: slopeFlat,
+            slopeFlatHistory: updatedSlopeFlatHistory,
             stdDevSlope: stdDevSlope,
             SharpDroppingVelocityNegativeCrossover: SharpDroppingVelocityNegativeCrossover,
             SharpDroppingVelocityNegativeCrossoverCount: updatedSharpDroppingVelocityNegativeCrossoverCount,
@@ -377,6 +380,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             flatMarketEntryConditionCount: 0,
             flatMarketExitConditionCount: 0,
             meanSlope: 0,
+            slopeFlat: false,
+            slopeFlatHistory: Array(5).fill(false),
             stdDevSlope: 0,
             SharpDroppingVelocityNegativeCrossover: false,
             SharpDroppingVelocityNegativeCrossoverCount: 0,
