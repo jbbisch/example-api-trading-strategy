@@ -30,7 +30,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             baselineSlopes.reduce((sum, val) => sum + Math.pow(val - meanSlope, 2), 0) / baselineSlopes.length
         )
 
-        const slopeFlat = longSmaSlope.every(slope => Math.abs(slope - meanSlope) <= stdDevSlope * 1.05)
+        const recentSlopes = longSmaSlope.slice(-7)
+        const slopeFlat = recentSlopes.every(slope => Math.abs(slope - meanSlope) <= stdDevSlope * 1.05)
 
         const updatedTwentySmaValues = [...prevState.twentySmaValues.slice(1), twentySma]
         const meanTwentySma = updatedTwentySmaValues.reduce((sum, val) => sum + val, 0) / updatedTwentySmaValues.length
