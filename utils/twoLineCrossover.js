@@ -366,8 +366,10 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             slowingAbsoluteGapMomentumCrossoverCount: 0,
             SAGMncHistory: Array(3).fill(false), // Initialize with an array of 5 falses
             SAGMncBreakCount: 0,
+            SlowingAbsoluteGapMomentumCrossoverHistory: Array(3).fill(false), // Initialize with an array of 5 falses
             AAGMpcHistory: Array(3).fill(false), // Initialize with an array of 5 falses
             AAGMpcBreakCount: 0,
+            AcceleratingAbsoluteGapMomentumCrossoverHistory: Array(3).fill(false), // Initialize with an array of 5 falses
             AcceleratingAbsoluteGapMomentumCrossoverCount: 0,
             BouncePositiveCrossoverCount: 0,
             NegativeBounceNegativeCrossoverCount: 0,
