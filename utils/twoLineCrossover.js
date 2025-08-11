@@ -253,7 +253,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             slowingAbsoluteGapMomentum: updatedSlowingAbsoluteGapMomentum,
             SAGMncBreak: SAGMncBreak,
             SAGMncBreakCount: updatedSAGMncBreakCount,
-            updatedSAGMncBreakCount: updatedSAGMncBreakCount,
+            updatedSAGMncHistory: updatedSAGMncHistory,
             SlowingAbsoluteGapMomentumCrossover: SlowingAbsoluteGapMomentumCrossover,
             slowingAbsoluteGapMomentumCrossoverCount: updatedSlowingAbsoluteGapMomentumCrossoverCount,
             AAGMpcBreak: AAGMpcBreak,
