@@ -140,20 +140,26 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const flatMarketEntryConditionCount = prevState.flatMarketEntryConditionCount || 0
         const flatMarketExitConditionCount = prevState.flatMarketExitConditionCount || 0
         const SharpDroppingVelocityNegativeCrossoverCount = prevState.SharpDroppingVelocityNegativeCrossoverCount || 0
+        const AAGMpcBreakCount = prevState.AAGMpcBreakCount || 0
+        const SAGMncBreakCount = prevState.SAGMncBreakCount || 0
 
         const SMAPositiveCrossover = (prevState.shortSma <= prevState.longSma && distance > 0.00)
         const AcceleratingAbsoluteGapMomentumCrossover = (distanceOpen < -2.70 && updatedSlowingAbsoluteGapMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistanceValley.slice(-3).filter(v => v).length >= 1)
+        const updatedAAGMpcHistory = [...prevState.AcceleratingAbsoluteGapMomentumCrossoverHistory.slice(1), AcceleratingAbsoluteGapMomentumCrossover]
+        const AAGMpcBreak = updatedAAGMpcHistory.length >= 2 && updatedAAGMpcHistory[updatedAAGMpcHistory.length - 2] === true && updatedAAGMpcHistory[updatedAAGMpcHistory.length - 1] === false
         const BouncePositiveCrossover = false //(prevState.distanceOpen > 0.50 && distanceOpen < 3.50 && (prevState.shortSmaValues.slice(-4).every((val, i, arr) => i === 0 || val > arr[i - 1]))) // - prevState.shortSma) > 1.25)
         const DriftingVelocityPositiveCrossover = (updatedDistanceOpenValues.slice(-3).every(v => v < 0.00 && v > -2.50)) && updatedShortSmaVelocities.slice(-5).filter(v => Math.abs(v) < 0.0012).length >= 3 && updatedLongSmaVelocities.slice(-5).filter(v => Math.abs(v) < 0.0012).length >= 3 && updatedDistanceVelocities.slice(-5).filter(v => Math.abs(v) < 0.25).length >= 3
         const updatedDVpcHistory = [...prevState.DriftingVelocityPositiveCrossoverHistory.slice(1), DriftingVelocityPositiveCrossover]
         const DVpcConfirmed = updatedDVpcHistory.slice(-4).every(v => v === true)
         const flatMarketEntryCondition = (distanceOpen < 0.00 && flatVelocity && !velocityBreakingOut && currentPrice <= twentySma - 1.3 * stdDevTwentySma)
-        const positiveCrossover = SMAPositiveCrossover || AcceleratingAbsoluteGapMomentumCrossover || BouncePositiveCrossover || flatMarketEntryCondition || DVpcConfirmed
+        const positiveCrossover = SMAPositiveCrossover || AAGMpcBreak || BouncePositiveCrossover || flatMarketEntryCondition || DVpcConfirmed
 
         const SMANegativeCrossover = (prevState.shortSmaOpen >= prevState.longSmaOpen && distanceOpen < 0.00)
         const NegativeBounceNegativeCrossover = (prevState.distanceOpen >= -0.32 && distanceOpen < -0.32)
         const LikelyNegativeCrossover = false //(prevState.distance > 0.28 && distance < 0.31)
         const SlowingAbsoluteGapMomentumCrossover = (distance > 2.70 && updatedSlowingAbsoluteGapMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistancePeak.slice(-3).filter(v => v).length >= 1)
+        const updatedSAGMncHistory = [...prevState.SlowingAbsoluteGapMomentumCrossoverHistory.slice(1), SlowingAbsoluteGapMomentumCrossover]
+        const SAGMncBreak = updatedSAGMncHistory.length >= 2 && updatedSAGMncHistory[updatedSAGMncHistory.length - 2] === true && updatedSAGMncHistory[updatedSAGMncHistory.length - 1] === false
         const SlowingMomentumNegativeCrossover = false //(distance > 2.70 && updatedSlowingMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistancePeak.slice(-3).filter(v => v).length >= 1)
         const BigDistancePullback = false //(prevState.distance > 4.00 && distance < 4.00) || (prevState.distance > 3.00 && distance < 3.00)
         const GapMomentumLowCrossover = false //(distance < 2.70 && momentumPeak === true && updatedAbsoluteGapMomentums.slice(-4).every(v => v > 0.00) && updatedAbsoluteGapMomentums.slice(-4).every(v => v < 0.90485211))
@@ -165,7 +171,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const flatMarketExitCondition = false //(distanceOpen > 0.00 && flatVelocity && !velocityBreakingOut && currentPrice >= twentySma + stdDevTwentySma)
         const SharpDroppingVelocityNegativeCrossover = false //(updatedLongSmaVelocities.slice(-1).every(v => v <= -0.00010000) && distance < -0.32)
         const updatedSharpDroppingVelocityNegativeCrossoverHistory = [...prevState.SharpDroppingVelocityNegativeCrossoverHistory.slice(1), SharpDroppingVelocityNegativeCrossover]
-        const negativeCrossover =  SMANegativeCrossover || SlowingAbsoluteGapMomentumCrossover || GapMomentumLowCrossover || NegativeBounceNegativeCrossover || SlowingMomentumNegativeCrossover || MomentumPeakNegativeCrossover || DVncConfirmed || flatMarketExitCondition || DistancePeakNegativeCrossover || SharpDroppingVelocityNegativeCrossover
+        const negativeCrossover =  SMANegativeCrossover || SAGMncBreak || GapMomentumLowCrossover || NegativeBounceNegativeCrossover || SlowingMomentumNegativeCrossover || MomentumPeakNegativeCrossover || DVncConfirmed || flatMarketExitCondition || DistancePeakNegativeCrossover || SharpDroppingVelocityNegativeCrossover
 
         const updatedAcceleratingAbsoluteGapMomentumCrossoverCount = AcceleratingAbsoluteGapMomentumCrossover ? AcceleratingAbsoluteGapMomentumCrossoverCount + 1 : AcceleratingAbsoluteGapMomentumCrossoverCount
         const updatedSMANegativeCrossoverCount = SMANegativeCrossover ? SMANegativeCrossoverCount + 1 : SMANegativeCrossoverCount
@@ -184,13 +190,15 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const updatedFlatMarketEntryConditionCount = flatMarketEntryCondition ? flatMarketEntryConditionCount + 1 : flatMarketEntryConditionCount
         const updatedFlatMarketExitConditionCount = flatMarketExitCondition ? flatMarketExitConditionCount + 1 : flatMarketExitConditionCount
         const updatedSharpDroppingVelocityNegativeCrossoverCount = SharpDroppingVelocityNegativeCrossover ? SharpDroppingVelocityNegativeCrossoverCount + 1 : SharpDroppingVelocityNegativeCrossoverCount
+        const updatedSAGMncBreakCount = SAGMncBreak ? SAGMncBreakCount + 1 : SAGMncBreakCount
+        const updatedAAGMpcBreakCount = AAGMpcBreak ? AAGMpcBreakCount + 1 : AAGMpcBreakCount
 
         const buyTriggerSource = [...(prevState.triggerSource || [])]
         const sellTriggerSource = [...(prevState.triggerSource || [])]
 
         if (positiveCrossover) {
             if (SMAPositiveCrossover) buyTriggerSource.push(`${now} - SMApc`)
-            if (AcceleratingAbsoluteGapMomentumCrossover) buyTriggerSource.push(`${now} - AAGMpc`)
+            if (AAGMpcBreak) buyTriggerSource.push(`${now} - AAGMpc`)
             if (BouncePositiveCrossover) buyTriggerSource.push(`${now} - Bpc`)
             if (flatMarketEntryCondition) buyTriggerSource.push(`${now} - FMEpc`)
             //if (DriftingVelocityPositiveCrossover) buyTriggerSource.push(`${now} - DVpc`)
@@ -198,7 +206,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         }
         if (negativeCrossover) {
             if (SMANegativeCrossover) sellTriggerSource.push(`${now} - SMAnc`)
-            if (SlowingAbsoluteGapMomentumCrossover) sellTriggerSource.push(`${now} - SAGMnc`)
+            if (SAGMncBreak) sellTriggerSource.push(`${now} - SAGMnc`)
             if (NegativeBounceNegativeCrossover) sellTriggerSource.push(`${now} - NBnc`)
             //if (SlowingMomentumNegativeCrossover) sellTriggerSource.push(`${now} - SLMnc`)
             //if (GapMomentumLowCrossover) sellTriggerSource.push(`${now} - GMLnc`)
@@ -243,8 +251,14 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             absoluteGapMomentumDifference: absoluteGapMomentumDifference,
             absoluteGapMomentumDifferences: updatedAbsoluteGapMomentumDifferences,
             slowingAbsoluteGapMomentum: updatedSlowingAbsoluteGapMomentum,
+            SAGMncBreak: SAGMncBreak,
+            SAGMncBreakCount: updatedSAGMncBreakCount,
+            updatedSAGMncBreakCount: updatedSAGMncBreakCount,
             SlowingAbsoluteGapMomentumCrossover: SlowingAbsoluteGapMomentumCrossover,
             slowingAbsoluteGapMomentumCrossoverCount: updatedSlowingAbsoluteGapMomentumCrossoverCount,
+            AAGMpcBreak: AAGMpcBreak,
+            AAGMpcBreakCount: updatedAAGMpcBreakCount,
+            updatedAAGMpcHistory: updatedAAGMpcHistory,
             AcceleratingAbsoluteGapMomentumCrossover: AcceleratingAbsoluteGapMomentumCrossover,
             AcceleratingAbsoluteGapMomentumCrossoverCount: updatedAcceleratingAbsoluteGapMomentumCrossoverCount,
             BouncePositiveCrossover: BouncePositiveCrossover,
@@ -350,6 +364,10 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             absoluteGapMomentumDifferences: Array(5).fill(0), // Initialize with an array of 5 zeros
             slowingAbsoluteGapMomentum: Array(5).fill(false), // Initialize with an array of 6 falses
             slowingAbsoluteGapMomentumCrossoverCount: 0,
+            SAGMncHistory: Array(3).fill(false), // Initialize with an array of 5 falses
+            SAGMncBreakCount: 0,
+            AAGMpcHistory: Array(3).fill(false), // Initialize with an array of 5 falses
+            AAGMpcBreakCount: 0,
             AcceleratingAbsoluteGapMomentumCrossoverCount: 0,
             BouncePositiveCrossoverCount: 0,
             NegativeBounceNegativeCrossoverCount: 0,
