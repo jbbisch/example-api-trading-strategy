@@ -8,7 +8,7 @@ const drawEffect = (state, action) => {
         const { props } = payload
         const { contract } = props
         const { product, position, mode, buffer, tlc, realizedPnL, buyDistance, sellDistance, buyTriggerSource, sellTriggerSource,} = state
-        const { slopeFlatHistory, SharpDroppingVelocityNegativeCrossoverCount, SharpDroppingVelocityNegativeCrossoverHistory, flatVelocityHistory, flatMarketEntryConditionCount, flatMarketExitConditionCount, DriftingVelocityPositiveCrossoverConfirmedCount, DriftingVelocityPositiveCrossoverHistory, DriftingVelocityNegativeCrossoverHistory, DriftingVelocityNegativeCrossoverConfirmedCount, shortSmaVelocities, longSmaVelocities, distanceVelocities, distance, shortSma, SMAPositiveCrossoverCount, SMANegativeCrossoverCount, NegativeBounceNegativeCrossoverCount, BouncePositiveCrossoverCount, updatedDistanceValley, AcceleratingAbsoluteGapMomentumCrossoverCount, longSma, distanceOpen, GapMomentumLowCrossover, gapMomentumLowCrossoverCount, absoluteGapMomentum, absoluteGapMomentums, absoluteGapMomentumDifference, absoluteGapMomentumDifferences, slowingAbsoluteGapMomentum, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceOpenValues, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount, slowingAbsoluteGapMomentumCrossoverCount, momentumPeakNegativeCrossoverCount} = tlc.state  
+        const { AAGMpcBreak, AAGMpcBreakCount, SAGMncBreakCount, SAGMncBreak, slopeFlatHistory, SharpDroppingVelocityNegativeCrossoverCount, SharpDroppingVelocityNegativeCrossoverHistory, flatVelocityHistory, flatMarketEntryConditionCount, flatMarketExitConditionCount, DriftingVelocityPositiveCrossoverConfirmedCount, DriftingVelocityPositiveCrossoverHistory, DriftingVelocityNegativeCrossoverHistory, DriftingVelocityNegativeCrossoverConfirmedCount, shortSmaVelocities, longSmaVelocities, distanceVelocities, distance, shortSma, SMAPositiveCrossoverCount, SMANegativeCrossoverCount, NegativeBounceNegativeCrossoverCount, BouncePositiveCrossoverCount, updatedDistanceValley, AcceleratingAbsoluteGapMomentumCrossoverCount, longSma, distanceOpen, GapMomentumLowCrossover, gapMomentumLowCrossoverCount, absoluteGapMomentum, absoluteGapMomentums, absoluteGapMomentumDifference, absoluteGapMomentumDifferences, slowingAbsoluteGapMomentum, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceOpenValues, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount, slowingAbsoluteGapMomentumCrossoverCount, momentumPeakNegativeCrossoverCount} = tlc.state  
 
         const formatDistanceArray = (distanceArray) => {
             if (!distanceArray || distanceArray.length === 0) return 'No Distance'
@@ -56,7 +56,6 @@ const drawEffect = (state, action) => {
             AbsoluteGapMomentums: (absoluteGapMomentums || []).map(v => v.toFixed(8)).join(', '),
             //AbsoluteGapMomentumDifference: absoluteGapMomentumDifference !== undefined ? absoluteGapMomentumDifference.toFixed(8) : 'N/A',
             //AbsoluteGapMomentumDifferences: (absoluteGapMomentumDifferences || []).map(v => v.toFixed(8)).join(', '),
-            slowingAbsoluteGapMomentum: (slowingAbsoluteGapMomentum || []).join(', '),
             //DistanceMomentum: distanceMomentum.toFixed(8),
             //slowingDistanceMomentum: slowingDistanceMomentum.join(', '),
             //distanceMomentumDifference: distanceMomentumDifference.toFixed(8),
@@ -72,6 +71,7 @@ const drawEffect = (state, action) => {
             shortSmaVelocities: (shortSmaVelocities || []).map(v => v.toFixed(8)).join(", "),
             longSmaVelocities: (longSmaVelocities || []).map(v => v.toFixed(8)).join(", "),
             distanceVelocities: (distanceVelocities || []).map(v => v.toFixed(8)).join(", "),
+            slowingAbsoluteGapMomentum: (slowingAbsoluteGapMomentum || []).join(', '),
             //ShortSmaMomentum: momentum.toFixed(8),
             //'Short SMA Values': shortSmaValues.map(value => value.toFixed(2)).join(', '),
             //LONGsma: longSma.toFixed(2),
@@ -91,16 +91,16 @@ const drawEffect = (state, action) => {
             SMApcCount: SMAPositiveCrossoverCount,
             DVpcCount: DriftingVelocityPositiveCrossoverConfirmedCount,
             FMEpcCount: flatMarketEntryConditionCount,
-            AAGMpcCount: AcceleratingAbsoluteGapMomentumCrossoverCount,
+            AAGMpcCount: AAGMpcBreakCount,
             //BpcCount: BouncePositiveCrossoverCount,
             sellTriggerSource: sellTriggers,
             //sellDistance: formattedSellDistance,
             SMAncCount: SMANegativeCrossoverCount,
             DVncCount: DriftingVelocityNegativeCrossoverConfirmedCount,
             //FMEncCount: flatMarketExitConditionCount,
-            SAGMncCount: slowingAbsoluteGapMomentumCrossoverCount,
+            SAGMncCount: SAGMncBreakCount,
             NBncCount: NegativeBounceNegativeCrossoverCount,
-            SDVncCount: SharpDroppingVelocityNegativeCrossoverCount,
+            //SDVncCount: SharpDroppingVelocityNegativeCrossoverCount,
             //MPncCount: momentumPeakNegativeCrossoverCount,
             //SLMncCount: slowingMomentumNegativeCrossoverCount,
             //SDMncCount: slowingDistanceMomentumCrossoverCount,
