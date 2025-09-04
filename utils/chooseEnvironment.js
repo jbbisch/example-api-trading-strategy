@@ -19,20 +19,23 @@ const ENV_MAP = {
 }
 
 async function chooseEnvironment() {
-  const envChoice = await askQuestion({
-    question: 'Choose environment:',
-    items: ['Demo', 'Live']
-  })
+    const choices = ["DEMO", "LIVE"]
 
-  const env = ENV_MAP[envChoice]
-  process.env.HTTP_URL   = env.HTTP_URL
-  process.env.WS_URL     = env.WS_URL
-  process.env.MD_URL     = env.MD_URL
-  process.env.REPLAY_URL = env.REPLAY_URL
-  process.env.ENV_LABEL  = env.LABEL
+    const choiceIndex = await askQuestion({
+        question: 'Choose environment:',
+        items: choices
+    })
 
-  // Avoid reusing a token from the other environment
-  delete process.env.ACCESS_TOKEN
+    const envChoice = choices[choiceIndex]
+    const env = ENV_MAP[envChoice]
+    process.env.HTTP_URL   = env.HTTP_URL
+    process.env.WS_URL     = env.WS_URL
+    process.env.MD_URL     = env.MD_URL
+    process.env.REPLAY_URL = env.REPLAY_URL
+    process.env.ENV_LABEL  = env.LABEL
+
+    // Avoid reusing a token from the other environment
+    delete process.env.ACCESS_TOKEN
 }
 
 module.exports = { chooseEnvironment }
