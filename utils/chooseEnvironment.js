@@ -19,14 +19,12 @@ const ENV_MAP = {
 }
 
 async function chooseEnvironment() {
-    const choices = ["DEMO", "LIVE"]
-
-    const choiceIndex = await askQuestion({
+    
+    const envChoice = await askQuestion({
         question: 'Choose environment:',
-        items: choices
+        items: ['Demo', 'Live']
     })
 
-    const envChoice = choices[choiceIndex]
     const env = ENV_MAP[envChoice]
     process.env.HTTP_URL   = env.HTTP_URL
     process.env.WS_URL     = env.WS_URL
