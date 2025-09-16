@@ -36,6 +36,7 @@ global.__WS_LISTENERS_WIRED__ = global.__WS_LISTENERS_WIRED__ || false
 global.__STRATEGY_SINGLETON__ = global.__STRATEGY_SINGLETON__ || null
 // ------------------------------------------
 
+
 //ENVIRONMENT VARIABLES ---------------------------------------------------------------------------------------
 
 //Set some process variables for ease-of-access. These values will be globally available
@@ -94,7 +95,7 @@ async function main() {
     // Configuration Section                     //
     // // // // // // // // // // // // // // // //
 
-        // ---------- ONE-TIME TOKEN RENEW TIMER ----------
+    // ---------- ONE-TIME TOKEN RENEW TIMER ----------
     if (!global.__TOKEN_RENEW_TIMER__) {
       global.__TOKEN_RENEW_TIMER__ = setInterval(async () => {
         try {
@@ -125,18 +126,17 @@ async function main() {
             ])
     // }
     
-            // ---------- STRATEGY SINGLETON ----------
-            if (!global.__STRATEGY_SINGLETON__) {
-              global.__STRATEGY_SINGLETON__ = await configureRobot(ALL_STRATEGIES)
-              global.__STRATEGY_SINGLETON__.init()
-            }
-            Strategy = global.__STRATEGY_SINGLETON__
-            // ---------------------------------------
+        // ---------- STRATEGY SINGLETON ----------
+        if (!global.__STRATEGY_SINGLETON__) {
+          global.__STRATEGY_SINGLETON__ = await configureRobot(ALL_STRATEGIES)
+          global.__STRATEGY_SINGLETON__.init()
+        }
+        Strategy = global.__STRATEGY_SINGLETON__
+        // ---------------------------------------
 
         socket.strategy = Strategy
         socket.strategyProps = Strategy.props
 
-        //Set up reconnect handlers
         // ---------- ONE-TIME RECONNECT LISTENERS ----------
         if (!global.__WS_LISTENERS_WIRED__) {
           global.__WS_LISTENERS_WIRED__ = true
