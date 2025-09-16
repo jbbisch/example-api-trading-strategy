@@ -4,11 +4,25 @@ const { calculateSmaOpen } = require("./helpers")
 module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
     function nextTLC(prevState, data) {
         const { timestamp, open, high, low, close } = data
-        const newData = data.sort((a, b) => a.timestamp - b.timestamp)
+        const newData = [ ...data].sort((a, b) => a.timestamp - b.timestamp)
 
-        const shortSma = newData.slice(newData.length - shortPeriod).reduce((a, b) => a + b.close || b.price, 0) / shortPeriod
-        const longSma = newData.slice(newData.length - longPeriod).reduce((a, b) => a + b.close || b.price, 0) / longPeriod
-        const twentySma = newData.slice(-20).reduce((sum, d) => sum + (d.close || d.price), 0) / 20
+        const pick = d => (d.close ?? d.price) // prefer close, else price
+
+        const shortSma = newData.slice(-shortPeriod)
+          .reduce((sum, d) => sum + pick(d), 0) / shortPeriod
+
+        const longSma = newData.slice(-longPeriod)
+          .reduce((sum, d) => sum + pick(d), 0) / longPeriod
+
+        const twentySma = newData.slice(-20)
+          .reduce((sum, d) => sum + pick(d), 0) / 20
+
+        const shortSmaOpen = newData.slice(-shortPeriod)
+          .reduce((sum, d) => sum + (d.open ?? d.price), 0) / shortPeriod
+
+        const longSmaOpen = newData.slice(-longPeriod)
+          .reduce((sum, d) => sum + (d.open ?? d.price), 0) / longPeriod
+
         const distance = shortSma - longSma
         const currentPrice = newData[newData.length - 1].close || newData[newData.length - 1].price
 
@@ -54,8 +68,6 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
 
         const updatedFlatVelocityHistory = [...prevState.flatVelocityHistory.slice(1), flatVelocity]
 
-        const shortSmaOpen = newData.slice(newData.length - shortPeriod).reduce((a, b) => a + b.open || b.price, 0) / shortPeriod
-        const longSmaOpen = newData.slice(newData.length - longPeriod).reduce((a, b) => a + b.open || b.price, 0) / longPeriod
         const distanceOpen = shortSmaOpen - longSmaOpen
 
         const now = new Date().toLocaleTimeString('en-US', { hour12: false})
