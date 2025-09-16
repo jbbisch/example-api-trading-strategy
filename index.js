@@ -20,13 +20,13 @@ const { renewAccessToken } = require("./endpoints/renewAccessToken")
 const { chooseEnvironment } = require("./utils/chooseEnvironment")
 
 // ---------- ONCE-ONLY BOOT GUARDS ----------
+global.__BOOTED__ = global.__BOOTED__ || false
 if (global.__BOOTED__) {
   console.warn('[index] Boot skipped: already booted in this process.')
   // Export whatever was set previously
-  module.exports = { Strategy: global.__STRATEGY_SINGLETON__ || null }
-  return
+} else {
+  global.__BOOTED__ = true
 }
-global.__BOOTED__ = true
 
 // one-time token renew interval id
 global.__TOKEN_RENEW_TIMER__ = global.__TOKEN_RENEW_TIMER__ || null
@@ -194,6 +194,6 @@ async function main() {
     // })    
 }
 
-main()
+if (global.__BOOTED__) main()
 
 module.exports = { Strategy: global.__STRATEGY_SINGLETON__ }
