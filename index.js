@@ -34,6 +34,8 @@ global.__TOKEN_RENEW_TIMER__ = global.__TOKEN_RENEW_TIMER__ || null
 global.__WS_LISTENERS_WIRED__ = global.__WS_LISTENERS_WIRED__ || false
 // strategy singleton
 global.__STRATEGY_SINGLETON__ = global.__STRATEGY_SINGLETON__ || null
+// main call
+global.__MAIN_STARTED__ = global.__MAIN_STARTED__ || false
 // ------------------------------------------
 
 
@@ -194,6 +196,9 @@ async function main() {
     // })    
 }
 
-if (global.__BOOTED__) main()
+if (!global.__MAIN_STARTED__) {
+    global.__MAIN_STARTED__ = true
+    main()
+}
 
 module.exports = { Strategy: global.__STRATEGY_SINGLETON__ }
