@@ -4,11 +4,16 @@ const { liquidatePosition } = require("../../endpoints/liquidatePosition")
 //console.log('[onChart] placeOrder:', placeOrder)
 
 const maxPosition = 1 // 1 contract
+const BAR_MS = 5 * 60 * 1000 // 5 minute bar width for gating
 
 const onChart = (prevState, {data, props}) => {
     
     const { mode, buffer, tlc, position, buyDistance, sellDistance } = prevState
     const { contract, orderQuantity } = props
+
+    if (prevState.orderLock) {
+        return { state: prevState, effects: [] }
+    }
 
     buffer.push(data)        
     const bufferData = buffer.getData()
@@ -36,11 +41,24 @@ const onChart = (prevState, {data, props}) => {
         return { state: prevState, effects: [] }
     } // 30 second window on every 5th minute interval to update SMA and place order
       // allows for delay in data feed and tries to avoid false signals
-        
+    
+    // BAR GATE: run once per data bar
+    const lastBar = bufferData[bufferData.length - 1]
+    const barTs = lastBar?.timestamp || Date.now()
+    const barId = Math.floor(new Date(barTs).getTime() / BAR_MS)
+    if (prevState.lastProcessedBarId === barId) {
+        console.log('[onChart] Bar already processed - skip')
+        return { state: prevState, effects: [] }
+    }
+
     const lastTlc = tlc.state
     prevState.lastSMAUpdate = Date.now()
     const nextTlcState = tlc(lastTlc, bufferData)
     const { negativeCrossover, positiveCrossover, distance } = nextTlcState
+
+    // EDGE TRIGGERING
+    const negEdge = negativeCrossover && !lastTlc.negativeCrossover
+    const posEdge = positiveCrossover && !lastTlc.positiveCrossover
 
     const longBracket = {
         qty: orderQuantity,
@@ -192,10 +210,12 @@ const onChart = (prevState, {data, props}) => {
     // }
 
     // USE DURING BULL MARKET INSTEAD OF WATCH AND SHORT ##########
-    if(mode === LongShortMode.Long && negativeCrossover ) {
+    if(mode === LongShortMode.Long && negEdge) {
         if(currentPositionSize >= maxPosition) {
             console.log('[onChart] liquidatePosition 2:', placeOrder)
             console.log('[onChart] mode 2 placeOrder:', mode)
+            prevState.orderLock = true
+            const lockTimer = setTimeout(() => { prevState.orderLock = false }, 100_000) // 100 second lock to prevent multiple orders
             prevState.lastTradeTime = Date.now()
             placeOrder({
                 accountId: parseInt(process.env.ID),
@@ -222,6 +242,7 @@ const onChart = (prevState, {data, props}) => {
                     else if (nextTlcState.DistancePeakNegativeCrossover) trackTrigger(sellLog, 'DPnc')
                     else if (nextTlcState.flatMarketExitCondition) trackTrigger(sellLog, 'FMEnc')
                     else if (nextTlcState.DriftingVelocityNegativeCrossover) trackTrigger(sellLog, 'DVnc')
+                    else if (nextTlcState.PositiveReversalBreakdown) trackTrigger(sellLog, 'PRBnc')
                 console.log('[onChart] response 2:', response)
                 return {
                     state: {
@@ -250,18 +271,23 @@ const onChart = (prevState, {data, props}) => {
                 }
             }).catch(err => {
                 console.error('[onChart] Error:', err)
+            }).finally(() => {
+                clearTimeout(lockTimer)
+                prevState.orderLock = false
             })
         } else {
             console.log('[onChart] no position to liquidate')
-            return { state: prevState, effects: [] }
+            return { state: { ...prevState, lastProcessedBarId: barId }, effects: [] }
         }
     }
 
     // USE DURING BULL MARKET INSTEAD OF WATCH AND SHORT ##########
-    if(mode === LongShortMode.Watch && positiveCrossover ) {
+    if(mode === LongShortMode.Watch && posEdge) {
         if(currentPositionSize < maxPosition) { 
             console.log('[onChart] placeOrder 3:', placeOrder)
             console.log('[onChart] mode 3 buyOrder:', mode)  
+            prevState.orderLock = true
+            const lockTimer = setTimeout(() => { prevState.orderLock = false }, 100_000) // 100 second lock to prevent multiple orders
             prevState.lastTradeTime = Date.now()
             placeOrder({
                 accountId: parseInt(process.env.ID),
@@ -307,10 +333,13 @@ const onChart = (prevState, {data, props}) => {
                 }
             }).catch(err => {
                 console.error('[onChart] Error:', err)
+            }).finally(() => {
+                clearTimeout(lockTimer)
+                prevState.orderLock = false
             })
         } else {
             console.log('[onChart] max position reached')
-            return { state: prevState, effects: [] }
+            return { state: { ...prevState, lastProcessedBarId: barId }, effects: [] }
         }
     }
     
@@ -321,6 +350,7 @@ const onChart = (prevState, {data, props}) => {
     return { 
         state: {
             ...prevState,
+            lastProcessedBarId: barId,
             buyTriggerSource: clearTriggers ? [] : [...(prevState.buyTriggerSource || []), ...(nextTlcState.buyTriggerSource || [])],
             sellTriggerSource: clearTriggers ? [] : [...(prevState.sellTriggerSource || []), ...(nextTlcState.sellTriggerSource || [])],
             buyDistance: clearTriggers ? [] : [...(prevState.buyDistance || []), ...(nextTlcState.buyDistance || [])],
