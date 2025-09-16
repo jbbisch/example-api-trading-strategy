@@ -20,6 +20,14 @@ const onChart = (prevState, {data, props}) => {
 
     const now = new Date()
     
+    const lastTick = bufferData[bufferData.length - 1]
+    prevState.__lastTs = prevState.__lastTs ?? 0
+    if (lastTick?.timestamp && lastTick.timestamp <= prevState.__lastTs) {
+      // stale or duplicate bar, ignore
+      return { state: prevState, effects: [] }
+    }
+    prevState.__lastTs = lastTick?.timestamp || prevState.__lastTs
+    
     // Update SMA only at specific intervals
     const dataPause = 1 * 60 * 1000 // 1 minute pause after processing data
     if (prevState.lastSMAUpdate && now - prevState.lastSMAUpdate < dataPause) {
