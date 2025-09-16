@@ -123,6 +123,38 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const updatedDistanceValley = [...prevState.updatedDistanceValley.slice(1), distanceValley]
         if (updatedDistanceValley.length > 10) updatedDistanceValley.shift()
 
+        const slowingMomentumNegativeCrossoverCount = prevState.slowingMomentumNegativeCrossoverCount || 0
+        //const slowingDistanceMomentumCrossoverCount = prevState.slowingDistanceMomentumCrossoverCount || 0
+        const momentumPeakNegativeCrossoverCount = prevState.momentumPeakNegativeCrossoverCount || 0
+        const slowingAbsoluteGapMomentumCrossoverCount = prevState.slowingAbsoluteGapMomentumCrossoverCount || 0
+        const gapMomentumLowCrossoverCount = prevState.gapMomentumLowCrossoverCount || 0
+        const SMANegativeCrossoverCount = prevState.SMANegativeCrossoverCount || 0
+        const SMAPositiveCrossoverCount = prevState.SMAPositiveCrossoverCount || 0
+        const AcceleratingAbsoluteGapMomentumCrossoverCount = prevState.AcceleratingAbsoluteGapMomentumCrossoverCount || 0
+        const BouncePositiveCrossoverCount = prevState.BouncePositiveCrossoverCount || 0
+        const NegativeBounceNegativeCrossoverCount = prevState.NegativeBounceNegativeCrossoverCount || 0
+        const DriftingVelocityNegativeCrossoverConfirmedCount = prevState.DriftingVelocityNegativeCrossoverConfirmedCount || 0
+        const DriftingVelocityNegativeCrossoverCount = prevState.DriftingVelocityNegativeCrossoverCount || 0
+        const DriftingVelocityPositiveCrossoverConfirmedCount = prevState.DriftingVelocityPositiveCrossoverConfirmedCount || 0
+        const DriftingVelocityPositiveCrossoverCount = prevState.DriftingVelocityPositiveCrossoverCount || 0
+        const flatMarketEntryConditionCount = prevState.flatMarketEntryConditionCount || 0
+        const flatMarketExitConditionCount = prevState.flatMarketExitConditionCount || 0
+        const SharpDroppingVelocityNegativeCrossoverCount = prevState.SharpDroppingVelocityNegativeCrossoverCount || 0
+        const AAGMpcBreakCount = prevState.AAGMpcBreakCount || 0
+        const SAGMncBreakCount = prevState.SAGMncBreakCount || 0
+        const PositiveReversalBreakdownCount = prevState.PositiveReversalBreakdownCount || 0
+
+        const SMAPositiveCrossover = (prevState.shortSma <= prevState.longSma && distance > 0.00)
+        const AcceleratingAbsoluteGapMomentumCrossover = (distanceOpen < -2.70 && updatedSlowingAbsoluteGapMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistanceValley.slice(-3).filter(v => v).length >= 1)
+        const updatedAAGMpcHistory = [...prevState.AcceleratingAbsoluteGapMomentumCrossoverHistory.slice(1), AcceleratingAbsoluteGapMomentumCrossover]
+        const AAGMpcBreak = updatedAAGMpcHistory.length >= 2 && updatedAAGMpcHistory[updatedAAGMpcHistory.length - 2] === true && updatedAAGMpcHistory[updatedAAGMpcHistory.length - 1] === false
+        const BouncePositiveCrossover = false //(prevState.distanceOpen > 0.50 && distanceOpen < 3.50 && (prevState.shortSmaValues.slice(-4).every((val, i, arr) => i === 0 || val > arr[i - 1]))) // - prevState.shortSma) > 1.25)
+        const DriftingVelocityPositiveCrossover = (updatedDistanceOpenValues.slice(-3).every(v => v < 0.00 && v > -2.50)) && updatedShortSmaVelocities.slice(-5).filter(v => Math.abs(v) < 0.0012).length >= 3 && updatedLongSmaVelocities.slice(-5).filter(v => Math.abs(v) < 0.0012).length >= 3 && updatedDistanceVelocities.slice(-5).filter(v => Math.abs(v) < 0.25).length >= 3
+        const updatedDVpcHistory = [...prevState.DriftingVelocityPositiveCrossoverHistory.slice(1), DriftingVelocityPositiveCrossover]
+        const DVpcConfirmed = updatedDVpcHistory.slice(-4).every(v => v === true)
+        const flatMarketEntryCondition = (distanceOpen < 0.00 && flatVelocity && !velocityBreakingOut && currentPrice <= twentySma - 1.3 * stdDevTwentySma)
+        const positiveCrossover = SMAPositiveCrossover || AAGMpcBreak || BouncePositiveCrossover || flatMarketEntryCondition || DVpcConfirmed
+
         // ---------- Positive Reversal Breakdown monitor (for positive longs started in negative distance) ----------
         const PRB_CFG = {
           improvementThresholdPct: 0.30, // need 30% move toward zero within MAX_BARS
@@ -197,40 +229,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
           minDistanceSinceReversal = 0;
         }
         // ---------- end PRB monitor ----------
-
-
-        const slowingMomentumNegativeCrossoverCount = prevState.slowingMomentumNegativeCrossoverCount || 0
-        //const slowingDistanceMomentumCrossoverCount = prevState.slowingDistanceMomentumCrossoverCount || 0
-        const momentumPeakNegativeCrossoverCount = prevState.momentumPeakNegativeCrossoverCount || 0
-        const slowingAbsoluteGapMomentumCrossoverCount = prevState.slowingAbsoluteGapMomentumCrossoverCount || 0
-        const gapMomentumLowCrossoverCount = prevState.gapMomentumLowCrossoverCount || 0
-        const SMANegativeCrossoverCount = prevState.SMANegativeCrossoverCount || 0
-        const SMAPositiveCrossoverCount = prevState.SMAPositiveCrossoverCount || 0
-        const AcceleratingAbsoluteGapMomentumCrossoverCount = prevState.AcceleratingAbsoluteGapMomentumCrossoverCount || 0
-        const BouncePositiveCrossoverCount = prevState.BouncePositiveCrossoverCount || 0
-        const NegativeBounceNegativeCrossoverCount = prevState.NegativeBounceNegativeCrossoverCount || 0
-        const DriftingVelocityNegativeCrossoverConfirmedCount = prevState.DriftingVelocityNegativeCrossoverConfirmedCount || 0
-        const DriftingVelocityNegativeCrossoverCount = prevState.DriftingVelocityNegativeCrossoverCount || 0
-        const DriftingVelocityPositiveCrossoverConfirmedCount = prevState.DriftingVelocityPositiveCrossoverConfirmedCount || 0
-        const DriftingVelocityPositiveCrossoverCount = prevState.DriftingVelocityPositiveCrossoverCount || 0
-        const flatMarketEntryConditionCount = prevState.flatMarketEntryConditionCount || 0
-        const flatMarketExitConditionCount = prevState.flatMarketExitConditionCount || 0
-        const SharpDroppingVelocityNegativeCrossoverCount = prevState.SharpDroppingVelocityNegativeCrossoverCount || 0
-        const AAGMpcBreakCount = prevState.AAGMpcBreakCount || 0
-        const SAGMncBreakCount = prevState.SAGMncBreakCount || 0
-        const PositiveReversalBreakdownCount = prevState.PositiveReversalBreakdownCount || 0
-
-        const SMAPositiveCrossover = (prevState.shortSma <= prevState.longSma && distance > 0.00)
-        const AcceleratingAbsoluteGapMomentumCrossover = (distanceOpen < -2.70 && updatedSlowingAbsoluteGapMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistanceValley.slice(-3).filter(v => v).length >= 1)
-        const updatedAAGMpcHistory = [...prevState.AcceleratingAbsoluteGapMomentumCrossoverHistory.slice(1), AcceleratingAbsoluteGapMomentumCrossover]
-        const AAGMpcBreak = updatedAAGMpcHistory.length >= 2 && updatedAAGMpcHistory[updatedAAGMpcHistory.length - 2] === true && updatedAAGMpcHistory[updatedAAGMpcHistory.length - 1] === false
-        const BouncePositiveCrossover = false //(prevState.distanceOpen > 0.50 && distanceOpen < 3.50 && (prevState.shortSmaValues.slice(-4).every((val, i, arr) => i === 0 || val > arr[i - 1]))) // - prevState.shortSma) > 1.25)
-        const DriftingVelocityPositiveCrossover = (updatedDistanceOpenValues.slice(-3).every(v => v < 0.00 && v > -2.50)) && updatedShortSmaVelocities.slice(-5).filter(v => Math.abs(v) < 0.0012).length >= 3 && updatedLongSmaVelocities.slice(-5).filter(v => Math.abs(v) < 0.0012).length >= 3 && updatedDistanceVelocities.slice(-5).filter(v => Math.abs(v) < 0.25).length >= 3
-        const updatedDVpcHistory = [...prevState.DriftingVelocityPositiveCrossoverHistory.slice(1), DriftingVelocityPositiveCrossover]
-        const DVpcConfirmed = updatedDVpcHistory.slice(-4).every(v => v === true)
-        const flatMarketEntryCondition = (distanceOpen < 0.00 && flatVelocity && !velocityBreakingOut && currentPrice <= twentySma - 1.3 * stdDevTwentySma)
-        const positiveCrossover = SMAPositiveCrossover || AAGMpcBreak || BouncePositiveCrossover || flatMarketEntryCondition || DVpcConfirmed
-
+        
         const SMANegativeCrossover = (prevState.shortSmaOpen >= prevState.longSmaOpen && distanceOpen < 0.00)
         const NegativeBounceNegativeCrossover = (prevState.distanceOpen >= -0.32 && distanceOpen < -0.32)
         const LikelyNegativeCrossover = false //(prevState.distance > 0.28 && distance < 0.31)
@@ -249,6 +248,10 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const SharpDroppingVelocityNegativeCrossover = false //(updatedLongSmaVelocities.slice(-1).every(v => v <= -0.00010000) && distance < -0.32)
         const updatedSharpDroppingVelocityNegativeCrossoverHistory = [...prevState.SharpDroppingVelocityNegativeCrossoverHistory.slice(1), SharpDroppingVelocityNegativeCrossover]
         const negativeCrossover =  SMANegativeCrossover || SAGMncBreak || GapMomentumLowCrossover || NegativeBounceNegativeCrossover || SlowingMomentumNegativeCrossover || MomentumPeakNegativeCrossover || DVncConfirmed || flatMarketExitCondition || DistancePeakNegativeCrossover || SharpDroppingVelocityNegativeCrossover || PositiveReversalBreakdown
+
+        if (!resetReversal && negativeCrossover && !PositiveReversalBreakdown) {
+            resetReversal = true;
+        }
 
         const updatedAcceleratingAbsoluteGapMomentumCrossoverCount = AcceleratingAbsoluteGapMomentumCrossover ? AcceleratingAbsoluteGapMomentumCrossoverCount + 1 : AcceleratingAbsoluteGapMomentumCrossoverCount
         const updatedSMANegativeCrossoverCount = SMANegativeCrossover ? SMANegativeCrossoverCount + 1 : SMANegativeCrossoverCount
