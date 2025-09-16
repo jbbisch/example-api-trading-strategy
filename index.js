@@ -17,6 +17,7 @@ const { strategy } = require("./strategies/strategy/strategy")
 const { onChart } = require("./strategies/crossover/onChart")
 const { isTokenValid } = require("./utils/isTokenValid")
 const { renewAccessToken } = require("./endpoints/renewAccessToken")
+const { chooseEnvironment } = require("./utils/chooseEnvironment")
 
 
 //ENVIRONMENT VARIABLES ---------------------------------------------------------------------------------------
@@ -66,7 +67,7 @@ let Strategy = null
  */
 async function main() {
     try {
-        
+        await chooseEnvironment()
     // // // // // // // // // // // // // // // //
     // Login Section                             //
     // // // // // // // // // // // // // // // //
