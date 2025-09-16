@@ -56,7 +56,7 @@ TradovateSocket.prototype.request = function({url, query, body, callback, dispos
         }
     } 
 
-    this.ws.addEventListener('message', resSubscription)
+    this.ws.on('message', handler)
     if (this.ws.readyState === WebSocket.OPEN) {
         this.ws.send(`${url}\n${id}\n${query}\n${JSON.stringify(body)}`)
     } 
@@ -74,7 +74,7 @@ TradovateSocket.prototype.request = function({url, query, body, callback, dispos
         if(disposer && typeof disposer === 'function'){
             disposer()
         }
-        this.ws.removeListener('message', resSubscription)
+        this.ws.off('message', handler)
     }
 }
 
@@ -100,7 +100,7 @@ TradovateSocket.prototype.synchronize = function(callback) {
 //  * Set a function to be called when the socket synchronizes.
 //  */
 TradovateSocket.prototype.onSync = function(callback) {
-    this.ws.addEventListener('message', async msg => {
+    this.ws.on('message', handler, async msg => {
         const { data } = msg
         const kind = data.slice(0,1)
         switch(kind) {
@@ -161,7 +161,7 @@ TradovateSocket.prototype.connect = async function(url) {
             rej('no websocket connection available')
             return
         }
-        this.ws.addEventListener('open', () => {
+        this.ws.on('open', handler, () => {
             console.log('[ConnectOpenEvent] Websocket connection opened. Sending auth request...')
             this.ws.send(`authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
             this.reconnectAttempts = 0
@@ -169,7 +169,7 @@ TradovateSocket.prototype.connect = async function(url) {
             res()
         })
 
-        this.ws.addEventListener('error', err => {
+        this.ws.on('error', handler, err => {
             console.error('[ConnectErrorEvent] Websocket error: ' + err)
             clearInterval(this.heartbeatInterval)
             this.reconnect()
@@ -177,7 +177,7 @@ TradovateSocket.prototype.connect = async function(url) {
             rej(err)
         })
 
-        this.ws.addEventListener('close', event => {
+        this.ws.on('close', handler, event => {
             console.warn(`[ConnectCloseEvent] WebSocket closed with code: ${event.code}, reason: ${event.reason}`)
             clearInterval(this.heartbeatInterval) // Clear the heartbeat interval on close
             if(event.code !== 1000) { // Non-normal closure should try to reconnect
@@ -188,7 +188,7 @@ TradovateSocket.prototype.connect = async function(url) {
             res()
         })
 
-        this.ws.addEventListener('message', async msg => {
+        this.ws.on('message', handler, async msg => {
             //console.log('[ConnectMessageEvent] Message received:', msg.data)
             const { type, data } = msg
 
@@ -204,13 +204,6 @@ TradovateSocket.prototype.connect = async function(url) {
                     // console.log('Making WS auth request...')
                     const token = this.constructor.name === 'TradovateSocket' ? process.env.ACCESS_TOKEN : process.env.MD_ACCESS_TOKEN
                     this.ws.send(`authorize\n0\n\n${token}`)          
-                    interval = setInterval(() => {
-                        if(this.ws.readyState == 0 || this.ws.readyState == 3 || this.ws.readyState == 2) {
-                            clearInterval(interval)
-                            return
-                        }
-                        this.ws.send('[]')
-                    }, 2500)
                     break
                 case 'h':
                     this.setupHeartbeat()
