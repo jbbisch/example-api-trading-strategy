@@ -19,6 +19,22 @@ const { isTokenValid } = require("./utils/isTokenValid")
 const { renewAccessToken } = require("./endpoints/renewAccessToken")
 const { chooseEnvironment } = require("./utils/chooseEnvironment")
 
+// ---------- ONCE-ONLY BOOT GUARDS ----------
+if (global.__BOOTED__) {
+  console.warn('[index] Boot skipped: already booted in this process.')
+  // Export whatever was set previously
+  module.exports = { Strategy: global.__STRATEGY_SINGLETON__ || null }
+  return
+}
+global.__BOOTED__ = true
+
+// one-time token renew interval id
+global.__TOKEN_RENEW_TIMER__ = global.__TOKEN_RENEW_TIMER__ || null
+// one-time socket close listener guards
+global.__WS_LISTENERS_WIRED__ = global.__WS_LISTENERS_WIRED__ || false
+// strategy singleton
+global.__STRATEGY_SINGLETON__ = global.__STRATEGY_SINGLETON__ || null
+// ------------------------------------------
 
 //ENVIRONMENT VARIABLES ---------------------------------------------------------------------------------------
 
@@ -78,13 +94,21 @@ async function main() {
     // Configuration Section                     //
     // // // // // // // // // // // // // // // //
 
-        setInterval(async () => {
-            if (!isTokenValid()) {
-                console.log('[index renewAccessToken] Token is nearing expiration. Renewing...')
-                await renewAccessToken()
-                console.log('[index renewAccessToken] Token successfully renewed.')
-            }
-        }, 1 * 60 * 1000)
+        // ---------- ONE-TIME TOKEN RENEW TIMER ----------
+    if (!global.__TOKEN_RENEW_TIMER__) {
+      global.__TOKEN_RENEW_TIMER__ = setInterval(async () => {
+        try {
+          if (!isTokenValid()) {
+            console.log('[index renewAccessToken] Token nearing expiration. Renewing...')
+            await renewAccessToken()
+            console.log('[index renewAccessToken] Token successfully renewed.')
+          }
+        } catch (e) {
+          console.error('[index renewAccessToken] renew failed:', e?.message || e)
+        }
+      }, 1 * 60 * 1000)
+    }
+    // -------------------------------------------------
 
     // const maybeReplayString = await askForReplay(REPLAY_TIMES)
 
@@ -101,23 +125,35 @@ async function main() {
             ])
     // }
     
-        Strategy = await configureRobot(ALL_STRATEGIES)
-        Strategy.init()
+            // ---------- STRATEGY SINGLETON ----------
+            if (!global.__STRATEGY_SINGLETON__) {
+              global.__STRATEGY_SINGLETON__ = await configureRobot(ALL_STRATEGIES)
+              global.__STRATEGY_SINGLETON__.init()
+            }
+            Strategy = global.__STRATEGY_SINGLETON__
+            // ---------------------------------------
 
         socket.strategy = Strategy
         socket.strategyProps = Strategy.props
 
         //Set up reconnect handlers
-        socket.ws.addEventListener('close', async () => {
+        // ---------- ONE-TIME RECONNECT LISTENERS ----------
+        if (!global.__WS_LISTENERS_WIRED__) {
+          global.__WS_LISTENERS_WIRED__ = true
+
+          socket.ws.addEventListener('close', async () => {
             console.warn('[index] Socket closed. Attempting to reconnect...')
             await socket.reconnect()
             console.log('[index] Socket reconnected.')
-        })
-        mdSocket.ws.addEventListener('close', async () => {
+          })
+
+          mdSocket.ws.addEventListener('close', async () => {
             console.warn('[index] Market Data Socket closed. Attempting to reconnect...')
             await mdSocket.connect(process.env.MD_URL)
             console.log('[index] Market Data Socket reconnected.')
-        })
+          })
+        }
+        // --------------------------------------------------
         
     } catch (error) {
         logger.error({message: error.message, stack: error.stack, error})
@@ -160,4 +196,4 @@ async function main() {
 
 main()
 
-module.exports = { Strategy }
+module.exports = { Strategy: global.__STRATEGY_SINGLETON__ }
