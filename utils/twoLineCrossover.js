@@ -123,6 +123,81 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const updatedDistanceValley = [...prevState.updatedDistanceValley.slice(1), distanceValley]
         if (updatedDistanceValley.length > 10) updatedDistanceValley.shift()
 
+        // ---------- Positive Reversal Breakdown monitor (for positive longs started in negative distance) ----------
+        const PRB_CFG = {
+          improvementThresholdPct: 0.30, // need 30% move toward zero within MAX_BARS
+          maxBarsToImprove: 6,           // time stop in bars
+          velEps: 0.00030,               // longSMA velocity must not persist negative beyond this
+          distVelEps: 0.12,              // distance velocity negativity tolerance
+          newLowSlack: 0.15,             // how much "more negative" counts as a meaningful new low in distanceOpen
+          bandSigma: 1.0                 // rejection below twentySma - 1.0*stdDevTwentySma
+        };
+
+        // Pull prior reversal state
+        let reversalAttemptActive = prevState.reversalAttemptActive;
+        let barsSinceReversalAttempt = reversalAttemptActive ? (prevState.barsSinceReversalAttempt + 1) : 0;
+        let reversalEntryDistance   = prevState.reversalEntryDistance;
+        let minDistanceSinceReversal = prevState.minDistanceSinceReversal;
+
+        // (A) Arm the monitor only when we actually take a risky long: positiveCrossover while distance still negative
+        if (!reversalAttemptActive && positiveCrossover && distanceOpen < 0.00) {
+          reversalAttemptActive = true;
+          barsSinceReversalAttempt = 0;
+          reversalEntryDistance = distanceOpen;
+          minDistanceSinceReversal = distanceOpen;
+        }
+
+        // (B) Track the worst (most negative) distance since arming
+        if (reversalAttemptActive) {
+          minDistanceSinceReversal = Math.min(minDistanceSinceReversal, distanceOpen);
+        }
+
+        // (C) Evaluate failure conditions
+        const improvedTowardZero = reversalAttemptActive
+          ? Math.abs(distanceOpen) <= Math.abs(reversalEntryDistance) * (1 - PRB_CFG.improvementThresholdPct)
+          : false;
+
+        const madeLowerLow = reversalAttemptActive
+          ? (distanceOpen < (minDistanceSinceReversal - PRB_CFG.newLowSlack))
+          : false;
+
+        const velocitiesBearish = reversalAttemptActive &&
+          updatedShortSmaVelocities.slice(-3).every(v => v <= 0) &&
+          updatedLongSmaVelocities.slice(-3).some(v => v < -PRB_CFG.velEps) &&
+          updatedDistanceVelocities.slice(-3).every(v => v <= -PRB_CFG.distVelEps);
+
+        const bandRejection = reversalAttemptActive &&
+          (currentPrice <= (twentySma - PRB_CFG.bandSigma * stdDevTwentySma)) &&
+          !flatVelocity; // don't count as rejection if we’re in your flat regime
+
+        const timeStopFailed = reversalAttemptActive &&
+          (barsSinceReversalAttempt >= PRB_CFG.maxBarsToImprove) &&
+          !improvedTowardZero;
+
+        // (D) Final breakdown condition
+        const PositiveReversalBreakdown = reversalAttemptActive && (
+          madeLowerLow || velocitiesBearish || bandRejection || timeStopFailed
+        );
+
+        // (E) Reset rules for the monitor
+        let resetReversal = false;
+
+        // Reset on failure
+        if (PositiveReversalBreakdown) resetReversal = true;
+
+        // Or reset if reversal succeeded: short>long firmly and distanceOpen >= 0
+        if (!resetReversal && SMAPositiveCrossover && distanceOpen >= 0.00) {
+          resetReversal = true;
+        }
+
+        if (resetReversal) {
+          reversalAttemptActive = false;
+          barsSinceReversalAttempt = 0;
+          reversalEntryDistance = 0;
+          minDistanceSinceReversal = 0;
+        }
+        // ---------- end PRB monitor ----------
+
         const slowingMomentumNegativeCrossoverCount = prevState.slowingMomentumNegativeCrossoverCount || 0
         //const slowingDistanceMomentumCrossoverCount = prevState.slowingDistanceMomentumCrossoverCount || 0
         const momentumPeakNegativeCrossoverCount = prevState.momentumPeakNegativeCrossoverCount || 0
@@ -406,6 +481,12 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             SharpDroppingVelocityNegativeCrossover: false,
             SharpDroppingVelocityNegativeCrossoverCount: 0,
             SharpDroppingVelocityNegativeCrossoverHistory: Array(5).fill(false),
+            reversalAttemptActive: false,
+            reversalEntryDistance: 0,
+            barsSinceReversalAttempt: 0,
+            minDistanceSinceReversal: 0,
+            PositiveReversalBreakdown: false,
+            PositiveReversalBreakdownCount: 0,
         }
     }
 
