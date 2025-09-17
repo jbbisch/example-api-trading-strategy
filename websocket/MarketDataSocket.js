@@ -18,14 +18,15 @@ MarketDataSocket.prototype = Object.assign({}, TradovateSocket.prototype)
 MarketDataSocket.prototype.unsubscribe = function(symbol) {
     this.subscriptions
         .filter(sub => sub.symbol === symbol)
-        .forEach(({ subscription }, i) => {
+        .forEach(({ disposer }, i) => {
             console.log(`Closing subscription to ${symbol}.`)
+            if (typeof disposer === 'function') disposer()
             this.subscriptions.splice(this.subscriptions.indexOf(this.subscriptions[i]), 1)
-            subscription()
         })    
 }
 
 MarketDataSocket.prototype.subscribeQuote = function({symbol, contractId: cid, callback}) {
+    //console.log('Subscribing to Quote:', symbol, cid)
 
     const isQuote = data => data.e && data.e === 'md' && data.d && data.d.quotes
 
@@ -33,12 +34,13 @@ MarketDataSocket.prototype.subscribeQuote = function({symbol, contractId: cid, c
         url: 'md/subscribeQuote',
         body: { symbol },
         callback: (id, item) => {
+            //console.log('[MDS SubQuo] Received data:', item)
             if(!isQuote(item)) return
 
             item.d.quotes
                 .filter(({contractId}) => contractId === cid)
                 .forEach(callback)
-                //console.log(`Received data for symbol: ${symbol}`, item.d)
+                //console.log(`[MDS SubQuo] Received data for symbol: ${symbol}`, item.d)
 
         },
         disposer: () => {
@@ -52,7 +54,7 @@ MarketDataSocket.prototype.subscribeQuote = function({symbol, contractId: cid, c
         },
     })
 
-    this.subscriptions.push({ symbol, subscription })
+    this.subscriptions.push({ symbol, disposer: subscription })
     return subscription
 }
 
@@ -83,7 +85,7 @@ MarketDataSocket.prototype.subscribeDOM = function({symbol, contractId: cid, cal
         },
     })
     
-    this.subscriptions.push({ symbol, subscription })
+    this.subscriptions.push({ symbol, disposer: subscription })
 
     return subscription
         
@@ -114,7 +116,7 @@ MarketDataSocket.prototype.subscribeHistogram = function({symbol, contractId: ci
         },
     })
     
-    this.subscriptions.push({ symbol, subscription })
+    this.subscriptions.push({ symbol, disposer: subscription })
 
     return subscription
 }
@@ -151,22 +153,35 @@ MarketDataSocket.prototype.getChart = function({symbol, chartDescription, timeRa
                 .forEach(callback)            
         },
         disposer: () => {
-            let d = this.request({
-                url: 'md/cancelChart',
-                body: {
-                    subscriptionId: historicalId
-                },
-                callback: () => d()
-            })
+            // Cancel REALTIME stream
+            if (realtimeId) {
+                let d1 = this.request({
+                    url: 'md/cancelChart',
+                    body: {
+                        subscriptionId: realtimeId
+                    },
+                    callback: () => d1()
+                })
+            }
+            // Cancel HISTORICAL stream
+            if (historicalId) {
+                let d2 = this.request({
+                    url: 'md/cancelChart',
+                    body: {
+                        subscriptionId: historicalId
+                    },
+                    callback: () => d2()
+                })
+            }
         }
     })
-    this.subscriptions.push({symbol, subscription})
+    this.subscriptions.push({symbol, disposer: subscription})
     
     return subscription
 }
 
 MarketDataSocket.prototype.disconnect = function() {
-    this.subscriptions.forEach(({subscription}) => subscription())
+    this.subscriptions.forEach(({ disposer }) => typeof disposer === 'function' && disposer())
     this.subscriptions = []
     TradovateSocket.prototype.disconnect.call(this)
 }
