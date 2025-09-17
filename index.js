@@ -38,7 +38,7 @@ process.env.REPLAY_URL  = 'wss://replay.tradovateapi.com/v1/websocket'
 process.env.USER        = ''    
 process.env.PASS        = '' 
 process.env.SEC         = ''
-process.env.CID         = o
+process.env.CID         = 0
 
 //END ENVIRONMENT VARIABLES -----------------------------------------------------------------------------------
 
@@ -106,18 +106,6 @@ async function main() {
 
         socket.strategy = Strategy
         socket.strategyProps = Strategy.props
-
-        //Set up reconnect handlers
-        socket.ws.addEventListener('close', async () => {
-            console.warn('[index] Socket closed. Attempting to reconnect...')
-            await socket.reconnect()
-            console.log('[index] Socket reconnected.')
-        })
-        mdSocket.ws.addEventListener('close', async () => {
-            console.warn('[index] Market Data Socket closed. Attempting to reconnect...')
-            await mdSocket.connect(process.env.MD_URL)
-            console.log('[index] Market Data Socket reconnected.')
-        })
         
     } catch (error) {
         logger.error({message: error.message, stack: error.stack, error})
