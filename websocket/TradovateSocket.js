@@ -22,6 +22,8 @@ function TradovateSocket() {
     this.subscriptions = []
     this.strategy = null
     this.wsUrl = null
+    this._reconnecting = false
+    this._onSyncAttached = false
 }
 
 TradovateSocket.prototype.getSocket = function() {
@@ -68,12 +70,19 @@ TradovateSocket.prototype.request = function({url, query, body, callback, dispos
         }
     }
 
-    this.subscriptions.push({ url, query, body, callback, disposer, subscription })
+    this.subscriptions.push({ url, query, body, callback, disposer, resubscribe: subscription })
+
+    const index = this.subscriptions.length - 1
+    this.subscriptions[index].resubscribe = () => {
+        const { url, query, body, callback, disposer } = this.subscriptions[index]
+        if (typeof disposer === 'function') disposer()
+
+        const unsubscribe = this.request({ url, query, body, callback, disposer})
+        this.subscriptions[index].disposer = unsubscribe
+    }
 
     return () => {
-        if(disposer && typeof disposer === 'function'){
-            disposer()
-        }
+        if(disposer && typeof disposer === 'function') disposer()
         this.ws.removeListener('message', resSubscription)
     }
 }
@@ -232,7 +241,9 @@ TradovateSocket.prototype.connect = async function(url) {
 
 TradovateSocket.prototype.disconnect = function() {
     console.log('closing websocket connection')
-    this.ws.removeAllListeners('message')
+    this.subscriptions.forEach(s => typeof s.disposer === 'function' && s.disposer())
+    this.subscriptions = []
+    this.ws && this.ws.removeAllListeners && this.ws.removeAllListeners('message')
     this.ws.close(1000, `Client initiated disconnect.`)
     this.ws = null
     clearInterval(this.heartbeatInterval)
@@ -251,7 +262,13 @@ TradovateSocket.prototype.reconnect = async function () {
         return;
     }
 
+    if (this._reconnecting) {
+        console.log('[TsReconnect] Reconnection already in progress...skipping...')
+        return
+    }
+
     if (!this.isConnected()) {
+        this._reconnecting = true
         const backoff = Math.min(30000, Math.pow(2, this.reconnectAttempts) * 1000);
         console.log(`[TsReconnect] Waiting ${backoff}ms before reconnect attempt...`);
 
@@ -279,8 +296,8 @@ TradovateSocket.prototype.reconnect = async function () {
                 console.log('[TsReconnect] WebSocket reconnected.');
 
                 // Resubscribe to stored subscriptions
-                this.subscriptions.forEach(sub => sub.subscription());
-                console.log('[TsReconnect] Resubscriptions complete.');
+                this.subscriptions.forEach(sub => typeof sub.resubscribe === 'function' && sub.resubscribe());
+                console.log('[TsReconnect] Resubscriptions rebuilt.');
 
                 // Reinitialize strategy
                 if (this.strategy) {
@@ -318,15 +335,37 @@ TradovateSocket.prototype.reconnect = async function () {
                         this.onSync(data);
                         console.log('[TsReconnect] Subscribed to sync events.');
                     }
-                });
+                })
+                
+                this.attachOnSync(d => {
+                    console.log('[TsReconnect] attachOnSync received data:', d)
+                })
 
                 this.reconnectAttempts = 0; // success — reset counter
             } catch (err) {
                 console.error('[TsReconnect] Reconnection failed:', err);
                 this.reconnectAttempts += 1;
                 this.reconnect(); // try again
+            } finally {
+                this._reconnecting = false
             }
         }, backoff);
     }
+}
+
+TradovateSocket.prototype.attachOnSync = function (callback) {
+    if (this._onSyncAttached || !this.ws) return
+    this._onSyncAttached = true 
+    this.ws.addEventListener('message', msg => {
+        if (msg.data.slice(0,1) !=='a') return
+        try{
+            const frames = JSON.parse(msg.data.slice(1))
+            for (const frame of framess) {
+                if (frame.e === 'props' || frame.e === 'clock' || (frame.d && frame.d.users)) {
+                    callback(frame.d)
+                }
+            }
+        } catch{}
+    })
 }
 module.exports = { TradovateSocket }
