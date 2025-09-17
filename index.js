@@ -19,25 +19,6 @@ const { isTokenValid } = require("./utils/isTokenValid")
 const { renewAccessToken } = require("./endpoints/renewAccessToken")
 const { chooseEnvironment } = require("./utils/chooseEnvironment")
 
-// ---------- ONCE-ONLY BOOT GUARDS ----------
-global.__BOOTED__ = global.__BOOTED__ || false
-if (global.__BOOTED__) {
-  console.warn('[index] Boot skipped: already booted in this process.')
-  // Export whatever was set previously
-} else {
-  global.__BOOTED__ = true
-}
-
-// one-time token renew interval id
-global.__TOKEN_RENEW_TIMER__ = global.__TOKEN_RENEW_TIMER__ || null
-// one-time socket close listener guards
-global.__WS_LISTENERS_WIRED__ = global.__WS_LISTENERS_WIRED__ || false
-// strategy singleton
-global.__STRATEGY_SINGLETON__ = global.__STRATEGY_SINGLETON__ || null
-// main call
-global.__MAIN_STARTED__ = global.__MAIN_STARTED__ || false
-// ------------------------------------------
-
 
 //ENVIRONMENT VARIABLES ---------------------------------------------------------------------------------------
 
@@ -54,10 +35,10 @@ process.env.HTTP_URL    = 'https://demo.tradovateapi.com/v1'
 process.env.WS_URL      = 'wss://demo.tradovateapi.com/v1/websocket'
 process.env.MD_URL      = 'wss://md.tradovateapi.com/v1/websocket'
 process.env.REPLAY_URL  = 'wss://replay.tradovateapi.com/v1/websocket'
-process.env.USER        = ''    
-process.env.PASS        = '' 
-process.env.SEC         = ''
-process.env.CID         = 0
+process.env.USER        = 'JudeRufus'    
+process.env.PASS        = 'Rufusdufus18$' 
+process.env.SEC         = '59cafc50-d93f-49ff-931f-12d70e8de41a'
+process.env.CID         = 2162
 
 //END ENVIRONMENT VARIABLES -----------------------------------------------------------------------------------
 
@@ -97,21 +78,13 @@ async function main() {
     // Configuration Section                     //
     // // // // // // // // // // // // // // // //
 
-    // ---------- ONE-TIME TOKEN RENEW TIMER ----------
-    if (!global.__TOKEN_RENEW_TIMER__) {
-      global.__TOKEN_RENEW_TIMER__ = setInterval(async () => {
-        try {
-          if (!isTokenValid()) {
-            console.log('[index renewAccessToken] Token nearing expiration. Renewing...')
-            await renewAccessToken()
-            console.log('[index renewAccessToken] Token successfully renewed.')
-          }
-        } catch (e) {
-          console.error('[index renewAccessToken] renew failed:', e?.message || e)
-        }
-      }, 1 * 60 * 1000)
-    }
-    // -------------------------------------------------
+        setInterval(async () => {
+            if (!isTokenValid()) {
+                console.log('[index renewAccessToken] Token is nearing expiration. Renewing...')
+                await renewAccessToken()
+                console.log('[index renewAccessToken] Token successfully renewed.')
+            }
+        }, 1 * 60 * 1000)
 
     // const maybeReplayString = await askForReplay(REPLAY_TIMES)
 
@@ -128,34 +101,23 @@ async function main() {
             ])
     // }
     
-        // ---------- STRATEGY SINGLETON ----------
-        if (!global.__STRATEGY_SINGLETON__) {
-          global.__STRATEGY_SINGLETON__ = await configureRobot(ALL_STRATEGIES)
-          global.__STRATEGY_SINGLETON__.init()
-        }
-        Strategy = global.__STRATEGY_SINGLETON__
-        // ---------------------------------------
+        Strategy = await configureRobot(ALL_STRATEGIES)
+        Strategy.init()
 
         socket.strategy = Strategy
         socket.strategyProps = Strategy.props
 
-        // ---------- ONE-TIME RECONNECT LISTENERS ----------
-        if (!global.__WS_LISTENERS_WIRED__) {
-          global.__WS_LISTENERS_WIRED__ = true
-
-          socket.ws.addEventListener('close', async () => {
+        //Set up reconnect handlers
+        socket.ws.addEventListener('close', async () => {
             console.warn('[index] Socket closed. Attempting to reconnect...')
             await socket.reconnect()
             console.log('[index] Socket reconnected.')
-          })
-
-          mdSocket.ws.addEventListener('close', async () => {
+        })
+        mdSocket.ws.addEventListener('close', async () => {
             console.warn('[index] Market Data Socket closed. Attempting to reconnect...')
             await mdSocket.connect(process.env.MD_URL)
             console.log('[index] Market Data Socket reconnected.')
-          })
-        }
-        // --------------------------------------------------
+        })
         
     } catch (error) {
         logger.error({message: error.message, stack: error.stack, error})
@@ -196,9 +158,6 @@ async function main() {
     // })    
 }
 
-if (!global.__MAIN_STARTED__) {
-    global.__MAIN_STARTED__ = true
-    main()
-}
+main()
 
-module.exports = { Strategy: global.__STRATEGY_SINGLETON__ }
+module.exports = { Strategy }
