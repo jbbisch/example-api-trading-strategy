@@ -12,7 +12,9 @@ const { onProductFound } = require("../common/onProductFound")
 const { onReplayComplete } = require("./onReplayComplete")
 const { TdEvent } = require("../strategy/tdEvent")
 
-
+// duplicate-wiring guard
+global.__CROSSOVER_INSTANCE_COUNT__ = (global.__CROSSOVER_INSTANCE_COUNT__ || 0) + 1
+const IS_SECONDARY_INSTANCE = global.__CROSSOVER_INSTANCE_COUNT__ > 1
 
 /**
  * A Simple Strategy based on two Moving Averages and their interactions.
@@ -20,10 +22,25 @@ const { TdEvent } = require("../strategy/tdEvent")
 class CrossoverStrategy extends Strategy {
 
     constructor(props) {
-        super(props)        
+        super(props)
+        this._inert = IS_SECONDARY_INSTANCE // prevent multiple instances from running if the module is imported multiple times
     }
 
     init(props) {
+        if (this._inert) {
+            // Secondary instance, do nothing
+            return {
+                mode:      LongShortMode.Watch,
+                buffer:    new DataBuffer(BarsTransformer),
+                tlc:       twoLineCrossover(5, 10),
+                product:   null,
+                position:  null,
+                realizedPnL: 0,
+                buyDistance: [],
+                sellDistance: [],
+                __inert: true, // keep inert flag in state
+            }
+        }
         //console.log('CrossoverStrategy init() called', props)
         const { barType } = props || {};
         this.addMiddleware(drawEffect)
@@ -41,6 +58,10 @@ class CrossoverStrategy extends Strategy {
     }
     
     next(prevState, [event, payload]) {
+        if (this._inert || prevState?.__inert) {
+            // Secondary instance, do nothing
+            return { state: prevState, effects: [] }
+        }
         //console.log('CrossoverStrategy next() called', event, payload)
 
         switch(event) {
