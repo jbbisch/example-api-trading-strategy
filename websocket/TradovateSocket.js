@@ -33,6 +33,64 @@ TradovateSocket.prototype.getSocket = function() {
  * This function will return a cancellable subscription in the form of a function with zero parameters
  * that removes the event listener.
  */
+TradovateSocket.prototype.request = function({ url, query, body, callback, disposer }) {
+    const makeResSubscription = () => (msg) => {
+        if (msg.data.slice(0, 1) !== 'a') return;
+        let data;
+        try { data = JSON.parse(msg.data.slice(1)); }
+        catch (err) { data = []; console.log('failed to process message: ' + err); }
+        if (Array.isArray(data) && data.length) {
+            data.forEach(item => callback(activeId, item));
+        }
+    };
+
+    let activeId = null;
+    let resSubscription = null;
+
+    const recreate = () => {
+        // remove old listener on old ws (safe if none)
+        if (this.ws && resSubscription) this.ws.removeListener('message', resSubscription);
+
+        // new id for this (re)subscription on the new socket
+        activeId = this.counter.increment();
+        resSubscription = makeResSubscription();
+        this.ws.addEventListener('message', resSubscription);
+
+        if (this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(`${url}\n${activeId}\n${query}\n${JSON.stringify(body)}`);
+            console.log('[tsRequest] (re)subscribed:', url, 'body:', body);
+        }
+
+        // return unsubscribe for this specific registration
+        const unsubscribe = () => {
+            // Run caller’s disposer (which typically sends the *unsubscribe* route)
+            if (typeof disposer === 'function') disposer();
+            if (this.ws && resSubscription) this.ws.removeListener('message', resSubscription);
+        };
+        return unsubscribe;
+    };
+
+    // create initial subscription immediately
+    const initialUnsubscribe = recreate();
+
+    // keep an entry so reconnect() can rebuild on a new socket
+    // note: we also stash a place to store the latest unsubscribe
+    this.subscriptions.push({
+        url, query, body, callback, disposer,
+        recreate,
+        setUnsubscribe(fn) { this._unsubscribe = fn; },
+        getUnsubscribe() { return this._unsubscribe || initialUnsubscribe; },
+    });
+
+    // return the unsubscribe to the caller (MarketDataSocket uses this)
+    return (...args) => {
+        const entry = this.subscriptions.find(s =>
+            s.url === url && s.body === body && s.callback === callback
+        );
+        if (entry && entry.getUnsubscribe()) entry.getUnsubscribe()();
+        else initialUnsubscribe();
+    };
+};
 TradovateSocket.prototype.request = function({url, query, body, callback, disposer}) {
     const id = this.counter.increment()
 
@@ -148,6 +206,78 @@ TradovateSocket.prototype.setupHeartbeat = function() {
  * Modify the connect method to handle connection failures and auto-reconnect.
  */
 TradovateSocket.prototype.connect = async function(url) {
+    this.ws = new WebSocket(url);
+    this.wsUrl = url;
+    this.ws.setMaxListeners(24);
+    this.counter = new Counter();
+    clearInterval(this.heartbeatInterval);
+
+    await new Promise((res, rej) => {
+        if (!this.ws) { rej('no websocket connection available'); return; }
+
+        this.ws.addEventListener('open', () => {
+            console.log('[ConnectOpenEvent] Websocket open.');
+        });
+
+        this.ws.addEventListener('error', err => {
+            console.error('[ConnectErrorEvent] Websocket error:', err);
+            clearInterval(this.heartbeatInterval);
+            this.reconnectAttempts += 1;
+            this.reconnect();
+            rej(err);
+        });
+
+        this.ws.addEventListener('close', event => {
+            console.warn(`[ConnectCloseEvent] Closed: code ${event.code}, reason: ${event.reason}`);
+            clearInterval(this.heartbeatInterval);
+            if (event.code !== 1000) {
+                console.log('(onClose) Attempting to reconnect...');
+                this.reconnectAttempts += 1;
+                this.reconnect();
+            }
+            res();
+        });
+
+        this.ws.addEventListener('message', msg => {
+            const { type, data } = msg;
+            if (type !== 'message') return;
+            const kind = data.slice(0,1);
+
+            switch (kind) {
+                case 'o': {
+                    // Send auth AFTER 'o' per docs/forum guidance
+                    const token = (this.constructor.name === 'TradovateSocket')
+                      ? process.env.ACCESS_TOKEN
+                      : process.env.MD_ACCESS_TOKEN;
+                    this.ws.send(`authorize\n0\n\n${token}`);
+                    break;
+                }
+                case 'h': {
+                    this.setupHeartbeat();
+                    res();
+                    break;
+                }
+                case 'a': {
+                    const parsed = JSON.parse(msg.data.slice(1));
+                    const [first] = parsed || [];
+                    if (first && first.i === 0 && first.s === 200) {
+                        // Authorized ok
+                        res();
+                    }
+                    break;
+                }
+                case 'c': {
+                    clearInterval(this.heartbeatInterval);
+                    res();
+                    break;
+                }
+                default:
+                    break;
+            }
+        });
+    });
+};
+TradovateSocket.prototype.connect = async function(url) {
     //console.log('connecting to url:', url)
     this.ws = new WebSocket(url)
     this.wsUrl = url
@@ -252,6 +382,80 @@ TradovateSocket.prototype.isConnected = function() {
 /**
  * Attempts to reconnect the WebSocket after an unexpected closure.
  */
+TradovateSocket.prototype.reconnect = async function () {
+    if (!this.wsUrl) {
+        console.error('[TsReconnect] No WebSocket URL available.');
+        return;
+    }
+    if (this.isConnected()) return;
+
+    const backoff = Math.min(30000, Math.pow(2, this.reconnectAttempts) * 1000);
+    console.log(`[TsReconnect] Waiting ${backoff}ms before reconnect attempt...`);
+
+    setTimeout(async () => {
+        try {
+            console.log('[TsReconnect] Renewing access token...');
+            const tokenResult = await renewAccessToken();
+            if (!tokenResult) {
+                console.error('[TsReconnect] Token renewal failed.');
+                this.reconnectAttempts += 1;
+                return;
+            }
+            console.log('[TsReconnect] Token successfully renewed.');
+
+            const oldBuffer = this.strategy?.state?.buffer?.getData() || [];
+
+            if (this.ws && this.ws.readyState !== WebSocket.CLOSED) this.disconnect();
+
+            console.log('[TsReconnect] Reconnecting to:', this.wsUrl);
+            await this.connect(this.wsUrl);
+            console.log('[TsReconnect] WebSocket reconnected.');
+
+            // *** REBUILD SUBSCRIPTIONS with fresh listeners ***
+            if (Array.isArray(this.subscriptions) && this.subscriptions.length) {
+                this.subscriptions.forEach(entry => {
+                    const unsubscribe = entry.recreate();        // rebinds message listener + resubscribes
+                    entry.setUnsubscribe(unsubscribe);           // so later .unsubscribe() works
+                });
+                console.log('[TsReconnect] Subscriptions rebuilt.');
+            }
+
+            // Strategy re-init + buffer restore (your logic kept)
+            if (this.strategy) {
+                const strategyProps = this.strategy.props;
+                this.strategy = new this.strategy.constructor(strategyProps);
+                const state = await this.strategy.init();
+                if (oldBuffer.length && state?.buffer) oldBuffer.forEach(d => state.buffer.softPush(d));
+                this.strategy.state = state;
+
+                const last = state.buffer?.last?.() || oldBuffer[oldBuffer.length - 1];
+                if (last) {
+                    if (typeof this.strategy.next === 'function') {
+                        this.strategy.state = this.strategy.next(state, ['Chart', { data: last, props: strategyProps }]).state;
+                        console.log('[TsReconnect] Manually triggered strategy.next()');
+                    }
+                    if (typeof this.strategy.drawEffect === 'function') {
+                        this.strategy.drawEffect(this.strategy.state, ['crossover/draw', { props: strategyProps }]);
+                        console.log('[TsReconnect] Manually triggered strategy.drawEffect()');
+                    }
+                }
+            } else {
+                console.log('[TsReconnect] No strategy to reinitialize.');
+            }
+
+            // Optional sync (unchanged)
+            this.synchronize(() => {
+                console.log('[TsReconnect] Synchronized with server.');
+            });
+
+            this.reconnectAttempts = 0;
+        } catch (err) {
+            console.error('[TsReconnect] Reconnection failed:', err);
+            this.reconnectAttempts += 1;
+            this.reconnect();
+        }
+    }, backoff);
+};
 TradovateSocket.prototype.reconnect = async function () {
     if (!this.wsUrl) {
         console.error('[TsReconnect] No WebSocket URL available for reconnection.');
