@@ -151,13 +151,15 @@ MarketDataSocket.prototype.getChart = function({symbol, chartDescription, timeRa
                 .forEach(callback)            
         },
         disposer: () => {
-            let d = this.request({
+            const cancel = (subscriptionId) => this.request({
                 url: 'md/cancelChart',
                 body: {
-                    subscriptionId: historicalId
+                    subscriptionId
                 },
-                callback: () => d()
+                callback: () => {}
             })
+            if (realtimeId) cancel(realtimeId)
+            if (historicalId) cancel(historicalId)
         }
     })
     this.subscriptions.push({symbol, subscription})
