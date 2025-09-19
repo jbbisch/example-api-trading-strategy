@@ -168,27 +168,45 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const positiveCrossover = SMAPositiveCrossover || AAGMpcBreak || BouncePositiveCrossover || flatMarketEntryCondition || DVpcConfirmed
 
         // ---------- Positive Reversal Breakdown monitor (for positive longs started in negative distance) ----------
-        const PRB_CFG = {
-          improvementThresholdPct: 0.30, // need 30% move toward zero within MAX_BARS
-          maxBarsToImprove: 6,           // time stop in bars
-          velEps: 0.00030,               // longSMA velocity must not persist negative beyond this
-          distVelEps: 0.12,              // distance velocity negativity tolerance
-          newLowSlack: 0.15,             // how much "more negative" counts as a meaningful new low in distanceOpen
-          bandSigma: 1.0                 // rejection below twentySma - 1.0*stdDevTwentySma
+        // Arm only after *selected* positive-crossover families.
+        const PRB_ARM = {
+          allowSMApc: false,          // usually OFF (only arm on "special" entries)
+          allowAAGMpcBreak: true,
+          allowDVpcConfirmed: true,
+          allowFlatMarketEntry: true
         };
 
-        // Pull prior reversal state
-        let reversalAttemptActive = prevState.reversalAttemptActive;
-        let barsSinceReversalAttempt = reversalAttemptActive ? (prevState.barsSinceReversalAttempt + 1) : 0;
-        let reversalEntryDistance   = prevState.reversalEntryDistance;
-        let minDistanceSinceReversal = prevState.minDistanceSinceReversal;
+        // Which signal actually caused the long this bar?
+        const armedBy = {
+          SMApc:   SMAPositiveCrossover,
+          AAGMpc:  AAGMpcBreak,
+          DVpcC:   DVpcConfirmed,
+          FMEpc:   flatMarketEntryCondition,
+        };
+        const canArm =
+          (PRB_ARM.allowSMApc && armedBy.SMApc) ||
+          (PRB_ARM.allowAAGMpcBreak && armedBy.AAGMpc) ||
+          (PRB_ARM.allowDVpcConfirmed && armedBy.DVpcC) ||
+          (PRB_ARM.allowFlatMarketEntry && armedBy.FMEpc);
 
-        // (A) Arm the monitor only when we actually take a risky long: positiveCrossover while distance still negative
-        if (!reversalAttemptActive && positiveCrossover && distanceOpen < 0.00) {
-          reversalAttemptActive = true;
+        // Pull prior state
+        let reversalAttemptActive   = !!prevState.reversalAttemptActive;
+        let barsSinceReversalAttempt = reversalAttemptActive ? (prevState.barsSinceReversalAttempt + 1) : 0;
+        let reversalEntryDistance    = prevState.reversalEntryDistance;
+        let minDistanceSinceReversal = prevState.minDistanceSinceReversal;
+        let reversalArmedBy          = prevState.reversalArmedBy || null;
+
+        // (A) Arm the monitor only on allowed *positive* entries while still in negative distance
+        if (!reversalAttemptActive && canArm && distanceOpen < 0.00) {
+          reversalAttemptActive    = true;
           barsSinceReversalAttempt = 0;
-          reversalEntryDistance = distanceOpen;
+          reversalEntryDistance    = distanceOpen;
           minDistanceSinceReversal = distanceOpen;
+          reversalArmedBy          = armedBy.SMApc ? 'SMApc'
+                                  : armedBy.AAGMpc ? 'AAGMpc'
+                                  : armedBy.DVpcC  ? 'DVpcC'
+                                  : armedBy.FMEpc  ? 'FMEpc'
+                                  : 'unknown';
         }
 
         // (B) Track the worst (most negative) distance since arming
@@ -196,7 +214,16 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
           minDistanceSinceReversal = Math.min(minDistanceSinceReversal, distanceOpen);
         }
 
-        // (C) Evaluate failure conditions
+        // (C) Evaluate drop/failure conditions
+        const PRB_CFG = {
+          improvementThresholdPct: 0.30,
+          maxBarsToImprove: 6,
+          velEps: 0.00030,
+          distVelEps: 0.12,
+          newLowSlack: 0.15,
+          bandSigma: 1.0
+        };
+
         const improvedTowardZero = reversalAttemptActive
           ? Math.abs(distanceOpen) <= Math.abs(reversalEntryDistance) * (1 - PRB_CFG.improvementThresholdPct)
           : false;
@@ -212,33 +239,36 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
 
         const bandRejection = reversalAttemptActive &&
           (currentPrice <= (twentySma - PRB_CFG.bandSigma * stdDevTwentySma)) &&
-          !flatVelocity; // don't count as rejection if we’re in your flat regime
+          !flatVelocity;
 
         const timeStopFailed = reversalAttemptActive &&
           (barsSinceReversalAttempt >= PRB_CFG.maxBarsToImprove) &&
           !improvedTowardZero;
 
-        // (D) Final breakdown condition
+        // (D) Breakdown fires ONLY if armed
         const PositiveReversalBreakdown = reversalAttemptActive && (
           madeLowerLow || velocitiesBearish || bandRejection || timeStopFailed
         );
 
-        // (E) Reset rules for the monitor
+        // (E) Reset rules
         let resetReversal = false;
 
-        // Reset on failure
-        if (PositiveReversalBreakdown) resetReversal = true;
+        // Success case: as soon as gap becomes non-negative, silently disarm — NO trade
+        if (reversalAttemptActive && distanceOpen >= 0.00) {
+          resetReversal = true;
+        }
 
-        // Or reset if reversal succeeded: short>long firmly and distanceOpen >= 0
-        if (!resetReversal && SMAPositiveCrossover && distanceOpen >= 0.00) {
+        // Failure case: PRBnc fires a trade (you already wire this in your onChart)
+        if (PositiveReversalBreakdown) {
           resetReversal = true;
         }
 
         if (resetReversal) {
-          reversalAttemptActive = false;
+          reversalAttemptActive    = false;
           barsSinceReversalAttempt = 0;
-          reversalEntryDistance = 0;
+          reversalEntryDistance    = 0;
           minDistanceSinceReversal = 0;
+          reversalArmedBy          = null;
         }
         // ---------- end PRB monitor ----------
         
