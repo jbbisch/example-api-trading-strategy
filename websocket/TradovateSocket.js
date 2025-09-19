@@ -33,49 +33,54 @@ TradovateSocket.prototype.getSocket = function() {
  * This function will return a cancellable subscription in the form of a function with zero parameters
  * that removes the event listener.
  */
-TradovateSocket.prototype.request = function({url, query, body, callback, disposer}) {
-    const id = this.counter.increment()
+TradovateSocket.prototype.request = function ({ url, query = '', body = {}, callback, disposer }) {
+  const id = this.counter.increment();
 
-    const resSubscription = msg => {
+  // we keep a reference so we can detach exactly this listener if needed
+  const makeListener = () => (msg) => {
+    // only array messages
+    if (typeof msg?.data !== 'string' || msg.data[0] !== 'a') return;
 
-        if(msg.data.slice(0, 1) !== 'a') { return }
+    let items = [];
+    try { items = JSON.parse(msg.data.slice(1)); } catch (_) {}
 
-        let data
-        try {
-            data = JSON.parse(msg.data.slice(1))
-        } catch(err) {
-            data = []
-            console.log('failed to process message: ' + err)
-        }
-
-        if(data.length > 0) {
-            data.forEach(item => {
-                // console.log(item)
-                callback(id, item)
-            })
-        }
-    } 
-
-    this.ws.addEventListener('message', resSubscription)
-    if (this.ws.readyState === WebSocket.OPEN) {
-        this.ws.send(`${url}\n${id}\n${query}\n${JSON.stringify(body)}`)
-    } 
-
-    const subscription = () => {
-        if (this.ws.readyState === WebSocket.OPEN) {
-            this.ws.send(`${url}\n${id}\n${query}\n${JSON.stringify(body)}`)
-            console.log('[tsRequest] resubscribing to: ' + url, 'with body:', body)
-        }
+    for (const item of items) {
+      // deliver all items to the consumer
+      callback(id, item);
     }
+  };
 
-    this.subscriptions.push({ url, query, body, callback, disposer, subscription })
+  // initial listener + send
+  let listener = makeListener();
+  this.ws.addEventListener('message', listener);
 
-    return () => {
-        if(disposer && typeof disposer === 'function'){
-            disposer()
-        }
-        this.ws.removeListener('message', resSubscription)
+  const send = () => {
+    if (this.ws.readyState === 1) { // WebSocket.OPEN
+      this.ws.send(`${url}\n${id}\n${query}\n${JSON.stringify(body)}`);
     }
+  };
+  send();
+
+  // this function will be used on reconnect to rebind the listener AND resend
+  const resubscribe = () => {
+    // reattach a fresh listener bound to the NEW ws instance
+    listener = makeListener();
+    this.ws.addEventListener('message', listener);
+    send();
+    console.log('[tsRequest] resubscribed:', url);
+  };
+
+  const unsubscribe = () => {
+    try {
+      if (disposer && typeof disposer === 'function') disposer();
+      if (listener) this.ws.removeEventListener('message', listener);
+    } catch (_) {}
+  };
+
+  // keep everything we need to resubscribe later
+  this.subscriptions.push({ url, query, body, callback, disposer, resubscribe, unsubscribe, id });
+
+  return unsubscribe;
 }
 
 TradovateSocket.prototype.synchronize = function(callback) {
@@ -286,7 +291,7 @@ TradovateSocket.prototype.reconnect = async function () {
                 console.log('[TsReconnect] WebSocket reconnected.');
 
                 // Resubscribe to stored subscriptions
-                this.subscriptions.forEach(sub => sub.subscription());
+                this.subscriptions.forEach(sub => sub.resubscribe());
                 console.log('[TsReconnect] Resubscriptions complete.');
 
                 // Reinitialize strategy
