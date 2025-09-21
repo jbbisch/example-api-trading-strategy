@@ -49,14 +49,6 @@ const drawEffect = (state, action) => {
         const buyTriggers = formatTriggerSourceArray(buyTriggerSource)
         const sellTriggers = formatTriggerSourceArray(sellTriggerSource)
 
-        if (PositiveReversalBreakdown) {
-          console.log('--- PRBnc TRIGGERED ---',
-            `bars=${barsSinceReversalAttempt}`,
-            `entryDist=${reversalEntryDistance.toFixed(2)}`,
-            `minDist=${minDistanceSinceReversal.toFixed(2)}`
-          )
-        }
-
         drawToConsole({
             'Distance on prevClose': distanceValues.map(value => value.toFixed(2)).join(', '),
             'Distance on currentOpen': distanceOpenValues.map(value => value.toFixed(2)).join(', '),
