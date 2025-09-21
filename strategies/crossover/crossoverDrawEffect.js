@@ -101,9 +101,7 @@ const drawEffect = (state, action) => {
             PRBentryDist: Number.isFinite(reversalEntryDistance) ? reversalEntryDistance.toFixed(2) : 'N/A', 
             PRBminDist: Number.isFinite(minDistanceSinceReversal) ? minDistanceSinceReversal.toFixed(2) : 'N/A',
             PRBreason: PositiveReversalBreakdownReason || '—',
-            PRBcounts: prbReasonCounts
-              ? Object.entries(prbReasonCounts).map(([k,v]) => `${k}:${v}`).join(', ')
-              : '—',
+            PRBcounts: prbReasonCounts ? Object.entries(prbReasonCounts).map(([k,v]) => `${k}:${v}`).join(', ') : '—',
             buyTriggerSource: buyTriggers,
             //buyDistance: formattedBuyDistance,
             SMApcCount: SMAPositiveCrossoverCount,
