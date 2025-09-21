@@ -244,11 +244,36 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const timeStopFailed = reversalAttemptActive &&
           (barsSinceReversalAttempt >= PRB_CFG.maxBarsToImprove) &&
           !improvedTowardZero;
+        
+        // (D) Gather reasons & final breakdown condition
+        const prbReasons = [];
+        if (madeLowerLow)      prbReasons.push('newLow');
+        if (velocitiesBearish) prbReasons.push('bearishVelocity');
+        if (bandRejection)     prbReasons.push('bandRejection');
+        if (timeStopFailed)    prbReasons.push('timeStop');
 
-        // (D) Breakdown fires ONLY if armed
-        const PositiveReversalBreakdown = reversalAttemptActive && (
-          madeLowerLow || velocitiesBearish || bandRejection || timeStopFailed
-        );
+        const PositiveReversalBreakdown = reversalAttemptActive && prbReasons.length > 0;
+
+        // Log exactly once when PRBnc flips from false -> true
+        if (PositiveReversalBreakdown && !prevState.PositiveReversalBreakdown) {
+          console.log(
+            '[PRBnc]',
+            `reasons=${prbReasons.join(',')}`,
+            `bars=${barsSinceReversalAttempt}`,
+            `entryDist=${Number.isFinite(reversalEntryDistance) ? reversalEntryDistance.toFixed(2) : 'N/A'}`,
+            `minDist=${Number.isFinite(minDistanceSinceReversal) ? minDistanceSinceReversal.toFixed(2) : 'N/A'}`,
+            `distOpen=${Number.isFinite(distanceOpen) ? distanceOpen.toFixed(2) : 'N/A'}`
+          );
+        }
+
+        // Reason counters (persist across bars)
+        const prevReasonCounts = prevState.prbReasonCounts || {
+          newLow: 0, bearishVelocity: 0, bandRejection: 0, timeStop: 0
+        };
+        const prbReasonCounts = { ...prevReasonCounts };
+        if (PositiveReversalBreakdown) {
+          prbReasons.forEach(r => { prbReasonCounts[r] = (prbReasonCounts[r] || 0) + 1; });
+        }
 
         // (E) Reset rules
         let resetReversal = false;
@@ -437,7 +462,9 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             reversalEntryDistance: reversalEntryDistance,
             minDistanceSinceReversal: minDistanceSinceReversal,
             PositiveReversalBreakdown: PositiveReversalBreakdown,
-            PositiveReversalBreakdownCount: updatedPositiveReversalBreakdownCount
+            PositiveReversalBreakdownCount: updatedPositiveReversalBreakdownCount,
+            PositiveReversalBreakdownReason: prbReasons.join('|'),  // e.g. "bearishVelocity|timeStop"
+            prbReasonCounts,                                        // { newLow: n, bearishVelocity: n, ... }
         }
 
         console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover, ' Momentum: ', next.momentum, ' Distance Momentum: ', next.distanceMomentum, 'MomentumPeak: ', next.momentumPeak, 'DistancePeak: ', next.distancePeak, 'Updated Momentum Peak: ', next.updatedMomentumPeak, 'Updated Distance Peak: ', next.updatedDistancePeak)
@@ -538,6 +565,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             minDistanceSinceReversal: 0,
             PositiveReversalBreakdown: false,
             PositiveReversalBreakdownCount: 0,
+            PositiveReversalBreakdownReason: '',
+            prbReasonCounts: { newLow: 0, bearishVelocity: 0, bandRejection: 0, timeStop: 0 },
         }
     }
 
