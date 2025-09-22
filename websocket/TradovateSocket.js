@@ -292,18 +292,6 @@ TradovateSocket.prototype.reconnect = async function () {
 
                 // Resubscribe to stored subscriptions
                 this.subscriptions.forEach(sub => {
-                    if (typeof sub.recreate === 'function') {
-                        const unsubscribe = sub.recreate();
-                        if (typeof sub.setUnsubscribe === 'function') {
-                            sub.setUnsubscribe(unsubscribe);
-                        }
-                    } else if (typeof sub.subscription === 'function') {
-                    // Old-style entry: just re-call the subscription function
-                        sub.subscription();
-                    }
-                });
-                
-                this.subscriptions.forEach(sub => {
                     if (typeof sub.resubscribe === 'function') {
                         sub.resubscribe();
                     } else if (typeof sub.subscription === 'function') {
