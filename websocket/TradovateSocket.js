@@ -302,6 +302,14 @@ TradovateSocket.prototype.reconnect = async function () {
                         sub.subscription();
                     }
                 });
+                
+                this.subscriptions.forEach(sub => {
+                    if (typeof sub.resubscribe === 'function') {
+                        sub.resubscribe();
+                    } else if (typeof sub.subscription === 'function') {
+                        sub.subscription(); // legacy fallback
+                    }
+                });
 
                 // Reinitialize strategy
                 if (this.strategy) {
