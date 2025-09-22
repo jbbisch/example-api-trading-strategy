@@ -291,9 +291,6 @@ TradovateSocket.prototype.reconnect = async function () {
                 console.log('[TsReconnect] WebSocket reconnected.');
 
                 // Resubscribe to stored subscriptions
-                this.subscriptions.forEach(sub => sub.subscription());
-                console.log('[TsReconnect] Resubscriptions complete.');
-                
                 this.subscriptions.forEach(sub => {
                     if (typeof sub.recreate === 'function') {
                         const unsubscribe = sub.recreate();
