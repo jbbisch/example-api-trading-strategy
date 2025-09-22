@@ -293,6 +293,18 @@ TradovateSocket.prototype.reconnect = async function () {
                 // Resubscribe to stored subscriptions
                 this.subscriptions.forEach(sub => sub.subscription());
                 console.log('[TsReconnect] Resubscriptions complete.');
+                
+                this.subscriptions.forEach(sub => {
+                    if (typeof sub.recreate === 'function') {
+                        const unsubscribe = sub.recreate();
+                        if (typeof sub.setUnsubscribe === 'function') {
+                            sub.setUnsubscribe(unsubscribe);
+                        }
+                    } else if (typeof sub.subscription === 'function') {
+                    // Old-style entry: just re-call the subscription function
+                        sub.subscription();
+                    }
+                });
 
                 // Reinitialize strategy
                 if (this.strategy) {
