@@ -22,8 +22,6 @@ function TradovateSocket() {
     this.subscriptions = []
     this.strategy = null
     this.wsUrl = null
-    this._syncListener = null
-    this._syncCallback = null
 }
 
 TradovateSocket.prototype.getSocket = function() {
@@ -106,53 +104,40 @@ TradovateSocket.prototype.synchronize = function(callback) {
 // /**
 //  * Set a function to be called when the socket synchronizes.
 //  */
-TradovateSocket.prototype.onSync = function(cbOrData) {
-  // If they passed a FUNCTION: (normal usage)
-  if (typeof cbOrData === 'function') {
-    // Remember the callback
-    this._syncCallback = cbOrData
-
-    // Remove any prior sync listener to avoid stacking
-    if (this._syncListener) {
-      this.ws.removeEventListener('message', this._syncListener)
-    }
-
-    // Fresh guarded listener
-    this._syncListener = (msg) => {
-      const data = msg?.data
-      if (typeof data !== 'string' || data[0] !== 'a') return
-
-      try {
-        const frames = JSON.parse(data.slice(1)) // array
-        for (const frame of frames) {
-          // Accept the same schema you already used: users/props/clock
-          if (frame?.d && typeof frame.d === 'object' && Array.isArray(frame.d.users)) {
-            if (this._syncCallback) this._syncCallback(frame.d)
-          }
-          if (frame?.e === 'props' || frame?.e === 'clock') {
-            if (this._syncCallback) this._syncCallback(frame.d)
-          }
+TradovateSocket.prototype.onSync = function(callback) {
+    this.ws.addEventListener('message', async msg => {
+        const { data } = msg
+        const kind = data.slice(0,1)
+        switch(kind) {
+            case 'a':
+                const  parsedData = JSON.parse(msg.data.slice(1))
+                // console.log(parsedData)
+                let schemaOk = {}
+                const schemafields = ['users']
+                parsedData.forEach(data => {
+                    if (!data.d || typeof data.d !== 'object') 
+                        return
+                    schemafields.forEach(k => {
+                        if(schemaOk && !schemaOk.value) {
+                            return
+                        }
+                        if(Object.keys(data.d).includes(k) && Array.isArray(data.d[k])) {
+                            schemaOk = { value: true }
+                        } 
+                        else {
+                            schemaOk = { value: false }
+                        }
+                    })
+                    
+                    if(schemaOk.value) {
+                        callback(data.d)
+                    }
+                })
+                break
+            default:
+                break
         }
-      } catch (_) { /* ignore */ }
-    }
-
-    this.ws.addEventListener('message', this._syncListener)
-    return
-  }
-
-  // If they passed a DATA OBJECT (your reconnect() does this):
-  if (cbOrData && typeof cbOrData === 'object') {
-    // If we already have a real callback, deliver the initial payload once
-    if (this._syncCallback) {
-      try { this._syncCallback(cbOrData) } catch (_) {}
-    } else {
-      // No callback yet: ensure we have a listener installed with a no-op
-      if (!this._syncListener) {
-        this._syncCallback = () => {} // noop to stay safe
-        this.onSync(this._syncCallback) // this will (re)install the guarded listener
-      }
-    }
-  }
+    })
 }
 TradovateSocket.prototype.setupHeartbeat = function() {
     const heartbeatInterval = 2500
@@ -183,6 +168,7 @@ TradovateSocket.prototype.connect = async function(url) {
         }
         this.ws.addEventListener('open', () => {
             console.log('[ConnectOpenEvent] Websocket connection opened. Sending auth request...')
+            this.ws.send(`authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
             this.reconnectAttempts = 0
             this.setupHeartbeat()
             res()
@@ -223,6 +209,13 @@ TradovateSocket.prototype.connect = async function(url) {
                     // console.log('Making WS auth request...')
                     const token = this.constructor.name === 'TradovateSocket' ? process.env.ACCESS_TOKEN : process.env.MD_ACCESS_TOKEN
                     this.ws.send(`authorize\n0\n\n${token}`)          
+                    interval = setInterval(() => {
+                        if(this.ws.readyState == 0 || this.ws.readyState == 3 || this.ws.readyState == 2) {
+                            clearInterval(interval)
+                            return
+                        }
+                        this.ws.send('[]')
+                    }, 2500)
                     break
                 case 'h':
                     this.setupHeartbeat()
