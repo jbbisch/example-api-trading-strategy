@@ -23,6 +23,7 @@ function TradovateSocket() {
     this.strategy = null
     this.wsUrl = null
     this._syncListener = null
+    this._syncCallback = null
 }
 
 TradovateSocket.prototype.getSocket = function() {
@@ -152,35 +153,6 @@ TradovateSocket.prototype.onSync = function(cbOrData) {
       }
     }
   }
-}
-
-TradovateSocket.prototype.onSync = function(callback) {
-  // Remove any prior sync listener before adding a new one
-  if (this._syncListener) {
-    this.ws.removeEventListener('message', this._syncListener)
-  }
-
-  this._syncListener = (msg) => {
-    const data = msg?.data
-    if (typeof data !== 'string' || data[0] !== 'a') return
-
-    try {
-      const parsed = JSON.parse(data.slice(1)) // array of frames
-      for (const frame of parsed) {
-        // check for schema fields we care about
-        if (frame?.d && typeof frame.d === 'object' && Array.isArray(frame.d.users)) {
-          callback(frame.d)
-        }
-        if (frame?.e === 'props' || frame?.e === 'clock') {
-          callback(frame.d)
-        }
-      }
-    } catch (_) {
-      // ignore parse errors
-    }
-  }
-
-  this.ws.addEventListener('message', this._syncListener)
 }
 TradovateSocket.prototype.setupHeartbeat = function() {
     const heartbeatInterval = 2500
