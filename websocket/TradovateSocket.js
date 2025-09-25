@@ -105,6 +105,55 @@ TradovateSocket.prototype.synchronize = function(callback) {
 // /**
 //  * Set a function to be called when the socket synchronizes.
 //  */
+TradovateSocket.prototype.onSync = function(cbOrData) {
+  // If they passed a FUNCTION: (normal usage)
+  if (typeof cbOrData === 'function') {
+    // Remember the callback
+    this._syncCallback = cbOrData
+
+    // Remove any prior sync listener to avoid stacking
+    if (this._syncListener) {
+      this.ws.removeEventListener('message', this._syncListener)
+    }
+
+    // Fresh guarded listener
+    this._syncListener = (msg) => {
+      const data = msg?.data
+      if (typeof data !== 'string' || data[0] !== 'a') return
+
+      try {
+        const frames = JSON.parse(data.slice(1)) // array
+        for (const frame of frames) {
+          // Accept the same schema you already used: users/props/clock
+          if (frame?.d && typeof frame.d === 'object' && Array.isArray(frame.d.users)) {
+            if (this._syncCallback) this._syncCallback(frame.d)
+          }
+          if (frame?.e === 'props' || frame?.e === 'clock') {
+            if (this._syncCallback) this._syncCallback(frame.d)
+          }
+        }
+      } catch (_) { /* ignore */ }
+    }
+
+    this.ws.addEventListener('message', this._syncListener)
+    return
+  }
+
+  // If they passed a DATA OBJECT (your reconnect() does this):
+  if (cbOrData && typeof cbOrData === 'object') {
+    // If we already have a real callback, deliver the initial payload once
+    if (this._syncCallback) {
+      try { this._syncCallback(cbOrData) } catch (_) {}
+    } else {
+      // No callback yet: ensure we have a listener installed with a no-op
+      if (!this._syncListener) {
+        this._syncCallback = () => {} // noop to stay safe
+        this.onSync(this._syncCallback) // this will (re)install the guarded listener
+      }
+    }
+  }
+}
+
 TradovateSocket.prototype.onSync = function(callback) {
   // Remove any prior sync listener before adding a new one
   if (this._syncListener) {
