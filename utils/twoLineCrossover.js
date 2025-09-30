@@ -167,6 +167,82 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const flatMarketEntryCondition = (distanceOpen < 0.00 && flatVelocity && !velocityBreakingOut && currentPrice <= twentySma - 1.3 * stdDevTwentySma)
         const positiveCrossover = SMAPositiveCrossover || AAGMpcBreak || BouncePositiveCrossover || flatMarketEntryCondition || DVpcConfirmed
 
+        // ---- PRBnc ARM/DISARM IMPROVEMENTS ----
+const PRB_ARM = {
+  allowSMApc: false,
+  allowAAGMpcBreak: true,
+  allowDVpcConfirmed: true,
+  allowFlatMarketEntry: true
+};
+
+const armedBy = {
+  SMApc:  SMAPositiveCrossover,
+  AAGMpc: AAGMpcBreak,
+  DVpcC:  DVpcConfirmed,
+  FMEpc:  flatMarketEntryCondition,
+};
+
+const canArmSignal =
+  (PRB_ARM.allowSMApc && armedBy.SMApc) ||
+  (PRB_ARM.allowAAGMpcBreak && armedBy.AAGMpc) ||
+  (PRB_ARM.allowDVpcConfirmed && armedBy.DVpcC) ||
+  (PRB_ARM.allowFlatMarketEntry && armedBy.FMEpc);
+
+// Bearish context: any TWO of these means we’re still “underwater-ish”
+const bearFlags = {
+  negDistance:        distance < 0,
+  negDistanceOpen:    distanceOpen < 0,
+  priceBelowLong:     currentPrice < longSma,
+  belowBandHalfSigma: currentPrice <= (twentySma - 0.5 * stdDevTwentySma),
+};
+const bearScore = Object.values(bearFlags).filter(Boolean).length;
+const canArmContext = bearScore >= 2;
+
+// prior state...
+let reversalAttemptActive    = !!prevState.reversalAttemptActive;
+let barsSinceReversalAttempt = reversalAttemptActive ? (prevState.barsSinceReversalAttempt + 1) : 0;
+let reversalEntryDistance    = prevState.reversalEntryDistance;
+let minDistanceSinceReversal = prevState.minDistanceSinceReversal;
+let reversalArmedBy          = prevState.reversalArmedBy || null;
+
+// Arm once; ignore additional positive crossovers while active
+if (!reversalAttemptActive && canArmSignal && canArmContext) {
+  reversalAttemptActive    = true;
+  barsSinceReversalAttempt = 0;
+  reversalEntryDistance    = distanceOpen;  // snapshot
+  minDistanceSinceReversal = distanceOpen;
+  reversalArmedBy          = armedBy.SMApc ? 'SMApc'
+                        : armedBy.AAGMpc ? 'AAGMpc'
+                        : armedBy.DVpcC  ? 'DVpcC'
+                        : armedBy.FMEpc  ? 'FMEpc'
+                        : 'unknown';
+}
+
+// ... keep your failure tests and compute PositiveReversalBreakdown as before ...
+
+// Success escape: require broader improvement (any TWO of THREE)
+const escapeScore = [
+  distanceOpen >= 0,
+  distance     >= 0,
+  currentPrice >= longSma,
+].filter(Boolean).length;
+
+let resetReversal = false;
+if (reversalAttemptActive && escapeScore >= 2) {   // success, no trade
+  resetReversal = true;
+}
+if (PositiveReversalBreakdown) {                   // failure, trade fires
+  resetReversal = true;
+}
+
+if (resetReversal) {
+  reversalAttemptActive    = false;
+  barsSinceReversalAttempt = 0;
+  reversalEntryDistance    = 0;
+  minDistanceSinceReversal = 0;
+  reversalArmedBy          = null;
+}
+
         // ---------- Positive Reversal Breakdown monitor (for positive longs started in negative distance) ----------
         // Arm only after *selected* positive-crossover families.
         const PRB_ARM = {
