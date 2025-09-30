@@ -260,6 +260,24 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
           madeLowerLow || velocitiesBearish || bandRejection || timeStopFailed
         );
 
+        if (PositiveReversalBreakdown && !prevState.PositiveReversalBreakdown) {
+  const reasons = [];
+  if (madeLowerLow)      reasons.push('newLow');
+  if (velocitiesBearish) reasons.push('bearishVelocity');
+  if (bandRejection)     reasons.push('bandRejection');
+  if (timeStopFailed)    reasons.push('timeStop');
+
+  console.log(
+    '[PRBnc TRADE]',
+    `reasons=${reasons.join(',')}`,
+    `armedBy=${reversalArmedBy || 'n/a'}`,
+    `bars=${barsSinceReversalAttempt}`,
+    `entryDist=${Number.isFinite(reversalEntryDistance) ? reversalEntryDistance.toFixed(2) : 'N/A'}`,
+    `minDist=${Number.isFinite(minDistanceSinceReversal) ? minDistanceSinceReversal.toFixed(2) : 'N/A'}`,
+    `distOpen=${Number.isFinite(distanceOpen) ? distanceOpen.toFixed(2) : 'N/A'}`
+  );
+}
+
                 // Success escape: require broader improvement (any TWO of THREE)
         const escapeScore = [
           distanceOpen >= 0,
