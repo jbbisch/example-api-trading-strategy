@@ -277,7 +277,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             `distOpen=${Number.isFinite(distanceOpen) ? distanceOpen.toFixed(2) : 'N/A'}`
           );
         }
-        
+
                 // Success escape: require broader improvement (any TWO of THREE)
         const escapeScore = [
           distanceOpen >= 0,
@@ -569,6 +569,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             minDistanceSinceReversal: 0,
             PositiveReversalBreakdown: false,
             PositiveReversalBreakdownCount: 0,
+            reversalArmedBy: null,
         }
     }
 
