@@ -226,7 +226,9 @@ const onChart = (prevState, {data, props}) => {
                     else if (nextTlcState.DistancePeakNegativeCrossover) trackTrigger(sellLog, 'DPnc')
                     else if (nextTlcState.flatMarketExitCondition) trackTrigger(sellLog, 'FMEnc')
                     else if (nextTlcState.DriftingVelocityNegativeCrossover) trackTrigger(sellLog, 'DVnc')
-                    else if (nextTlcState.PositiveReversalBreakdown) trackTrigger(sellLog, 'PRBnc')
+                    else if (nextTlcState.PositiveReversalBreakdown) {
+                        const reason = nextTlcState.PositiveReversalBreakdownReason ? `(${nextTlcState.PositiveReversalBreakdownReason})` : ''
+                        trackTrigger(sellLog, `PRBnc${reason}`)
                 console.log('[onChart] response 2:', response)
                 return {
                     state: {
