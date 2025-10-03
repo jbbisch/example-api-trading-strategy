@@ -389,6 +389,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
                   ? updatedPositiveReversalBreakdownReason
                   : (prevState.PositiveReversalBreakdownReason || '')
                 sellTriggerSource.push(`${now} - PRBnc${tag ? '(' + tag + ')' : ''}`)
+            }
         }
 
         const next = {
