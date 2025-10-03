@@ -206,6 +206,12 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         let minDistanceSinceReversal = prevState.minDistanceSinceReversal;
         let reversalArmedBy          = prevState.reversalArmedBy || null;
 
+        let prbArmedAtLocal
+        let prbTriggeredAtLocal
+        let updatedPRBArmCount
+        let updatedPositiveReversalBreakdownReason
+        let updatedPrbReasonCounts
+
         // Arm once; ignore additional positive crossovers while active
         if (!reversalAttemptActive && canArmSignal && canArmContext) {
           reversalAttemptActive    = true;
@@ -217,6 +223,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
                                 : armedBy.DVpcC  ? 'DVpcC'
                                 : armedBy.FMEpc  ? 'FMEpc'
                                 : 'unknown';
+          prbArmedAtLocal = new Date().toISOString()
+          updatedPRBArmCount = (prevState.PRBArmCount || 0) + 1
         }
 
         // (B) Track the worst (most negative) distance since arming
@@ -267,14 +275,24 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
           if (bandRejection)     reasons.push('bandRejection');
           if (timeStopFailed)    reasons.push('timeStop');
 
+        const prbReasonCounts = { ...(prevState.prbReasonCounts || {}) }
+        for (const r of reasons) prbReasonCounts[r] = (prbReasonCounts[r] || 0) + 1
+
+          prbTriggeredAtLocal = new Date().toISOString()
+          updatedPositiveReversalBreakdownReason = reasons.join('|')
+          updatedPrbReasonCounts = prbReasonCounts
+
           console.log(
             '[PRBnc TRADE]',
-            `reasons=${reasons.join(',')}`,
+            `reasons=${updatedPositiveReversalBreakdownReason}`,
             `armedBy=${reversalArmedBy || 'n/a'}`,
+            `armedAt=${prevState.prbArmedAt || prbArmedAtLocal || 'n/a'}`,
+            `triggeredAt=${prbTriggeredAtLocal}`,
             `bars=${barsSinceReversalAttempt}`,
             `entryDist=${Number.isFinite(reversalEntryDistance) ? reversalEntryDistance.toFixed(2) : 'N/A'}`,
             `minDist=${Number.isFinite(minDistanceSinceReversal) ? minDistanceSinceReversal.toFixed(2) : 'N/A'}`,
             `distOpen=${Number.isFinite(distanceOpen) ? distanceOpen.toFixed(2) : 'N/A'}`
+      
           );
         }
 
