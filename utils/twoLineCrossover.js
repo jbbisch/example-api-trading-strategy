@@ -384,7 +384,11 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             if (DVncConfirmed) sellTriggerSource.push(`${now} - DVncC`)
             //if (flatMarketExitCondition) sellTriggerSource.push(`${now} - FMEnc`)
             if (SharpDroppingVelocityNegativeCrossover) sellTriggerSource.push(`${now} - SDVnc`)
-            if (PositiveReversalBreakdown) sellTriggerSource.push(`${now} - PRBnc`)
+            if (PositiveReversalBreakdown) {
+                const tag = (typeof updatedPositiveReversalBreakdownReason !== 'undefined')
+                  ? updatedPositiveReversalBreakdownReason
+                  : (prevState.PositiveReversalBreakdownReason || '')
+                sellTriggerSource.push(`${now} - PRBnc${tag ? '(' + tag + ')' : ''}`)
         }
 
         const next = {
@@ -486,7 +490,16 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             minDistanceSinceReversal: minDistanceSinceReversal,
             PositiveReversalBreakdown: PositiveReversalBreakdown,
             PositiveReversalBreakdownCount: updatedPositiveReversalBreakdownCount,
-            reversalArmedBy: reversalArmedBy
+            reversalArmedBy: reversalArmedBy,
+            PRBArmCount: (typeof updatedPRBArmCount === 'number') ? updatedPRBArmCount : (prevState.PRBArmCount || 0),
+            prbArmedAt: (typeof prbArmedAtLocal !== 'undefined') ? prbArmedAtLocal : (resetReversal ? null : (prevState.prbArmedAt || null)),
+            prbTriggeredAt: (typeof prbTriggeredAtLocal !== 'undefined') ? prbTriggeredAtLocal : (prevState.prbTriggeredAt || null),
+            PositiveReversalBreakdownReason: (typeof updatedPositiveReversalBreakdownReason !== 'undefined')
+                ? updatedPositiveReversalBreakdownReason
+                : (prevState.PositiveReversalBreakdownReason || null),
+            prbReasonCounts: (typeof updatedPrbReasonCounts !== 'undefined')
+                ? updatedPrbReasonCounts
+                : (prevState.prbReasonCounts || { newLow: 0, bearishVelocity: 0, bandRejection: 0, timeStop: 0 }),
         }
 
         console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover, ' Momentum: ', next.momentum, ' Distance Momentum: ', next.distanceMomentum, 'MomentumPeak: ', next.momentumPeak, 'DistancePeak: ', next.distancePeak, 'Updated Momentum Peak: ', next.updatedMomentumPeak, 'Updated Distance Peak: ', next.updatedDistancePeak)
@@ -588,6 +601,11 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             PositiveReversalBreakdown: false,
             PositiveReversalBreakdownCount: 0,
             reversalArmedBy: null,
+            PRBArmCount: 0,
+            prbArmedAt: null,
+            prbTriggeredAt: null,
+            PositiveReversalBreakdownReason: null,
+            prbReasonCounts: { newLow: 0, bearishVelocity: 0, bandRejection: 0, timeStop: 0 },
         }
     }
 
