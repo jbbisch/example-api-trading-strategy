@@ -255,9 +255,47 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
           updatedLongSmaVelocities.slice(-3).some(v => v < -PRB_CFG.velEps) &&
           updatedDistanceVelocities.slice(-3).every(v => v <= -PRB_CFG.distVelEps);
 
-        const bandRejection = reversalAttemptActive &&
-          (currentPrice <= (twentySma - PRB_CFG.bandSigma * stdDevTwentySma)) &&
-          !flatVelocity;
+        // ——— Band helpers ———
+const lowerBand = twentySma - PRB_CFG.bandSigma * stdDevTwentySma;
+
+// require a decisive close below the band (not just a touch)
+const bandBreakMargin = 0.15; // tweakable: points/ticks
+const closeBelowBand = currentPrice <= (lowerBand - bandBreakMargin);
+
+// “touched” lower band recently?
+const touchedLowerBand = currentPrice <= lowerBand;
+const updatedTouchedLowerBandHistory = [
+  ...(prevState.touchedLowerBandHistory || Array(5).fill(false)).slice(1),
+  touchedLowerBand
+];
+
+// “rail ride” (staying below band) streak
+const belowBandNow = currentPrice <= lowerBand;
+const updatedBelowBandStreak = [
+  ...(prevState.belowBandStreak || Array(4).fill(false)).slice(1),
+  belowBandNow
+];
+
+// improvement toward zero since arming? (avoid firing PRB too early)
+const noImprovement =
+  barsSinceReversalAttempt >= 2 &&
+  Math.abs(distanceOpen) >= Math.abs(reversalEntryDistance) * (1 - 0.15); // 15% improvement required
+
+// rejection behavior = touched recently + decisive close + no improvement + not flat
+const bandRejection =
+  reversalAttemptActive &&
+  updatedTouchedLowerBandHistory.slice(-3).some(Boolean) &&
+  closeBelowBand &&
+  noImprovement &&
+  !flatVelocity;
+
+// persistent “rail ride”: ≥3 of last 4 bars below band AND long SMA sloping down
+const bandSlopeDown = updatedLongSmaValues.slice(-3)
+  .every((v, i, a) => (i === 0 ? true : v < a[i - 1]));
+
+const persistentBandRide =
+  updatedBelowBandStreak.slice(-4).filter(Boolean).length >= 3 &&
+  bandSlopeDown;
 
         const timeStopFailed = reversalAttemptActive &&
           (barsSinceReversalAttempt >= PRB_CFG.maxBarsToImprove) &&
@@ -265,7 +303,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
 
         // (D) Breakdown fires ONLY if armed
         const PositiveReversalBreakdown = reversalAttemptActive && (
-          madeLowerLow || velocitiesBearish || bandRejection || timeStopFailed
+          madeLowerLow || velocitiesBearish || bandRejection || timeStopFailed || persistentBandRide
         );
 
         if (PositiveReversalBreakdown && !prevState.PositiveReversalBreakdown) {
@@ -274,6 +312,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
           if (velocitiesBearish) reasons.push('bearishVelocity');
           if (bandRejection)     reasons.push('bandRejection');
           if (timeStopFailed)    reasons.push('timeStop');
+          if (persistentBandRide) reasons.push('bandRide');
 
         const prbReasonCounts = { ...(prevState.prbReasonCounts || {}) }
         for (const r of reasons) prbReasonCounts[r] = (prbReasonCounts[r] || 0) + 1
@@ -501,6 +540,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             prbReasonCounts: (typeof updatedPrbReasonCounts !== 'undefined')
                 ? updatedPrbReasonCounts
                 : (prevState.prbReasonCounts || { newLow: 0, bearishVelocity: 0, bandRejection: 0, timeStop: 0 }),
+            touchedLowerBandHistory: updatedTouchedLowerBandHistory,
+            belowBandStreak: updatedBelowBandStreak,
         }
 
         console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover, ' Momentum: ', next.momentum, ' Distance Momentum: ', next.distanceMomentum, 'MomentumPeak: ', next.momentumPeak, 'DistancePeak: ', next.distancePeak, 'Updated Momentum Peak: ', next.updatedMomentumPeak, 'Updated Distance Peak: ', next.updatedDistancePeak)
@@ -607,6 +648,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             prbTriggeredAt: null,
             PositiveReversalBreakdownReason: null,
             prbReasonCounts: { newLow: 0, bearishVelocity: 0, bandRejection: 0, timeStop: 0 },
+            touchedLowerBandHistory: Array(5).fill(false),
+            belowBandStreak: Array(4).fill(false),
         }
     }
 
