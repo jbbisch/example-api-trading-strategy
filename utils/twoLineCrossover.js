@@ -235,7 +235,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         // (C) Evaluate drop/failure conditions
         const PRB_CFG = {
           improvementThresholdPct: 0.30,
-          maxBarsToImprove: 6,
+          maxBarsToImprove: 8,
           velEps: 0.00030,
           distVelEps: 0.12,
           newLowSlack: 0.15,
@@ -255,47 +255,47 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
           updatedLongSmaVelocities.slice(-3).some(v => v < -PRB_CFG.velEps) &&
           updatedDistanceVelocities.slice(-3).every(v => v <= -PRB_CFG.distVelEps);
 
-        // ——— Band helpers ———
-const lowerBand = twentySma - PRB_CFG.bandSigma * stdDevTwentySma;
+         // ——— Band helpers ———
+        const lowerBand = twentySma - PRB_CFG.bandSigma * stdDevTwentySma;
 
-// require a decisive close below the band (not just a touch)
-const bandBreakMargin = 0.15; // tweakable: points/ticks
-const closeBelowBand = currentPrice <= (lowerBand - bandBreakMargin);
+        // require a decisive close below the band (not just a touch)
+        const bandBreakMargin = 0.15; // tweakable: points/ticks
+        const closeBelowBand = currentPrice <= (lowerBand - bandBreakMargin);
 
-// “touched” lower band recently?
-const touchedLowerBand = currentPrice <= lowerBand;
-const updatedTouchedLowerBandHistory = [
-  ...(prevState.touchedLowerBandHistory || Array(5).fill(false)).slice(1),
-  touchedLowerBand
-];
+        // “touched” lower band recently?
+        const touchedLowerBand = currentPrice <= lowerBand;
+        const updatedTouchedLowerBandHistory = [
+          ...(prevState.touchedLowerBandHistory || Array(5).fill(false)).slice(1),
+          touchedLowerBand
+        ];
 
-// “rail ride” (staying below band) streak
-const belowBandNow = currentPrice <= lowerBand;
-const updatedBelowBandStreak = [
-  ...(prevState.belowBandStreak || Array(4).fill(false)).slice(1),
-  belowBandNow
-];
+        // “rail ride” (staying below band) streak
+        const belowBandNow = currentPrice <= lowerBand;
+        const updatedBelowBandStreak = [
+          ...(prevState.belowBandStreak || Array(4).fill(false)).slice(1),
+          belowBandNow
+        ];
 
-// improvement toward zero since arming? (avoid firing PRB too early)
-const noImprovement =
-  barsSinceReversalAttempt >= 2 &&
-  Math.abs(distanceOpen) >= Math.abs(reversalEntryDistance) * (1 - 0.15); // 15% improvement required
+        // improvement toward zero since arming? (avoid firing PRB too early)
+        const noImprovement =
+          barsSinceReversalAttempt >= 2 &&
+          Math.abs(distanceOpen) >= Math.abs(reversalEntryDistance) * (1 - 0.15); // 15% improvement required
 
-// rejection behavior = touched recently + decisive close + no improvement + not flat
-const bandRejection =
-  reversalAttemptActive &&
-  updatedTouchedLowerBandHistory.slice(-3).some(Boolean) &&
-  closeBelowBand &&
-  noImprovement &&
-  !flatVelocity;
+        // rejection behavior = touched recently + decisive close + no improvement + not flat
+        const bandRejection =
+          reversalAttemptActive &&
+          updatedTouchedLowerBandHistory.slice(-3).some(Boolean) &&
+          closeBelowBand &&
+          noImprovement &&
+          !flatVelocity;
 
-// persistent “rail ride”: ≥3 of last 4 bars below band AND long SMA sloping down
-const bandSlopeDown = updatedLongSmaValues.slice(-3)
-  .every((v, i, a) => (i === 0 ? true : v < a[i - 1]));
+        // persistent “rail ride”: ≥3 of last 4 bars below band AND long SMA sloping down
+        const bandSlopeDown = updatedLongSmaValues.slice(-3)
+          .every((v, i, a) => (i === 0 ? true : v < a[i - 1]));
 
-const persistentBandRide =
-  updatedBelowBandStreak.slice(-4).filter(Boolean).length >= 3 &&
-  bandSlopeDown;
+        const persistentBandRide =
+          updatedBelowBandStreak.slice(-4).filter(Boolean).length >= 3 &&
+          bandSlopeDown;
 
         const timeStopFailed = reversalAttemptActive &&
           (barsSinceReversalAttempt >= PRB_CFG.maxBarsToImprove) &&
@@ -308,11 +308,11 @@ const persistentBandRide =
 
         if (PositiveReversalBreakdown && !prevState.PositiveReversalBreakdown) {
           const reasons = [];
-          if (madeLowerLow)      reasons.push('newLow');
-          if (velocitiesBearish) reasons.push('bearishVelocity');
-          if (bandRejection)     reasons.push('bandRejection');
-          if (timeStopFailed)    reasons.push('timeStop');
-          if (persistentBandRide) reasons.push('bandRide');
+          if (madeLowerLow)       reasons.push('newLow');
+          if (velocitiesBearish)  reasons.push('bearishVelocity');
+          if (bandRejection)      reasons.push('bandRejection');
+          if (persistentBandRide) reasons.push('bandRide')
+          if (timeStopFailed)     reasons.push('timeStop');
 
         const prbReasonCounts = { ...(prevState.prbReasonCounts || {}) }
         for (const r of reasons) prbReasonCounts[r] = (prbReasonCounts[r] || 0) + 1
