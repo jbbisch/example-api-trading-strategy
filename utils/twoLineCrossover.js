@@ -539,7 +539,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
                 : (prevState.PositiveReversalBreakdownReason || null),
             prbReasonCounts: (typeof updatedPrbReasonCounts !== 'undefined')
                 ? updatedPrbReasonCounts
-                : (prevState.prbReasonCounts || { newLow: 0, bearishVelocity: 0, bandRejection: 0, timeStop: 0, persistentBandRide: 0 }),
+                : (prevState.prbReasonCounts || { newLow: 0, bearishVelocity: 0, bandRejection: 0, timeStop: 0, bandRide: 0 }),
             touchedLowerBandHistory: updatedTouchedLowerBandHistory,
             belowBandStreak: updatedBelowBandStreak,
         }
@@ -647,7 +647,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             prbArmedAt: null,
             prbTriggeredAt: null,
             PositiveReversalBreakdownReason: null,
-            prbReasonCounts: { newLow: 0, bearishVelocity: 0, bandRejection: 0, timeStop: 0, persistentBandRide: 0 },
+            prbReasonCounts: { newLow: 0, bearishVelocity: 0, bandRejection: 0, timeStop: 0, bandRide: 0 },
             touchedLowerBandHistory: Array(5).fill(false),
             belowBandStreak: Array(4).fill(false),
         }
