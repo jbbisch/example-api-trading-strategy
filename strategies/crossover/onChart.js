@@ -246,7 +246,7 @@ const onChart = (prevState, {data, props}) => {
                     state: {
                         ...prevState,
                         mode: LongShortMode.Short,
-                        strategyNetPos: newStrategyNetPos,
+                        strategyNetPos: nextStrategyNetPos,
                         sellTriggerSource: [...sellLog],
                         sellDistance: [...sellDistance],
                     },
@@ -306,7 +306,7 @@ const onChart = (prevState, {data, props}) => {
                     state: {
                         ...prevState,
                         mode: LongShortMode.Long,
-                        strategyNetPos: newStrategyNetPos,
+                        strategyNetPos: nextStrategyNetPos,
                         buyTriggerSource: [...buyLog],
                         buyDistance: [...buyDistance],
                     },
