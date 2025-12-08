@@ -45,6 +45,8 @@ const onChart = (prevState, {data, props}) => {
     const currentPositionSize =
         (typeof prevState.strategyNetPos === 'number' ? prevState.strategyNetPos : (position?.netPos || 0))
 
+    let nextStrategyNetPos = currentPositionSize
+
     const canUsePositive = currentPositionSize <= 0
     const canUseNegative = currentPositionSize >= 1
 
@@ -209,7 +211,7 @@ const onChart = (prevState, {data, props}) => {
         if(currentPositionSize >= maxPosition) {
             console.log('[onChart] liquidatePosition 2:', placeOrder)
             console.log('[onChart] mode 2 placeOrder:', mode)
-            const newStrategyNetPos = currentPositionSize - 1
+            nextStrategyNetPos = Math.max(currentPositionSize - 1, 0)
             prevState.lastTradeTime = Date.now()
             placeOrder({
                 accountId: parseInt(process.env.ID),
@@ -280,7 +282,7 @@ const onChart = (prevState, {data, props}) => {
         if(currentPositionSize < maxPosition) { 
             console.log('[onChart] placeOrder 3:', placeOrder)
             console.log('[onChart] mode 3 buyOrder:', mode)  
-            const newStrategyNetPos = currentPositionSize + 1
+            nextStrategyNetPos = Math.min(currentPositionSize + 1, maxPosition)
             prevState.lastTradeTime = Date.now()
             placeOrder({
                 accountId: parseInt(process.env.ID),
@@ -341,7 +343,7 @@ const onChart = (prevState, {data, props}) => {
     return { 
         state: {
             ...prevState,
-            strategyNetPos: currentPositionSize,
+            strategyNetPos: nextStrategyNetPos,
             buyTriggerSource: clearTriggers ? [] : [...(prevState.buyTriggerSource || []), ...(nextTlcState.buyTriggerSource || [])],
             sellTriggerSource: clearTriggers ? [] : [...(prevState.sellTriggerSource || []), ...(nextTlcState.sellTriggerSource || [])],
             buyDistance: clearTriggers ? [] : [...(prevState.buyDistance || []), ...(nextTlcState.buyDistance || [])],
