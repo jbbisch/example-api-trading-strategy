@@ -42,9 +42,18 @@ const onChart = (prevState, {data, props}) => {
     const nextTlcState = tlc(lastTlc, bufferData)
     const { negativeCrossover, positiveCrossover, distance } = nextTlcState
 
+    const currentPositionSize = prevState.position?.netPos || 0
+
+    const canUsePositive = currentPositionSize <= 0
+    const canUseNegative = currentPositionSize >= 1
+
+    const rawNegEdge = negativeCrossover && !lastTlc.negativeCrossover
+    const rawPosEdge = positiveCrossover && !lastTlc.positiveCrossover
+
+
     // EDGE TRIGGERING
-    const negEdge = negativeCrossover && !lastTlc.negativeCrossover
-    const posEdge = positiveCrossover && !lastTlc.positiveCrossover
+    const negEdge = canUseNegative ? rawNegEdge : false
+    const posEdge = canUsePositive ? rawPosEdge : false
 
     const longBracket = {
         qty: orderQuantity,
@@ -88,7 +97,6 @@ const onChart = (prevState, {data, props}) => {
         orderType: "Market",
     }
     
-    const currentPositionSize = prevState.position?.netPos || 0
 
     function isNineAMEastern() {
         const nowUTC = new Date()
@@ -255,7 +263,7 @@ const onChart = (prevState, {data, props}) => {
                         { event: 'crossover/draw' },
                     ],
                 }
-            }).catch(err => {
+            }}).catch(err => {
                 console.error('[onChart] Error:', err)
             })
         } else {
