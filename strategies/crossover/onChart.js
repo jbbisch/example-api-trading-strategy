@@ -43,7 +43,7 @@ const onChart = (prevState, {data, props}) => {
     const { negativeCrossover, positiveCrossover, distance } = nextTlcState
 
     const currentPositionSize =
-        (typeof strategyNetPos === "number" ? strategyNetPos : (position?.netPos || 0))
+        (typeof prevState.strategyNetPos === 'number' ? prevState.strategyNetPos : (position?.netPos || 0))
 
     const canUsePositive = currentPositionSize <= 0
     const canUseNegative = currentPositionSize >= 1
