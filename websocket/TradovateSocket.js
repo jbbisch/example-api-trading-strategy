@@ -236,10 +236,7 @@ TradovateSocket.prototype.connect = async function(url) {
                     const [first] = parsedData
                     if(first.i === 0 && first.s === 200) {
                         res()
-                    } else {
-                        console.log("[Connect] AUTH FAILED: ", first.s)
-                        rej(new error(`[Connect] AUTH_FAILED: $[first.s}`))
-                    }
+                    } else rej()
                     break
                 case 'c':
                     clearInterval(this.heartbeatInterval)
@@ -283,14 +280,12 @@ TradovateSocket.prototype.reconnect = async function () {
             try {
                 console.log('[TsReconnect] Renewing access token...');
                 const tokenResult = await renewAccessToken();
-                if (!tokenResult || !tokenResult.access_token) {
+                if (!tokenResult) {
                     console.error('[TsReconnect] Token renewal failed.');
                     this.reconnectAttempts += 1;
                     return;
                 }
-                console.log("[TsReconnect] tokenResult =", tokenResult);
-
-                process.env.ACCESS_TOKEN = tokenResult.access_token;
+                console.log('[TsReconnect] Token successfully renewed.');
 
                 // Save current buffer before disconnecting
                 const oldBuffer = this.strategy?.state?.buffer?.getData() || [];
@@ -343,8 +338,11 @@ TradovateSocket.prototype.reconnect = async function () {
                 }
 
                 // Resynchronize with server
-                this.synchronize(data => {
-                    console.log('[TsReconnect] Synchronized with server.');
+                this.synchronize(data => { 
+                    if (typeof this.onSync === 'function') {
+                    this.onSync(data);
+                    }
+                    console.log('[TsReconnect] Subscribed to sync events.');
                 });
 
                 this.reconnectAttempts = 0; // success — reset counter
