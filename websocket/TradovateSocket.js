@@ -1,6 +1,6 @@
 const WebSocket = require('ws')
 const { writeToLog } = require('../utils/helpers')
-const { clear } = require('winston')
+const { clear, error } = require('winston')
 const { renewAccessToken } = require('../endpoints/renewAccessToken')
 // const logger = require('../utils/logger')
 
@@ -63,6 +63,12 @@ TradovateSocket.prototype.request = function ({ url, query = '', body = {}, call
 
   // this function will be used on reconnect to rebind the listener AND resend
   const resubscribe = () => {
+    try {
+        if (listener && this.ws){
+            this.ws.removeEventListener('message', listener);
+        }
+    } catch (_) {}
+
     // reattach a fresh listener bound to the NEW ws instance
     listener = makeListener();
     this.ws.addEventListener('message', listener);
@@ -73,8 +79,11 @@ TradovateSocket.prototype.request = function ({ url, query = '', body = {}, call
   const unsubscribe = () => {
     try {
       if (disposer && typeof disposer === 'function') disposer();
-      if (listener) this.ws.removeEventListener('message', listener);
+      if (listener && this.ws) {
+        this.ws.removeEventListener('message', listener);
+      }
     } catch (_) {}
+    this.subscriptions = this.subscriptions.filter(sub => sub.id !== id);
   };
 
   // keep everything we need to resubscribe later
@@ -227,7 +236,10 @@ TradovateSocket.prototype.connect = async function(url) {
                     const [first] = parsedData
                     if(first.i === 0 && first.s === 200) {
                         res()
-                    } else rej()
+                    } else {
+                        console.log("[Connect] AUTH FAILED: ", first.s)
+                        rej(new error(`[Connect] AUTH_FAILED: $[first.s}`))
+                    }
                     break
                 case 'c':
                     clearInterval(this.heartbeatInterval)
@@ -271,12 +283,14 @@ TradovateSocket.prototype.reconnect = async function () {
             try {
                 console.log('[TsReconnect] Renewing access token...');
                 const tokenResult = await renewAccessToken();
-                if (!tokenResult) {
+                if (!tokenResult || !tokenResult.access_token) {
                     console.error('[TsReconnect] Token renewal failed.');
                     this.reconnectAttempts += 1;
                     return;
                 }
-                console.log('[TsReconnect] Token successfully renewed.');
+                console.log("[TsReconnect] tokenResult =", tokenResult);
+
+                process.env.ACCESS_TOKEN = tokenResult.access_token;
 
                 // Save current buffer before disconnecting
                 const oldBuffer = this.strategy?.state?.buffer?.getData() || [];
@@ -331,10 +345,6 @@ TradovateSocket.prototype.reconnect = async function () {
                 // Resynchronize with server
                 this.synchronize(data => {
                     console.log('[TsReconnect] Synchronized with server.');
-                    if (typeof this.onSync === 'function') {
-                        this.onSync(data);
-                        console.log('[TsReconnect] Subscribed to sync events.');
-                    }
                 });
 
                 this.reconnectAttempts = 0; // success — reset counter
