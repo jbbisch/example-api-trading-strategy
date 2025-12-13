@@ -9,16 +9,20 @@ const onUserSync = (prevState, {data, props}) => {
     const position  = positions.find(pos => pos.contractId === contract.id)
     let realizedPnL = cashBalances[0]?.realizedPnL || 0
 
+    const netPos = position?.netPos ?? 0
+
     return {
         state: {
             ...prevState,
             mode: 
-                position && position.netPos > 0 ? LongShortMode.Long 
-            :   position && position.netPos < 0 ? LongShortMode.Short 
-            :   /*else*/                          LongShortMode.Watch,
+                netPos > 0 ? LongShortMode.Long 
+            :   netPos < 0 ? LongShortMode.Short 
+            :   /*else*/     LongShortMode.Watch,
             product,
             position,
-            realizedPnL
+            realizedPnL,
+            strategyNetPos: netPos,
+            orderInFlight: false,
         },
         effects: [{ event: 'crossover/draw' }]
     }
