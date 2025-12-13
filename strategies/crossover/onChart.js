@@ -37,6 +37,8 @@ const onChart = (prevState, {data, props}) => {
     } // 30 second window on every 5th minute interval to update SMA and place order
       // allows for delay in data feed and tries to avoid false signals
     
+    const ORDER_TIMEOUT_MS = 15 * 1000 // 15 seconds
+
     const lastTlc = tlc.state
     prevState.lastSMAUpdate = Date.now()
     const nextTlcState = tlc(lastTlc, bufferData)
@@ -48,7 +50,14 @@ const onChart = (prevState, {data, props}) => {
     let nextStrategyNetPos = currentPositionSize
 
     if (prevState.orderInFlight) {
-        console.log('[onChart] orderInFlight - skipping processing')
+        const nowTs = Date.now()
+        const lockAge = nowTs - (prevState.orderInFlightAt ?? nowTs)
+
+        if (lockAge > ORDER_TIMEOUT_MS) {
+            console.warn('[onChart] FAILSAFE UNLOCK:', 'OrderInFlight stuck for', lockAge, 'ms - unlocking')
+            return { state: {...prevState, orderInFlight: false, orderInFlightAt: null }, effects: [] }
+        }
+        console.log('[onChart] Order in flight - waiting for fill')
         return { state: prevState, effects: [] }
     }
 
@@ -258,6 +267,7 @@ const onChart = (prevState, {data, props}) => {
                     sellTriggerSource: [...sellLog],
                     sellDistance: [...sellDistance],
                     orderInFlight: true,
+                    orderInFlightAt: Date.now(),
                 },
                 effects: [
                     // FOR WEBSOCKET Liquidates any existing position
@@ -319,6 +329,7 @@ const onChart = (prevState, {data, props}) => {
                     buyTriggerSource: [...buyLog],
                     buyDistance: [...buyDistance],
                     orderInFlight: true,
+                    orderInFlightAt: Date.now(),
                 },
                 effects: [
                     // FOR WEBSOCKET
