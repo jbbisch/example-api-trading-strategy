@@ -213,6 +213,7 @@ const onChart = (prevState, {data, props}) => {
             console.log('[onChart] mode 2 placeOrder:', mode)
             nextStrategyNetPos = Math.max(currentPositionSize - 1, 0)
             prevState.lastTradeTime = Date.now()
+            const sellLog = prevState.sellTriggerSource || (prevState.sellTriggerSource = [])
             placeOrder({
                 accountId: parseInt(process.env.ID),
                 contractId: contract.id,
@@ -225,7 +226,6 @@ const onChart = (prevState, {data, props}) => {
                 orderType: "Market"
             }).then(response => {
                 trackDistance(sellDistance, lastTlc.distance, distance)
-                const sellLog = prevState.sellTriggerSource || (prevState.sellTriggerSource = [])
                 if (nextTlcState.SMANegativeCrossover) trackTrigger(sellLog, 'SMAnc')
                     //else if (nextTlcState.SMAPositiveCrossover) trackTrigger(sellLog, 'SMAPositiveCrossover')
                     //else if (nextTlcState.LikelyNegativeCrossover) trackTrigger(sellLog, 'Lnc')
@@ -284,6 +284,7 @@ const onChart = (prevState, {data, props}) => {
             console.log('[onChart] mode 3 buyOrder:', mode)  
             nextStrategyNetPos = Math.min(currentPositionSize + 1, maxPosition)
             prevState.lastTradeTime = Date.now()
+            const buyLog = prevState.buyTriggerSource || (prevState.buyTriggerSource = [])
             placeOrder({
                 accountId: parseInt(process.env.ID),
                 contractId: contract.id,
@@ -296,7 +297,6 @@ const onChart = (prevState, {data, props}) => {
                 orderType: "Market"
             }).then(response => {
                 trackDistance(buyDistance, lastTlc.distance, distance)
-                const buyLog = prevState.buyTriggerSource || (prevState.buyTriggerSource = [])
                 if (nextTlcState.SMAPositiveCrossover) trackTrigger(buyLog, 'SMApc')
                 else if (nextTlcState.AAGMpcBreak) trackTrigger(buyLog, 'AAGMpc')
                 else if (nextTlcState.BouncePositiveCrossover) trackTrigger(buyLog, 'Bpc')
