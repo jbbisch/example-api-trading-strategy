@@ -87,3 +87,4 @@ class CrossoverStrategy extends Strategy {
 }
 
 module.exports = { CrossoverStrategy }
+
