@@ -37,6 +37,8 @@ class CrossoverStrategy extends Strategy {
             realizedPnL: 0,
             buyDistance: [],
             sellDistance: [],
+            strategyNetPos: 0,
+            orderInFlight: false,
         }
     }
     
