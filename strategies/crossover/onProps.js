@@ -18,6 +18,7 @@ const onProps = (prevState, {data, props}) => {
                 position: entity,
                 strategyNetPos: netPos,
                 orderInFlight: false,
+                orderInFlightAt: null,
             },
             effects: [
                 {
