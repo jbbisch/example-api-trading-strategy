@@ -47,6 +47,11 @@ const onChart = (prevState, {data, props}) => {
 
     let nextStrategyNetPos = currentPositionSize
 
+    if (prevState.orderInFlight) {
+        console.log('[onChart] orderInFlight - skipping processing')
+        return { state: prevState, effects: [] }
+    }
+
     const canUsePositive = currentPositionSize <= 0
     const canUseNegative = currentPositionSize >= 1
 
@@ -252,6 +257,7 @@ const onChart = (prevState, {data, props}) => {
                     strategyNetPos: nextStrategyNetPos,
                     sellTriggerSource: [...sellLog],
                     sellDistance: [...sellDistance],
+                    orderInFlight: true,
                 },
                 effects: [
                     // FOR WEBSOCKET Liquidates any existing position
@@ -312,6 +318,7 @@ const onChart = (prevState, {data, props}) => {
                     strategyNetPos: nextStrategyNetPos,
                     buyTriggerSource: [...buyLog],
                     buyDistance: [...buyDistance],
+                    orderInFlight: true,
                 },
                 effects: [
                     // FOR WEBSOCKET
