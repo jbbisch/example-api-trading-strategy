@@ -23,6 +23,7 @@ const onUserSync = (prevState, {data, props}) => {
             realizedPnL,
             strategyNetPos: netPos,
             orderInFlight: prevState.orderInFlight && netPos !== prevState.strategyNetPos ? false : prevState.orderInFlight,
+            orderInFlightAt: null
         },
         effects: [{ event: 'crossover/draw' }]
     }
