@@ -227,6 +227,7 @@ const onChart = (prevState, {data, props}) => {
             console.log('[onChart] mode 2 placeOrder:', mode)
             nextStrategyNetPos = Math.max(currentPositionSize - 1, 0)
             prevState.lastTradeTime = Date.now()
+            const sellLog = prevState.sellTriggerSource || (prevState.sellTriggerSource = [])
             placeOrder({
                 accountId: parseInt(process.env.ID),
                 contractId: contract.id,
@@ -300,6 +301,7 @@ const onChart = (prevState, {data, props}) => {
             console.log('[onChart] mode 3 buyOrder:', mode)  
             nextStrategyNetPos = Math.min(currentPositionSize + 1, maxPosition)
             prevState.lastTradeTime = Date.now()
+            const buyLog = prevState.buyTriggerSource || (prevState.buyTriggerSource = [])
             placeOrder({
                 accountId: parseInt(process.env.ID),
                 contractId: contract.id,
