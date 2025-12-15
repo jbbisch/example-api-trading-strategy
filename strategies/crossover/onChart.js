@@ -227,7 +227,6 @@ const onChart = (prevState, {data, props}) => {
             console.log('[onChart] mode 2 placeOrder:', mode)
             nextStrategyNetPos = Math.max(currentPositionSize - 1, 0)
             prevState.lastTradeTime = Date.now()
-            const sellLog = prevState.sellTriggerSource || (prevState.sellTriggerSource = [])
             placeOrder({
                 accountId: parseInt(process.env.ID),
                 contractId: contract.id,
@@ -256,38 +255,38 @@ const onChart = (prevState, {data, props}) => {
                     else if (nextTlcState.PositiveReversalBreakdown) {
                         const reason = nextTlcState.PositiveReversalBreakdownReason ? `(${nextTlcState.PositiveReversalBreakdownReason})` : ''
                         trackTrigger(sellLog, `PRBnc${reason}`)
-                console.log('[onChart] response 2:', response)
+                console.log('[onChart] response 2:', response)   
+                return {
+                    state: {
+                        ...prevState,
+                        mode: LongShortMode.Short,
+                        strategyNetPos: nextStrategyNetPos,
+                        sellTriggerSource: [...sellLog],
+                        sellDistance: [...sellDistance],
+                        orderInFlight: true,
+                        orderInFlightAt: Date.now(),
+                    },
+                    effects: [
+                        // FOR WEBSOCKET Liquidates any existing position
+                        // {
+                        //     url: 'order/liquidatePosition',
+                        //     data: {
+                        //         accountId: parseInt(process.env.ID),
+                        //         contractId: contract.id,
+                        //         admin: true,
+                        //         accountSpec: process.env.SPEC,
+                        //         deviceId: process.env.DEVICE_ID,
+                        //         symbol: contract.name,
+                        //         action: "Sell",
+                        //         orderQuantity: orderQuantity,
+                        //     }
+                        // },
+                        { event: 'crossover/draw' },
+                    ],
+                }
             }}).catch(err => {
                 console.error('[onChart] Error:', err)
             })
-            return {
-                state: {
-                    ...prevState,
-                    mode: LongShortMode.Short,
-                    strategyNetPos: nextStrategyNetPos,
-                    sellTriggerSource: [...sellLog],
-                    sellDistance: [...sellDistance],
-                    orderInFlight: true,
-                    orderInFlightAt: Date.now(),
-                },
-                effects: [
-                    // FOR WEBSOCKET Liquidates any existing position
-                    // {
-                    //     url: 'order/liquidatePosition',
-                    //     data: {
-                    //         accountId: parseInt(process.env.ID),
-                    //         contractId: contract.id,
-                    //         admin: true,
-                    //         accountSpec: process.env.SPEC,
-                    //         deviceId: process.env.DEVICE_ID,
-                    //         symbol: contract.name,
-                    //         action: "Sell",
-                    //         orderQuantity: orderQuantity,
-                    //     }
-                    // },
-                    { event: 'crossover/draw' },
-                ],
-            }
         } else {
             console.log('[onChart] no position to liquidate')
             return { state: prevState, effects: [] }
@@ -301,7 +300,6 @@ const onChart = (prevState, {data, props}) => {
             console.log('[onChart] mode 3 buyOrder:', mode)  
             nextStrategyNetPos = Math.min(currentPositionSize + 1, maxPosition)
             prevState.lastTradeTime = Date.now()
-            const buyLog = prevState.buyTriggerSource || (prevState.buyTriggerSource = [])
             placeOrder({
                 accountId: parseInt(process.env.ID),
                 contractId: contract.id,
@@ -320,36 +318,36 @@ const onChart = (prevState, {data, props}) => {
                 else if (nextTlcState.BouncePositiveCrossover) trackTrigger(buyLog, 'Bpc')
                 else if (nextTlcState.flatMarketEntryCondition) trackTrigger(buyLog, 'FMEpc')
                 console.log('[onChart] response 3:', response)
+                return {
+                    state: {
+                        ...prevState,
+                        mode: LongShortMode.Long,
+                        strategyNetPos: nextStrategyNetPos,
+                        buyTriggerSource: [...buyLog],
+                        buyDistance: [...buyDistance],
+                        orderInFlight: true,
+                        orderInFlightAt: Date.now(),
+                    },
+                    effects: [
+                        // FOR WEBSOCKET
+                        // {
+                        //     url: 'orderStrategy/startOrderStrategy',
+                        //     data: {
+                        //         accountId: parseInt(process.env.ID),
+                        //         accountSpec: process.env.SPEC,
+                        //         symbol: contract.id,
+                        //         action: "Buy",
+                        //         orderStrategyTypeId: 2,
+                        //         entryVersion: JSON.stringify(entryVersion),
+                        //         brackets: JSON.stringify(longBracket),
+                        //     }   
+                        // },
+                        { event: 'crossover/draw' },
+                    ],
+                }
             }).catch(err => {
                 console.error('[onChart] Error:', err)
             })
-            return {
-                state: {
-                    ...prevState,
-                    mode: LongShortMode.Long,
-                    strategyNetPos: nextStrategyNetPos,
-                    buyTriggerSource: [...buyLog],
-                    buyDistance: [...buyDistance],
-                    orderInFlight: true,
-                    orderInFlightAt: Date.now(),
-                },
-                effects: [
-                    // FOR WEBSOCKET
-                    // {
-                    //     url: 'orderStrategy/startOrderStrategy',
-                    //     data: {
-                    //         accountId: parseInt(process.env.ID),
-                    //         accountSpec: process.env.SPEC,
-                    //         symbol: contract.id,
-                    //         action: "Buy",
-                    //         orderStrategyTypeId: 2,
-                    //         entryVersion: JSON.stringify(entryVersion),
-                    //         brackets: JSON.stringify(longBracket),
-                    //     }   
-                    // },
-                    { event: 'crossover/draw' },
-                ],
-            }
         } else {
             console.log('[onChart] max position reached')
             return { state: prevState, effects: [] }
