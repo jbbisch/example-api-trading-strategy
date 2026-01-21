@@ -226,20 +226,15 @@ TradovateSocket.prototype.connect = async function(url) {
 
         this.ws.addEventListener('message', async msg => {
             const { type, data } = msg
-             const kind = data?.slice?.(0, 1)
+            if (type !== 'message') return
 
-              if (kind === 'o' || kind === 'h' || kind === 'c') {
+            const kind = data?.slice?.(0, 1)
+
+            // Only debug for handshake-ish tokens (reduces spam)
+            if (kind === 'o' || kind === 'h' || kind === 'c') {
                 this._dbg('CONNECT_MESSAGE_KIND', { kind })
-              }
-
-            //console.log('[ConnectMessageEvent] Message received:', msg.data)
-            const { type, data } = msg
-
-            const kind = data.slice(0,1)
-            if(type !== 'message') {
-                console.log('non-message type received')
-                return
             }
+
 
             //message discriminator
             switch(kind) {
