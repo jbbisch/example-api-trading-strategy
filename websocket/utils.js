@@ -3,6 +3,7 @@ const { ReplaySocket } = require("./ReplaySocket");
 const { TradovateSocket } = require("./TradovateSocket");
 
 const socket = new TradovateSocket()
+global.__tsSocket = socket // DEBUG ONLY
 const mdSocket = new MarketDataSocket()
 const replaySocket = new ReplaySocket()
 
