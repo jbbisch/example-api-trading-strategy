@@ -381,4 +381,18 @@ TradovateSocket.prototype.reconnect = async function () {
         }, backoff);
     }
 }
+
+TradovateSocket.prototype.getDebugStats = function () {
+  const ws = this.ws
+  return {
+    pid: process.pid,
+    connId: this._connId,
+    wsState: ws ? ws.readyState : null,
+    messageListeners:
+      ws && typeof ws.listenerCount === 'function'
+        ? ws.listenerCount('message')
+        : null,
+    syncAttachCount: this._syncAttachCount,
+  }
+}
 module.exports = { TradovateSocket }
