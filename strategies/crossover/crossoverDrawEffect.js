@@ -3,9 +3,9 @@ const drawToConsole = require("../../utils/drawToConsole")
 
 const drawEffect = (state, action) => {
     const [event, payload] = action
-    const socketStats = global.__tsSocket?.getDebugStats?.()
 
     if(event === 'crossover/draw') {
+        const socketStats = global.__tsSocket?.getDebugStats?.()
         const { props } = payload
         const { contract } = props
         const { product, position, mode, buffer, tlc, realizedPnL, buyDistance, sellDistance, buyTriggerSource, sellTriggerSource,} = state
