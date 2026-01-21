@@ -277,6 +277,7 @@ TradovateSocket.prototype.connect = async function(url) {
 
 TradovateSocket.prototype.disconnect = function() {
     console.log('closing websocket connection')
+    this._dbg('DISCONNECT_BEFORE_CLOSE')
     this.ws.removeAllListeners('message')
     this.ws.close(1000, `Client initiated disconnect.`)
     this.ws = null
