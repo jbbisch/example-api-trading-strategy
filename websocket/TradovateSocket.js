@@ -22,6 +22,8 @@ function TradovateSocket() {
     this.subscriptions = []
     this.strategy = null
     this.wsUrl = null
+    this._connId = 0
+    this._syncAttachCount = 0
 }
 
 TradovateSocket.prototype.getSocket = function() {
@@ -186,8 +188,6 @@ TradovateSocket.prototype.connect = async function(url) {
     this._dbg('WS_CREATED', { url })
     this.ws.setMaxListeners(24)
     this.counter = new Counter()
-    this._connId = 0              // increments every time connect() creates a new WebSocket
-    this._syncAttachCount = 0     // how many times onSync() attaches a listener
     
     let interval
 
