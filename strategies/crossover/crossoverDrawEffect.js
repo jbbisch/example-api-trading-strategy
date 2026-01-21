@@ -3,6 +3,7 @@ const drawToConsole = require("../../utils/drawToConsole")
 
 const drawEffect = (state, action) => {
     const [event, payload] = action
+    const socketStats = global.__tsSocket?.getDebugStats?.()
 
     if(event === 'crossover/draw') {
         const { props } = payload
@@ -129,6 +130,10 @@ const drawEffect = (state, action) => {
             contract: contract.name,      
             netPos: position?.netPos || 0,
             realizedPnL: `$${realizedPnL.toFixed(2)}`,
+            'WS pid': socketStats?.pid ?? '—',
+            'WS connId': socketStats?.connId ?? '—',
+            'WS listeners': socketStats?.messageListeners ?? '—',
+            'WS syncAttach': socketStats?.syncAttachCount ?? '—',
         })    
     }
 
