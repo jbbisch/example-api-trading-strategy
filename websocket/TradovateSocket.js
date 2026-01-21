@@ -28,6 +28,19 @@ TradovateSocket.prototype.getSocket = function() {
     return this.ws
 }
 
+TradovateSocket.prototype._dbg = function(label, extra = {}) {
+  const ws = this.ws
+  const messageListeners =
+    ws && typeof ws.listenerCount === 'function' ? ws.listenerCount('message') : 'n/a'
+
+  console.log(`[DBG:${label}]`, {
+    pid: process.pid,
+    connId: this._connId,
+    wsState: ws ? ws.readyState : null,
+    messageListeners,
+    ...extra,
+  })
+}
 /**
  * Sets up a request/response pairing that will call `callback` when the response is received. 
  * This function will return a cancellable subscription in the form of a function with zero parameters
@@ -53,6 +66,7 @@ TradovateSocket.prototype.request = function ({ url, query = '', body = {}, call
   // initial listener + send
   let listener = makeListener();
   this.ws.addEventListener('message', listener);
+  this._dbg('REQUEST_ATTACH', { url, requestId: id })
 
   const send = () => {
     if (this.ws.readyState === 1) { // WebSocket.OPEN
@@ -72,6 +86,7 @@ TradovateSocket.prototype.request = function ({ url, query = '', body = {}, call
     // reattach a fresh listener bound to the NEW ws instance
     listener = makeListener();
     this.ws.addEventListener('message', listener);
+    this._dbg('REQUEST_RESUB_ATTACH', { url, requestId: id })
     send();
     console.log('[tsRequest] resubscribed:', url);
   };
@@ -114,6 +129,8 @@ TradovateSocket.prototype.synchronize = function(callback) {
 //  * Set a function to be called when the socket synchronizes.
 //  */
 TradovateSocket.prototype.onSync = function(callback) {
+    this._syncAttachCount += 1
+    this._dbg('ONSYNC_ATTACH', { syncAttachCount: this._syncAttachCount })
     this.ws.addEventListener('message', async msg => {
         const { data } = msg
         const kind = data.slice(0,1)
@@ -165,8 +182,12 @@ TradovateSocket.prototype.connect = async function(url) {
     //console.log('connecting to url:', url)
     this.ws = new WebSocket(url)
     this.wsUrl = url
+    this._connId += 1
+    this._dbg('WS_CREATED', { url })
     this.ws.setMaxListeners(24)
     this.counter = new Counter()
+    this._connId = 0              // increments every time connect() creates a new WebSocket
+    this._syncAttachCount = 0     // how many times onSync() attaches a listener
     
     let interval
 
@@ -177,6 +198,7 @@ TradovateSocket.prototype.connect = async function(url) {
         }
         this.ws.addEventListener('open', () => {
             console.log('[ConnectOpenEvent] Websocket connection opened. Sending auth request...')
+            this._dbg('OPEN_EVENT')
             this.ws.send(`authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
             this.reconnectAttempts = 0
             this.setupHeartbeat()
@@ -203,6 +225,7 @@ TradovateSocket.prototype.connect = async function(url) {
         })
 
         this.ws.addEventListener('message', async msg => {
+            this._dbg('CONNECT_MESSAGE_HANDLER')
             //console.log('[ConnectMessageEvent] Message received:', msg.data)
             const { type, data } = msg
 
@@ -298,6 +321,7 @@ TradovateSocket.prototype.reconnect = async function () {
                 console.log('[TsReconnect] Reconnecting to:', this.wsUrl);
                 await this.connect(this.wsUrl);
                 console.log('[TsReconnect] WebSocket reconnected.');
+                this._dbg('AFTER_RECONNECT_CONNECT')
 
                 // Resubscribe to stored subscriptions
                 this.subscriptions.forEach(sub => {
@@ -307,6 +331,7 @@ TradovateSocket.prototype.reconnect = async function () {
                         sub.subscription(); // legacy fallback
                     }
                 });
+                this._dbg('AFTER_RESUBSCRIBE_ALL', { subs: this.subscriptions.length })
 
                 // Reinitialize strategy
                 if (this.strategy) {
@@ -340,7 +365,7 @@ TradovateSocket.prototype.reconnect = async function () {
                 // Resynchronize with server
                 this.synchronize(data => { 
                     if (typeof this.onSync === 'function') {
-                    this.onSync(data);
+                    //this.onSync(data);
                     }
                     console.log('[TsReconnect] Subscribed to sync events.');
                 });
