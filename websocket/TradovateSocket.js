@@ -181,6 +181,11 @@ TradovateSocket.prototype.setupHeartbeat = function() {
  * Modify the connect method to handle connection failures and auto-reconnect.
  */
 TradovateSocket.prototype.connect = async function(url) {
+    if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
+        this._dbg('CONNECT_SKIPPED_ALREADY_ACTIVE', { url })
+        return
+    }
+
     //console.log('connecting to url:', url)
     this.ws = new WebSocket(url)
     this.wsUrl = url
@@ -225,6 +230,14 @@ TradovateSocket.prototype.connect = async function(url) {
         })
 
         this.ws.addEventListener('message', async msg => {
+            if (msg?.target && msg.target !== this.ws) return  // ignore old ws (if ws lib sets target)
+            if (this.ws !== wsRef) return
+            
+            const wsRef = this.ws
+            wsRef.addEventListener('message', (msg) => {
+              if (this.ws !== wsRef) return // stale socket, ignore
+            })
+
             const { type, data } = msg
             if (type !== 'message') return
 
