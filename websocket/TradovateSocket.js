@@ -220,7 +220,6 @@ TradovateSocket.prototype.connect = async function(url) {
             wsRef.send(`authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
             this.reconnectAttempts = 0
             this.setupHeartbeat()
-            resolveOnce()
         })
 
         wsRef.addEventListener('error', err => {
@@ -291,7 +290,7 @@ TradovateSocket.prototype.connect = async function(url) {
 TradovateSocket.prototype.disconnect = function() {
     console.log('closing websocket connection')
     this._dbg('DISCONNECT_BEFORE_CLOSE')
-    this.ws.removeAllListeners('message')
+    this.ws.removeAllListeners()
     this.ws.close(1000, `Client initiated disconnect.`)
     this.ws = null
     clearInterval(this.heartbeatInterval)
