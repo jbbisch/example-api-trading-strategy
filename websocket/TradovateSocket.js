@@ -24,6 +24,8 @@ function TradovateSocket() {
     this.wsUrl = null
     this._connId = 0
     this._syncAttachCount = 0
+    this._reconnectingTimer = null
+    this._reconnecting = false
 }
 
 TradovateSocket.prototype.getSocket = function() {
@@ -181,36 +183,32 @@ TradovateSocket.prototype.setupHeartbeat = function() {
  * Modify the connect method to handle connection failures and auto-reconnect.
  */
 TradovateSocket.prototype.connect = async function(url) {
-    if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
+    // if already active, don't open a second socket
+    if (this.ws && (this.ws.reaadyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
         this._dbg('CONNECT_SKIPPED_ALREADY_ACTIVE', { url })
         return
     }
-
     //console.log('connecting to url:', url)
     this.ws = new WebSocket(url)
     this.wsUrl = url
     this._connId += 1
+    const wsRef = this.ws
     this._dbg('WS_CREATED', { url })
-    this.ws.setMaxListeners(24)
+    wsRef.setMaxListeners(24)
     this.counter = new Counter()
     
-    let interval
-
     await new Promise((res, rej) => {
-        if(!this.ws) {
-            rej('no websocket connection available')
-            return
-        }
-        this.ws.addEventListener('open', () => {
-            console.log('[ConnectOpenEvent] Websocket connection opened. Sending auth request...')
+        wsRef.addEventListener('open', () => {
+            if (this.ws !== wsRef) return // stale event
             this._dbg('OPEN_EVENT')
-            this.ws.send(`authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
+            wsRef.send(`authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
             this.reconnectAttempts = 0
             this.setupHeartbeat()
             res()
         })
 
-        this.ws.addEventListener('error', err => {
+        wsRef.addEventListener('error', err => {
+            if (this.ws !== wsRef) return // stale event
             console.error('[ConnectErrorEvent] Websocket error: ' + err)
             clearInterval(this.heartbeatInterval)
             this.reconnect()
@@ -218,63 +216,48 @@ TradovateSocket.prototype.connect = async function(url) {
             rej(err)
         })
 
-        this.ws.addEventListener('close', event => {
+        wsRef.addEventListener('close', event => {
+            if (this.ws !== wsRef) return // stale event
             console.warn(`[ConnectCloseEvent] WebSocket closed with code: ${event.code}, reason: ${event.reason}`)
             clearInterval(this.heartbeatInterval) // Clear the heartbeat interval on close
             if(event.code !== 1000) { // Non-normal closure should try to reconnect
-                console.log('(onClose) Attempting to reconnect...')
                 this.reconnect()
                 this.reconnectAttempts += 1
             }
             res()
         })
 
-        this.ws.addEventListener('message', async msg => {
-            if (msg?.target && msg.target !== this.ws) return  // ignore old ws (if ws lib sets target)
-            if (this.ws !== wsRef) return
-            
-            const wsRef = this.ws
-            wsRef.addEventListener('message', (msg) => {
-              if (this.ws !== wsRef) return // stale socket, ignore
-            })
-
+        wsRef.addEventListener('message', async msg => {
+            if (this.ws !== wsRef) return // stale event
             const { type, data } = msg
             if (type !== 'message') return
 
             const kind = data?.slice?.(0, 1)
-
             // Only debug for handshake-ish tokens (reduces spam)
             if (kind === 'o' || kind === 'h' || kind === 'c') {
                 this._dbg('CONNECT_MESSAGE_KIND', { kind })
             }
-
-
+        
             //message discriminator
             switch(kind) {
-                case 'o':      
+                case 'o': {     
                     // console.log('Making WS auth request...')
                     const token = this.constructor.name === 'TradovateSocket' ? process.env.ACCESS_TOKEN : process.env.MD_ACCESS_TOKEN
-                    this.ws.send(`authorize\n0\n\n${token}`)          
-                    interval = setInterval(() => {
-                        if(this.ws.readyState == 0 || this.ws.readyState == 3 || this.ws.readyState == 2) {
-                            clearInterval(interval)
-                            return
-                        }
-                        this.ws.send('[]')
-                    }, 2500)
+                    wsRef.send(`authorize\n0\n\n${token}`)
                     break
+                }
                 case 'h':
                     this.setupHeartbeat()
                     res()
                     break
-                case 'a':
+                case 'a': {
                     const parsedData = JSON.parse(msg.data.slice(1))
-
                     const [first] = parsedData
                     if(first.i === 0 && first.s === 200) {
                         res()
                     } else rej()
                     break
+                }
                 case 'c':
                     clearInterval(this.heartbeatInterval)
                     res()
@@ -309,69 +292,56 @@ TradovateSocket.prototype.reconnect = async function () {
         console.error('[TsReconnect] No WebSocket URL available for reconnection.');
         return;
     }
+    // Don't allow concurrent reconnect attempts
+    if (this._reconnecTimer || this._reconnecting) {
+        this._dbg('RECONNECT_SKIPPED_ALREADY_RECONNECTING')
+        return;
+    }
 
-    if (!this.isConnected()) {
-        const backoff = Math.min(30000, Math.pow(2, this.reconnectAttempts) * 1000);
-        console.log(`[TsReconnect] Waiting ${backoff}ms before reconnect attempt...`);
+    const backoff = Math.min(30000, Math.pow(2, this.reconnectAttempts) * 1000);
+    this._dbg('RECONNECT_SCHEDULED', { backoff })
 
-        setTimeout(async () => {
-            try {
-                console.log('[TsReconnect] Renewing access token...');
-                const tokenResult = await renewAccessToken();
-                if (!tokenResult) {
-                    console.error('[TsReconnect] Token renewal failed.');
-                    this.reconnectAttempts += 1;
-                    return;
+    this._reconnectTimer = setTimeout(async () => {
+        this._reconnectTimer = null;
+        this._reconnecting = true;
+
+        try {
+            const tokenResult = await renewAccessToken()
+            if (!tokenResult) throw new Error('Token renewal failed.')
+
+            const oldBuffer = this.strategy?.state?.buffer?.getData() || []
+
+            // hard close current socket if any
+            try { this.disconnect() } catch (_) {}
+
+            await this.connect(this.wsUrl)
+
+            //resubscribe
+            this.subscriptions.forEach(sub => sub?.resubscribe?.())
+
+            // Reinitialize strategy
+            if (this.strategy) {
+                const strategyProps = this.strategy.props;
+                this.strategy = new this.strategy.constructor(strategyProps);
+
+                const state = await this.strategy.init();
+                if (oldBuffer.length && state?.buffer) {
+                    oldBuffer.forEach(data => state.buffer.softPush(data));
                 }
-                console.log('[TsReconnect] Token successfully renewed.');
+                this.strategy.state = state;
+                console.log('[TsReconnect] Strategy reinitialized and buffer restored.');
 
-                // Save current buffer before disconnecting
-                const oldBuffer = this.strategy?.state?.buffer?.getData() || [];
-
-                // Clean up any existing connection
-                if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
-                    this.disconnect();
-                }
-
-                console.log('[TsReconnect] Reconnecting to:', this.wsUrl);
-                await this.connect(this.wsUrl);
-                console.log('[TsReconnect] WebSocket reconnected.');
-                this._dbg('AFTER_RECONNECT_CONNECT')
-
-                // Resubscribe to stored subscriptions
-                this.subscriptions.forEach(sub => {
-                    if (typeof sub.resubscribe === 'function') {
-                        sub.resubscribe();
-                    } else if (typeof sub.subscription === 'function') {
-                        sub.subscription(); // legacy fallback
+                // Manually trigger next() and drawEffect
+                const last = state.buffer?.last?.() || oldBuffer[oldBuffer.length - 1];
+                if (last) {
+                    if (typeof this.strategy.next === 'function') {
+                        this.strategy.state = this.strategy.next(state, ['Chart', { data: last, props: strategyProps }]).state;
+                        console.log('[TsReconnect] Manually triggered strategy.next()');
                     }
-                });
-                this._dbg('AFTER_RESUBSCRIBE_ALL', { subs: this.subscriptions.length })
 
-                // Reinitialize strategy
-                if (this.strategy) {
-                    const strategyProps = this.strategy.props;
-                    this.strategy = new this.strategy.constructor(strategyProps);
-
-                    const state = await this.strategy.init();
-                    if (oldBuffer.length && state?.buffer) {
-                        oldBuffer.forEach(data => state.buffer.softPush(data));
-                    }
-                    this.strategy.state = state;
-                    console.log('[TsReconnect] Strategy reinitialized and buffer restored.');
-
-                    // Manually trigger next() and drawEffect
-                    const last = state.buffer?.last?.() || oldBuffer[oldBuffer.length - 1];
-                    if (last) {
-                        if (typeof this.strategy.next === 'function') {
-                            this.strategy.state = this.strategy.next(state, ['Chart', { data: last, props: strategyProps }]).state;
-                            console.log('[TsReconnect] Manually triggered strategy.next()');
-                        }
-
-                        if (typeof this.strategy.drawEffect === 'function') {
-                            this.strategy.drawEffect(this.strategy.state, ['crossover/draw', { props: strategyProps }]);
-                            console.log('[TsReconnect] Manually triggered strategy.drawEffect()');
-                        }
+                    if (typeof this.strategy.drawEffect === 'function') {
+                        this.strategy.drawEffect(this.strategy.state, ['crossover/draw', { props: strategyProps }]);
+                        console.log('[TsReconnect] Manually triggered strategy.drawEffect()');
                     }
                 } else {
                     console.log('[TsReconnect] No strategy to reinitialize.');
@@ -386,13 +356,17 @@ TradovateSocket.prototype.reconnect = async function () {
                 });
 
                 this.reconnectAttempts = 0; // success — reset counter
-            } catch (err) {
+                this._dbg('RECONNECT_SUCCESSFUL');
+            }   catch (err) {
                 console.error('[TsReconnect] Reconnection failed:', err);
                 this.reconnectAttempts += 1;
-                this.reconnect(); // try again
+                this._reconnecting = false;
+                return this.reconnect(); // try again
+            }   finally {
+                this._reconnecting = false;
             }
-        }, backoff);
-    }
+        }
+    }, backoff)
 }
 
 TradovateSocket.prototype.getDebugStats = function () {
