@@ -107,7 +107,8 @@ TradovateSocket.prototype.request = function ({ url, query = '', body = {}, call
   this.subscriptions.push({ url, query, body, callback, disposer, resubscribe, unsubscribe, id });
 
   return unsubscribe;
-  }}
+  }
+}
 
 TradovateSocket.prototype.synchronize = function(callback) {
     if(!this.ws || this.ws.readyState !== WebSocket.OPEN) {
@@ -131,6 +132,8 @@ TradovateSocket.prototype.synchronize = function(callback) {
 //  * Set a function to be called when the socket synchronizes.
 //  */
 TradovateSocket.prototype.onSync = function(callback) {
+    if (this._onSyncAttached) return
+    this._onSyncAttached = true
     this._syncAttachCount += 1
     this._dbg('ONSYNC_ATTACH', { syncAttachCount: this._syncAttachCount })
     this.ws.addEventListener('message', async msg => {
@@ -262,19 +265,19 @@ TradovateSocket.prototype.connect = async function(url) {
                 }
                 case 'h':
                     this.setupHeartbeat()
-                    res()
+                    resolveOnce()
                     break
                 case 'a': {
                     const parsedData = JSON.parse(msg.data.slice(1))
                     const [first] = parsedData
                     if(first.i === 0 && first.s === 200) {
-                        res()
-                    } else rej()
+                        resolveOnce()
+                    } else rejectOnce(new Error('Authorization failed'))
                     break
                 }
                 case 'c':
                     clearInterval(this.heartbeatInterval)
-                    res()
+                    resolveOnce()
                     break
                 default:
                     console.error('Unexpected response token received:')
