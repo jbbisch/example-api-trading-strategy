@@ -194,7 +194,13 @@ TradovateSocket.prototype.connect = async function(url) {
     this.wsUrl = url
     this._connId += 1
     const wsRef = this.ws
-    if (this._onSyncHandler) wsRef.addEventListener('message', this._onSyncHandler)
+    this._onSyncAttachedToWs = false
+    if (this._onSyncHandler) {
+      wsRef.addEventListener('message', this._onSyncHandler)
+      this._onSyncAttachedToWs = true
+      this._syncAttachCount += 1
+      this._dbg('ONSYNC_ATTACH_CONNECT', { syncAttachCount: this._syncAttachCount })
+    }
     this._dbg('WS_CREATED', { url })
     wsRef.setMaxListeners(24)
     this.counter = new Counter()
