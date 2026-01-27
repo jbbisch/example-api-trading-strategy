@@ -131,7 +131,7 @@ TradovateSocket.prototype.synchronize = function(callback) {
 // /**
 //  * Set a function to be called when the socket synchronizes.
 //  */
-TradovateSocket.prototype.onSync = function(callback) {
+TradovateSocket.prototype.onSync = function (callback) {
   this._onSyncCallback = callback
 
   if (!this._onSyncHandler) {
@@ -140,30 +140,33 @@ TradovateSocket.prototype.onSync = function(callback) {
       if (typeof data !== 'string') return
       if (data[0] !== 'a') return
 
-      let parsed
-      try { parsed = JSON.parse(data.slice(1)) } catch (_) { return }
+      let parsedData
+      try { parsedData = JSON.parse(data.slice(1)) } catch (_) { return }
 
-      for (const item of parsed) {
-        if (!item?.d || typeof item.d !== 'object') continue
-        if (
-            Array.isArray(item.d.users) ||
-            Array.isArray(item.d.positions) ||
-            Array.isArray(item.d.orders) ||
-            item.e === 'props' ||
-            item.e === 'clock'
-        ) {
-        this._onSyncCallback?.(item.d)
+      let schemaOk = { value: true }
+      const schemafields = ['users']
+
+      parsedData.forEach(item => {
+        if (!item.d || typeof item.d !== 'object') return
+
+        schemafields.forEach(k => {
+          if (!schemaOk.value) return
+          schemaOk.value = Object.keys(item.d).includes(k) && Array.isArray(item.d[k])
+        })
+
+        if (schemaOk.value) {
+          this._onSyncCallback(item.d)
         }
-      }
+      })
     }
   }
 
-  // IMPORTANT: attach now (but only once per ws)
+  // attach once per socket
   if (this.ws && !this._onSyncAttachedToWs) {
-    this.ws.addEventListener('message', this._onSyncHandler)
-    this._onSyncAttachedToWs = true
     this._syncAttachCount += 1
     this._dbg('ONSYNC_ATTACH', { syncAttachCount: this._syncAttachCount })
+    this.ws.addEventListener('message', this._onSyncHandler)
+    this._onSyncAttachedToWs = true
   }
 }
 
