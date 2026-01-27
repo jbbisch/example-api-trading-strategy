@@ -132,44 +132,36 @@ TradovateSocket.prototype.synchronize = function(callback) {
 //  * Set a function to be called when the socket synchronizes.
 //  */
 TradovateSocket.prototype.onSync = function(callback) {
-    if (this._onSyncAttached) return
-    this._onSyncAttached = true
-    this._syncAttachCount += 1
-    this._dbg('ONSYNC_ATTACH', { syncAttachCount: this._syncAttachCount })
-    this.ws.addEventListener('message', async msg => {
-        const { data } = msg
-        const kind = data.slice(0,1)
-        switch(kind) {
-            case 'a':
-                const  parsedData = JSON.parse(msg.data.slice(1))
-                // console.log(parsedData)
-                let schemaOk = {}
-                const schemafields = ['users']
-                parsedData.forEach(data => {
-                    if (!data.d || typeof data.d !== 'object') 
-                        return
-                    schemafields.forEach(k => {
-                        if(schemaOk && !schemaOk.value) {
-                            return
-                        }
-                        if(Object.keys(data.d).includes(k) && Array.isArray(data.d[k])) {
-                            schemaOk = { value: true }
-                        } 
-                        else {
-                            schemaOk = { value: false }
-                        }
-                    })
-                    
-                    if(schemaOk.value) {
-                        callback(data.d)
-                    }
+    this._onSyncCallback = callback
+
+    if (!this._onSyncHandler) {
+        this._onSyncHandler = async (msg) => {
+            const { data } = msg
+            const kind = data.slice(0,1)
+            if (kind === 'a') return
+
+            const parsedData = JSON.parse(msg.data.slice(1))
+            let schemaOk = {}
+            const schemafields = ['users']
+
+            parsedData.forEach(item => {
+                if (!item.d || typeof item.d !== 'object') return
+                schemafields.forEach(k => {
+                    if(schemaOk && !schemaOk.value) return
+                    schemaOk = { value: Object.keys(item.d).includes(k) && Array.isArray(item.d[k]) }
                 })
-                break
-            default:
-                break
+                if(schemaOk.value) this._onSyncCallback(item.d)
+            })
         }
-    })
+    }
+
+    if (this.ws) {
+        this.ws.addEventListener('message', this._onSyncHandler)
+        this._syncAttachCount += 1
+        this._dbg('ONSYNC_ATTACH', { syncAttachCount: this._syncAttachCount })
+    }
 }
+
 TradovateSocket.prototype.setupHeartbeat = function(wsRef) {
     const heartbeatInterval = 2500
     clearInterval(this.heartbeatInterval)
@@ -194,6 +186,7 @@ TradovateSocket.prototype.connect = async function(url) {
     this.wsUrl = url
     this._connId += 1
     const wsRef = this.ws
+    if (this._onSyncHandler) wsRef.addEventListener('message', this._onSyncHandler)
     this._dbg('WS_CREATED', { url })
     wsRef.setMaxListeners(24)
     this.counter = new Counter()
@@ -288,6 +281,9 @@ TradovateSocket.prototype.connect = async function(url) {
 TradovateSocket.prototype.disconnect = function() {
     console.log('closing websocket connection')
     this._dbg('DISCONNECT_BEFORE_CLOSE')
+    if (this.ws && this._onSyncHandler) {
+        try { this.ws.removeEventListener('message', this._onSyncHandler) } catch (_) {}
+    }
     this.ws.removeAllListeners()
     this.ws.close(1000, `Client initiated disconnect.`)
     this.ws = null
