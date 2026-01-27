@@ -298,12 +298,7 @@ TradovateSocket.prototype.connect = async function(url) {
                     break
             }
         })
-    }) 
-        // Request initial sync snapshot after successful connect
-    if (this._onSyncCallback) {
-      this._syncUnsub?.()
-      this._syncUnsub = this.synchronize(this._onSyncCallback)
-    }   
+    })  
 }
 
 TradovateSocket.prototype.disconnect = function() {
