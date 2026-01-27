@@ -145,7 +145,15 @@ TradovateSocket.prototype.onSync = function(callback) {
 
       for (const item of parsed) {
         if (!item?.d || typeof item.d !== 'object') continue
+        if (
+            Array.isArray(item.d.users) ||
+            Array.isArray(item.d.positions) ||
+            Array.isArray(item.d.orders) ||
+            item.e === 'props' ||
+            item.e === 'clock'
+        ) {
         this._onSyncCallback?.(item.d)
+        }
       }
     }
   }
