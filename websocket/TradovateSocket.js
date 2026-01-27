@@ -199,6 +199,11 @@ TradovateSocket.prototype.connect = async function(url) {
     this.counter = new Counter()
     
     await new Promise((res, rej) => {
+        
+        // Request initial sync snapshot after successful connect
+    if (this._onSyncCallback) {
+      this.synchronize(this._onSyncCallback)
+    }
 
         let settled = false
         const resolveOnce = () => {
