@@ -80,16 +80,18 @@ TradovateSocket.prototype.request = function ({ url, query = '', body = {}, call
   send();
 
   // this function will be used on reconnect to rebind the listener AND resend
+  let wsRef = this.ws
+  
+  wsRef.addEventListener('message', listener)
+
   const resubscribe = () => {
-    try {
-        if (listener && this.ws){
-            this.ws.removeEventListener('message', listener);
-        }
+    try {wsRef?.removeEventListener('message', listener)
     } catch (_) {}
 
     // reattach a fresh listener bound to the NEW ws instance
+    wsRef = this.ws
     listener = makeListener();
-    this.ws.addEventListener('message', listener);
+    wsRef.addEventListener('message', listener);
     this._dbg('REQUEST_RESUB_ATTACH', { url, requestId: id })
     send();
     console.log('[tsRequest] resubscribed:', url);
@@ -99,7 +101,7 @@ TradovateSocket.prototype.request = function ({ url, query = '', body = {}, call
     try {
       if (disposer && typeof disposer === 'function') disposer();
       if (listener && this.ws) {
-        this.ws.removeEventListener('message', listener);
+        wsRef.removeEventListener('message', listener);
       }
     } catch (_) {}
     this.subscriptions = this.subscriptions.filter(sub => sub.id !== id);
