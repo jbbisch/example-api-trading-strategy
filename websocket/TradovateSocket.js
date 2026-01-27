@@ -145,10 +145,7 @@ TradovateSocket.prototype.onSync = function(callback) {
 
       for (const item of parsed) {
         if (!item?.d || typeof item.d !== 'object') continue
-        if (Array.isArray(item.d.users)) {
-          this._onSyncCallback?.(item.d)
-          return
-        }
+        this._onSyncCallback?.(item.d)
       }
     }
   }
@@ -278,13 +275,16 @@ TradovateSocket.prototype.connect = async function(url) {
     }) 
         // Request initial sync snapshot after successful connect
     if (this._onSyncCallback) {
-      this.synchronize(this._onSyncCallback)
+      this._syncUnsub?.()
+      this._syncUnsub = this.synchronize(this._onSyncCallback)
     }   
 }
 
 TradovateSocket.prototype.disconnect = function() {
     console.log('closing websocket connection')
     this._dbg('DISCONNECT_BEFORE_CLOSE')
+    this._syncUnsub?.()
+    this._syncUnsub = null
     if (this.ws && this._onSyncHandler) {
         try { this.ws.removeEventListener('message', this._onSyncHandler) } catch (_) {}
     }
