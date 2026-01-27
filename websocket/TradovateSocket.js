@@ -138,7 +138,7 @@ TradovateSocket.prototype.onSync = function(callback) {
         this._onSyncHandler = async (msg) => {
             const { data } = msg
             const kind = data.slice(0,1)
-            if (kind === 'a') return
+            if (kind !== 'a') return
 
             const parsedData = JSON.parse(msg.data.slice(1))
             let schemaOk = {}
@@ -156,7 +156,6 @@ TradovateSocket.prototype.onSync = function(callback) {
     }
 
     if (this.ws) {
-        this.ws.addEventListener('message', this._onSyncHandler)
         this._syncAttachCount += 1
         this._dbg('ONSYNC_ATTACH', { syncAttachCount: this._syncAttachCount })
     }
