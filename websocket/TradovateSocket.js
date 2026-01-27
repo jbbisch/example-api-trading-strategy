@@ -68,8 +68,10 @@ TradovateSocket.prototype.request = function ({ url, query = '', body = {}, call
   };
 
   // initial listener + send
+  let wsRef = this.ws
+
   let listener = makeListener();
-  this.ws.addEventListener('message', listener);
+  wsRef.addEventListener('message', listener);
   this._dbg('REQUEST_ATTACH', { url, requestId: id })
 
   const send = () => {
@@ -80,10 +82,6 @@ TradovateSocket.prototype.request = function ({ url, query = '', body = {}, call
   send();
 
   // this function will be used on reconnect to rebind the listener AND resend
-  let wsRef = this.ws
-  
-  wsRef.addEventListener('message', listener)
-
   const resubscribe = () => {
     try {wsRef?.removeEventListener('message', listener)
     } catch (_) {}
@@ -100,18 +98,16 @@ TradovateSocket.prototype.request = function ({ url, query = '', body = {}, call
   const unsubscribe = () => {
     try {
       if (disposer && typeof disposer === 'function') disposer();
-      if (listener && this.ws) {
-        wsRef.removeEventListener('message', listener);
-      }
-    } catch (_) {}
-    this.subscriptions = this.subscriptions.filter(sub => sub.id !== id);
-  };
+      try { wsRef?.removeEventListener('message', listener) } catch (_) {}
+    } finally {
+      this.subscriptions = this.subscriptions.filter(sub => sub.id !== id);
+    };
 
   // keep everything we need to resubscribe later
   this.subscriptions.push({ url, query, body, callback, disposer, resubscribe, unsubscribe, id });
 
   return unsubscribe;
-}
+  }}
 
 TradovateSocket.prototype.synchronize = function(callback) {
     if(!this.ws || this.ws.readyState !== WebSocket.OPEN) {
@@ -200,13 +196,28 @@ TradovateSocket.prototype.connect = async function(url) {
     this.counter = new Counter()
     
     await new Promise((res, rej) => {
+
+        let settled = false
+        const resolveOnce = () => {
+            if (!settled) {
+                settled = true
+                res()
+            }
+        }
+        const rejectOnce = (err) => {
+            if (!settled) {
+                settled = true
+                rej(err)
+            }
+        }
+
         wsRef.addEventListener('open', () => {
             if (this.ws !== wsRef) return // stale event
             this._dbg('OPEN_EVENT')
             wsRef.send(`authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
             this.reconnectAttempts = 0
             this.setupHeartbeat()
-            res()
+            resolveOnce()
         })
 
         wsRef.addEventListener('error', err => {
@@ -215,7 +226,7 @@ TradovateSocket.prototype.connect = async function(url) {
             clearInterval(this.heartbeatInterval)
             this.reconnect()
             this.reconnectAttempts += 1
-            rej(err)
+            rejectOnce(err)
         })
 
         wsRef.addEventListener('close', event => {
@@ -226,7 +237,8 @@ TradovateSocket.prototype.connect = async function(url) {
                 this.reconnect()
                 this.reconnectAttempts += 1
             }
-            res()
+            if (settled) return
+            rejectOnce(new Error('Socket closed before ready'))
         })
 
         wsRef.addEventListener('message', async msg => {
