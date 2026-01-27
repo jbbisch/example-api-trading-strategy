@@ -75,8 +75,8 @@ TradovateSocket.prototype.request = function ({ url, query = '', body = {}, call
   this._dbg('REQUEST_ATTACH', { url, requestId: id })
 
   const send = () => {
-    if (this.ws.readyState === 1) { // WebSocket.OPEN
-      this.ws.send(`${url}\n${id}\n${query}\n${JSON.stringify(body)}`);
+    if (wsRef && wsRef.readyState === WebSocket.OPEN) { // WebSocket.OPEN
+      wsRef.send(`${url}\n${id}\n${query}\n${JSON.stringify(body)}`);
     }
   };
   send();
@@ -264,7 +264,6 @@ TradovateSocket.prototype.connect = async function(url) {
                 }
                 case 'h':
                     this.setupHeartbeat()
-                    resolveOnce()
                     break
                 case 'a': {
                     const parsedData = JSON.parse(msg.data.slice(1))
@@ -276,7 +275,6 @@ TradovateSocket.prototype.connect = async function(url) {
                 }
                 case 'c':
                     clearInterval(this.heartbeatInterval)
-                    resolveOnce()
                     break
                 default:
                     console.error('Unexpected response token received:')
