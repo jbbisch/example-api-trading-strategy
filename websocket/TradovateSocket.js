@@ -170,12 +170,12 @@ TradovateSocket.prototype.onSync = function(callback) {
         }
     })
 }
-TradovateSocket.prototype.setupHeartbeat = function() {
+TradovateSocket.prototype.setupHeartbeat = function(wsRef) {
     const heartbeatInterval = 2500
     clearInterval(this.heartbeatInterval)
     this.heartbeatInterval = setInterval(() => {
-        if(this.isConnected()) {
-            this.ws.send('[]')
+        if(wsRef && wsRef.readyState === WebSocket.OPEN) {
+            wsRef.send('[]')
             //console.log('INTERVAL heartbeat sent to server')
         }
     }, heartbeatInterval)
@@ -219,7 +219,7 @@ TradovateSocket.prototype.connect = async function(url) {
             this._dbg('OPEN_EVENT')
             wsRef.send(`authorize\n0\n\n${process.env.ACCESS_TOKEN}`)
             this.reconnectAttempts = 0
-            this.setupHeartbeat()
+            this.setupHeartbeat(wsRef)
         })
 
         wsRef.addEventListener('error', err => {
@@ -263,7 +263,7 @@ TradovateSocket.prototype.connect = async function(url) {
                     break
                 }
                 case 'h':
-                    this.setupHeartbeat()
+                    this.setupHeartbeat(wsRef)
                     break
                 case 'a': {
                     const parsedData = JSON.parse(msg.data.slice(1))
