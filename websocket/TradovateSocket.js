@@ -186,24 +186,12 @@ TradovateSocket.prototype.connect = async function(url) {
     this.wsUrl = url
     this._connId += 1
     const wsRef = this.ws
-    this._onSyncAttachedToWs = false
-    if (this._onSyncHandler) {
-      wsRef.addEventListener('message', this._onSyncHandler)
-      this._onSyncAttachedToWs = true
-      this._syncAttachCount += 1
-      this._dbg('ONSYNC_ATTACH_CONNECT', { syncAttachCount: this._syncAttachCount })
-    }
     if (this._onSyncHandler) wsRef.addEventListener('message', this._onSyncHandler)
     this._dbg('WS_CREATED', { url })
     wsRef.setMaxListeners(24)
     this.counter = new Counter()
     
     await new Promise((res, rej) => {
-        
-        // Request initial sync snapshot after successful connect
-    if (this._onSyncCallback) {
-      this.synchronize(this._onSyncCallback)
-    }
 
         let settled = false
         const resolveOnce = () => {
@@ -287,7 +275,11 @@ TradovateSocket.prototype.connect = async function(url) {
                     break
             }
         })
-    })    
+    }) 
+        // Request initial sync snapshot after successful connect
+    if (this._onSyncCallback) {
+      this.synchronize(this._onSyncCallback)
+    }   
 }
 
 TradovateSocket.prototype.disconnect = function() {
@@ -337,10 +329,6 @@ TradovateSocket.prototype.reconnect = async function () {
             try { this.disconnect() } catch (_) {}
 
             await this.connect(this.wsUrl)
-            
-            if (this._onSyncCallback) {
-              this.synchronize(this._onSyncCallback)
-}
 
             //resubscribe
             this.subscriptions.forEach(sub => sub?.resubscribe?.())
