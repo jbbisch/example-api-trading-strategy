@@ -299,6 +299,7 @@ TradovateSocket.prototype.disconnect = function() {
     if (this.ws && this._onSyncHandler) {
         try { this.ws.removeEventListener('message', this._onSyncHandler) } catch (_) {}
     }
+    this._onSyncAttachedToWs = false
     this.ws.removeAllListeners()
     this.ws.close(1000, `Client initiated disconnect.`)
     this.ws = null
