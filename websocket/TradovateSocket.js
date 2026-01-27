@@ -24,7 +24,7 @@ function TradovateSocket() {
     this.wsUrl = null
     this._connId = 0
     this._syncAttachCount = 0
-    this._reconnectingTimer = null
+    this._reconnectTimer = null
     this._reconnecting = false
 }
 
@@ -184,7 +184,7 @@ TradovateSocket.prototype.setupHeartbeat = function() {
  */
 TradovateSocket.prototype.connect = async function(url) {
     // if already active, don't open a second socket
-    if (this.ws && (this.ws.reaadyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
+    if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
         this._dbg('CONNECT_SKIPPED_ALREADY_ACTIVE', { url })
         return
     }
@@ -293,7 +293,7 @@ TradovateSocket.prototype.reconnect = async function () {
         return;
     }
     // Don't allow concurrent reconnect attempts
-    if (this._reconnecTimer || this._reconnecting) {
+    if (this._reconnectTimer || this._reconnecting) {
         this._dbg('RECONNECT_SKIPPED_ALREADY_RECONNECTING')
         return;
     }
@@ -330,41 +330,17 @@ TradovateSocket.prototype.reconnect = async function () {
                 }
                 this.strategy.state = state;
                 console.log('[TsReconnect] Strategy reinitialized and buffer restored.');
-
-                // Manually trigger next() and drawEffect
-                const last = state.buffer?.last?.() || oldBuffer[oldBuffer.length - 1];
-                if (last) {
-                    if (typeof this.strategy.next === 'function') {
-                        this.strategy.state = this.strategy.next(state, ['Chart', { data: last, props: strategyProps }]).state;
-                        console.log('[TsReconnect] Manually triggered strategy.next()');
-                    }
-
-                    if (typeof this.strategy.drawEffect === 'function') {
-                        this.strategy.drawEffect(this.strategy.state, ['crossover/draw', { props: strategyProps }]);
-                        console.log('[TsReconnect] Manually triggered strategy.drawEffect()');
-                    }
-                } else {
-                    console.log('[TsReconnect] No strategy to reinitialize.');
-                }
-
-                // Resynchronize with server
-                this.synchronize(data => { 
-                    if (typeof this.onSync === 'function') {
-                    //this.onSync(data);
-                    }
-                    console.log('[TsReconnect] Subscribed to sync events.');
-                });
-
-                this.reconnectAttempts = 0; // success — reset counter
-                this._dbg('RECONNECT_SUCCESSFUL');
-            }   catch (err) {
-                console.error('[TsReconnect] Reconnection failed:', err);
-                this.reconnectAttempts += 1;
-                this._reconnecting = false;
-                return this.reconnect(); // try again
-            }   finally {
-                this._reconnecting = false;
             }
+            
+            this.reconnectAttempts = 0; // success — reset counter
+            this._dbg('RECONNECT_SUCCESSFUL');
+        }   catch (err) {
+            console.error('[TsReconnect] Reconnection failed:', err);
+            this.reconnectAttempts += 1;
+            this._reconnecting = false;
+            return this.reconnect(); // try again
+        }   finally {
+            this._reconnecting = false;
         }
     }, backoff)
 }
