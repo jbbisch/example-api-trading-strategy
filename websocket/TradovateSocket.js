@@ -131,7 +131,7 @@ TradovateSocket.prototype.synchronize = function(callback) {
 // /**
 //  * Set a function to be called when the socket synchronizes.
 //  */
-TradovateSocket.prototype.onSync = function (callback) {
+TradovateSocket.prototype.onSync = function(callback) {
   this._onSyncCallback = callback
 
   if (!this._onSyncHandler) {
@@ -140,33 +140,25 @@ TradovateSocket.prototype.onSync = function (callback) {
       if (typeof data !== 'string') return
       if (data[0] !== 'a') return
 
-      let parsedData
-      try { parsedData = JSON.parse(data.slice(1)) } catch (_) { return }
+      let parsed
+      try { parsed = JSON.parse(data.slice(1)) } catch (_) { return }
 
-      let schemaOk = { value: true }
-      const schemafields = ['users']
-
-      parsedData.forEach(item => {
-        if (!item.d || typeof item.d !== 'object') return
-
-        schemafields.forEach(k => {
-          if (!schemaOk.value) return
-          schemaOk.value = Object.keys(item.d).includes(k) && Array.isArray(item.d[k])
-        })
-
-        if (schemaOk.value) {
-          this._onSyncCallback(item.d)
+      for (const item of parsed) {
+        if (!item?.d || typeof item.d !== 'object') continue
+        if (Array.isArray(item.d.users)) {
+          this._onSyncCallback?.(item.d)
+          return
         }
-      })
+      }
     }
   }
 
-  // attach once per socket
+  // IMPORTANT: attach now (but only once per ws)
   if (this.ws && !this._onSyncAttachedToWs) {
-    this._syncAttachCount += 1
-    this._dbg('ONSYNC_ATTACH', { syncAttachCount: this._syncAttachCount })
     this.ws.addEventListener('message', this._onSyncHandler)
     this._onSyncAttachedToWs = true
+    this._syncAttachCount += 1
+    this._dbg('ONSYNC_ATTACH', { syncAttachCount: this._syncAttachCount })
   }
 }
 
@@ -194,13 +186,7 @@ TradovateSocket.prototype.connect = async function(url) {
     this.wsUrl = url
     this._connId += 1
     const wsRef = this.ws
-    this._onSyncAttachedToWs = false
-    if (this._onSyncHandler) {
-      wsRef.addEventListener('message', this._onSyncHandler)
-      this._onSyncAttachedToWs = true
-      this._syncAttachCount += 1
-      this._dbg('ONSYNC_ATTACH_CONNECT', { syncAttachCount: this._syncAttachCount })
-    }
+    if (this._onSyncHandler) wsRef.addEventListener('message', this._onSyncHandler)
     this._dbg('WS_CREATED', { url })
     wsRef.setMaxListeners(24)
     this.counter = new Counter()
@@ -292,20 +278,16 @@ TradovateSocket.prototype.connect = async function(url) {
     }) 
         // Request initial sync snapshot after successful connect
     if (this._onSyncCallback) {
-      this._syncUnsub?.()
-      this._syncUnsub = this.synchronize(this._onSyncCallback)
+      this.synchronize(this._onSyncCallback)
     }   
 }
 
 TradovateSocket.prototype.disconnect = function() {
     console.log('closing websocket connection')
     this._dbg('DISCONNECT_BEFORE_CLOSE')
-    this._syncUnsub?.()
-    this._syncUnsub = null
     if (this.ws && this._onSyncHandler) {
         try { this.ws.removeEventListener('message', this._onSyncHandler) } catch (_) {}
     }
-    this._onSyncAttachedToWs = false
     this.ws.removeAllListeners()
     this.ws.close(1000, `Client initiated disconnect.`)
     this.ws = null
