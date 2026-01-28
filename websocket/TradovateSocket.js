@@ -1,5 +1,3 @@
-This is what I currently have running, I need to wait and observe to see if there are any issues with it before we change anything. 
-
 const WebSocket = require('ws')
 const { writeToLog } = require('../utils/helpers')
 const { clear, error } = require('winston')
