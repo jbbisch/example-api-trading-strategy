@@ -147,23 +147,23 @@ TradovateSocket.prototype.onSync = function (callback) {
       for (const item of parsed) {
         if (!item || typeof item !== 'object') continue
         const d = item.d
+        if (!d || typeof d !== 'object') continue
 
-        // 1) Initial sync snapshot typically contains users[]
-        if (d && typeof d === 'object' && Array.isArray(d.users)) {
-          this._onSyncCallback?.(d)
+        // Initial sync snapshot
+        if (Array.isArray(d.users)) {
+          this._onSyncCallback(d)
           continue
         }
 
-        // 2) Real-time user updates come as props (positions, cashBalance, orders, etc.)
-        // Position updates contain: d.entityType === 'position' and d.entity.netPos  [oai_citation:1‡Tradovate Forum](https://community.tradovate.com/t/request-rate-limitations-of-orders-positions-and-getting-list-of-positions-list-of-orders-and-etc-in-tradovate-api/3255?utm_source=chatgpt.com)
-        if (item.e === 'props' && d && typeof d === 'object') {
-          this._onSyncCallback?.(d)
+        // Ongoing updates (positions, orders, fills, cashBalance, etc.)
+        if (item.e === 'props') {
+          this._onSyncCallback(d)
           continue
         }
 
-        // (optional) some clients also forward clock events to the same callback
-        if (item.e === 'clock' && d && typeof d === 'object') {
-          this._onSyncCallback?.(d)
+        // (optional) clock ticks if you were using them
+        if (item.e === 'clock') {
+          this._onSyncCallback(d)
           continue
         }
       }
