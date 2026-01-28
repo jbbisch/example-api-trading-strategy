@@ -1,3 +1,5 @@
+This is what I currently have running, I need to wait and observe to see if there are any issues with it before we change anything. 
+
 const WebSocket = require('ws')
 const { writeToLog } = require('../utils/helpers')
 const { clear, error } = require('winston')
@@ -119,8 +121,10 @@ TradovateSocket.prototype.synchronize = function(callback) {
         url: 'user/syncrequest',
         body: { accounts: [parseInt(process.env.ID, 10)] },
         callback: (id, data) => { 
-            if(data.i === id || data.e === 'props' || data.e && data.e === 'clock') {
-                callback({ ...data.d, _e: data.e, _i: data.i })
+            if(data.i === id
+            || (data.e && data.e === 'props')
+            || (data.e && data.e === 'clock')) {
+                callback(data.d)
             }
         }
     })
@@ -138,33 +142,24 @@ TradovateSocket.prototype.onSync = function (callback) {
       if (typeof data !== 'string') return
       if (data[0] !== 'a') return
 
-      let parsed
-      try { parsed = JSON.parse(data.slice(1)) } catch (_) { return }
-      if (!Array.isArray(parsed)) return
+      let parsedData
+      try { parsedData = JSON.parse(data.slice(1)) } catch (_) { return }
 
-      for (const item of parsed) {
-        if (!item || typeof item !== 'object') continue
-        const d = item.d
-        if (!d || typeof d !== 'object') continue
+      let schemaOk = { value: true }
+      const schemafields = ['users']
 
-        // Initial sync snapshot
-        if (Array.isArray(d.users)) {
-          this._onSyncCallback({ ...d, _e: item.e, _i: item.i })
-          continue
+      parsedData.forEach(item => {
+        if (!item.d || typeof item.d !== 'object') return
+
+        schemafields.forEach(k => {
+          if (!schemaOk.value) return
+          schemaOk.value = Object.keys(item.d).includes(k) && Array.isArray(item.d[k])
+        })
+
+        if (schemaOk.value) {
+          this._onSyncCallback(item.d)
         }
-
-        // Ongoing updates (positions, orders, fills, cashBalance, etc.)
-        if (item.e === 'props') {
-          this._onSyncCallback({ ...d, _e: item.e, _i: item.i })
-          continue
-        }
-
-        // (optional) clock ticks if you were using them
-        if (item.e === 'clock') {
-          this._onSyncCallback({ ...d, _e: item.e, _i: item.i })
-          continue
-        }
-      }
+      })
     }
   }
 
