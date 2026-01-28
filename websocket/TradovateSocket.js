@@ -119,10 +119,8 @@ TradovateSocket.prototype.synchronize = function(callback) {
         url: 'user/syncrequest',
         body: { accounts: [parseInt(process.env.ID, 10)] },
         callback: (id, data) => { 
-            if(data.i === id
-            || (data.e && data.e === 'props')
-            || (data.e && data.e === 'clock')) {
-                callback(data.d)
+            if(data.i === id || data.e === 'props' || data.e && data.e === 'clock') {
+                callback({ ...data.d, _e: data.e, _i: data.i })
             }
         }
     })
@@ -151,19 +149,19 @@ TradovateSocket.prototype.onSync = function (callback) {
 
         // Initial sync snapshot
         if (Array.isArray(d.users)) {
-          this._onSyncCallback(d)
+          this._onSyncCallback({ ...d, _e: item.e, _i: item.i })
           continue
         }
 
         // Ongoing updates (positions, orders, fills, cashBalance, etc.)
         if (item.e === 'props') {
-          this._onSyncCallback(d)
+          this._onSyncCallback({ ...d, _e: item.e, _i: item.i })
           continue
         }
 
         // (optional) clock ticks if you were using them
         if (item.e === 'clock') {
-          this._onSyncCallback(d)
+          this._onSyncCallback({ ...d, _e: item.e, _i: item.i })
           continue
         }
       }
