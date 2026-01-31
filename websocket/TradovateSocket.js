@@ -24,6 +24,8 @@ function TradovateSocket() {
   this.wsUrl = null
   this._connId = 0
   this._syncAttachCount = 0
+  this._reconnectCalls = 0
+  this._lastReconnectAt = 0
 }
 
 TradovateSocket.prototype.getSocket = function () {
@@ -320,6 +322,15 @@ TradovateSocket.prototype.isConnected = function () {
  * Attempts to reconnect the WebSocket after an unexpected closure.
  */
 TradovateSocket.prototype.reconnect = async function () {
+  this._reconnectCalls += 1
+  this._lastReconnectAt = Date.now()
+  this._dbg('RECONNECT_CALL', {
+    reconnectCalls: this._reconnectCalls,
+    reconnectAttempts: this.reconnectAttempts,
+    wsState: this.ws ? this.ws.readyState : null,
+    hasUrl: !!this.wsUrl,
+  })
+
   if (!this.wsUrl) {
     console.error('[TsReconnect] No WebSocket URL available for reconnection.')
     return
@@ -351,7 +362,10 @@ TradovateSocket.prototype.reconnect = async function () {
         console.log('[TsReconnect] Reconnecting to:', this.wsUrl)
         await this.connect(this.wsUrl)
         console.log('[TsReconnect] WebSocket reconnected.')
-        this._dbg('AFTER_RECONNECT_CONNECT')
+        this._dbg('AFTER_RECONNECT_CONNECTED', {
+          reconnectCalls: this._reconnectCalls,
+          connId: this._connId,
+        })
 
         // Resubscribe to stored subscriptions
         this.subscriptions.forEach((sub) => {
@@ -424,6 +438,8 @@ TradovateSocket.prototype.getDebugStats = function () {
     wsState: ws ? ws.readyState : null,
     messageListeners: ws && typeof ws.listenerCount === 'function' ? ws.listenerCount('message') : null,
     syncAttachCount: this._syncAttachCount,
+    reconnectCalls: this._reconnectCalls,
+    lastReconnectAt: this._lastReconnectAt,
   }
 }
 
