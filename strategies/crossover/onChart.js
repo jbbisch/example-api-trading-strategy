@@ -18,13 +18,13 @@ const onChart = (prevState, {data, props}) => {
     // Update SMA only at specific intervals
     const dataPause = 1 * 60 * 1000 // 1 minute pause after processing data
     if (prevState.lastSMAUpdate && now - prevState.lastSMAUpdate < dataPause) {
-        console.log('[onChart] Waiting for next SMA update interval', prevState.lastSMAUpdate);
+        //console.log('[onChart] Waiting for next SMA update interval', prevState.lastSMAUpdate);
         return { state: prevState, effects: [] };
     }
 
     const chillOut = 4 * 60 * 1000 // 4 minutes pause after placing an order
     if (prevState.lastTradeTime && now - prevState.lastTradeTime < chillOut) {
-        console.log('[OnChart] Chill out time')
+        //console.log('[OnChart] Chill out time')
         return { state: prevState, effects: [] }
     }
 
@@ -32,7 +32,7 @@ const onChart = (prevState, {data, props}) => {
     const seconds = now.getSeconds()
 
     if(minutes % 5 !== 0 || seconds > 30 ) { 
-        console.log('[onChart] Not a 5 minute interval - skip processing')
+        //console.log('[onChart] Not a 5 minute interval - skip processing')
         return { state: prevState, effects: [] }
     } // 30 second window on every 5th minute interval to update SMA and place order
       // allows for delay in data feed and tries to avoid false signals
@@ -54,10 +54,10 @@ const onChart = (prevState, {data, props}) => {
         const lockAge = nowTs - (prevState.orderInFlightAt ?? nowTs)
 
         if (lockAge > ORDER_TIMEOUT_MS) {
-            console.warn('[onChart] FAILSAFE UNLOCK:', 'OrderInFlight stuck for', lockAge, 'ms - unlocking')
+            //console.warn('[onChart] FAILSAFE UNLOCK:', 'OrderInFlight stuck for', lockAge, 'ms - unlocking')
             return { state: {...prevState, orderInFlight: false, orderInFlightAt: null }, effects: [] }
         }
-        console.log('[onChart] Order in flight - waiting for fill')
+        //console.log('[onChart] Order in flight - waiting for fill')
         return { state: prevState, effects: [] }
     }
 
@@ -93,9 +93,9 @@ const onChart = (prevState, {data, props}) => {
                 prevDistance: prevDistance,
                 distance: distance
             })
-            console.log('[onChart] distanceArray:', distanceArray)
+            //console.log('[onChart] distanceArray:', distanceArray)
         } else {
-            console.log('[onChart] distance is undefined')
+            //console.log('[onChart] distance is undefined')
         }
     }
 
@@ -103,9 +103,9 @@ const onChart = (prevState, {data, props}) => {
         if (label) {
             const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false})
             triggerArray.push(`${timestamp} - ${label}`)
-            console.log('[onChart] trigger logged:', `${timestamp} - ${label}`)
+            //console.log('[onChart] trigger logged:', `${timestamp} - ${label}`)
         } else {
-            console.log('[onChart] triggerSource is undefined')
+            //console.log('[onChart] triggerSource is undefined')
         }
     }
 
@@ -223,8 +223,8 @@ const onChart = (prevState, {data, props}) => {
     // USE DURING BULL MARKET INSTEAD OF WATCH AND SHORT ##########
     if(mode === LongShortMode.Long && negEdge) {
         if(currentPositionSize >= maxPosition) {
-            console.log('[onChart] liquidatePosition 2:', placeOrder)
-            console.log('[onChart] mode 2 placeOrder:', mode)
+            //console.log('[onChart] liquidatePosition 2:', placeOrder)
+            //console.log('[onChart] mode 2 placeOrder:', mode)
             nextStrategyNetPos = Math.max(currentPositionSize - 1, 0)
             prevState.lastTradeTime = Date.now()
             placeOrder({
@@ -255,7 +255,7 @@ const onChart = (prevState, {data, props}) => {
                     else if (nextTlcState.PositiveReversalBreakdown) {
                         const reason = nextTlcState.PositiveReversalBreakdownReason ? `(${nextTlcState.PositiveReversalBreakdownReason})` : ''
                         trackTrigger(sellLog, `PRBnc${reason}`)
-                console.log('[onChart] response 2:', response)   
+                //console.log('[onChart] response 2:', response)   
                 return {
                     state: {
                         ...prevState,
@@ -285,10 +285,10 @@ const onChart = (prevState, {data, props}) => {
                     ],
                 }
             }}).catch(err => {
-                console.error('[onChart] Error:', err)
+                //console.error('[onChart] Error:', err)
             })
         } else {
-            console.log('[onChart] no position to liquidate')
+            //console.log('[onChart] no position to liquidate')
             return { state: prevState, effects: [] }
         }
     }
@@ -296,8 +296,8 @@ const onChart = (prevState, {data, props}) => {
     // USE DURING BULL MARKET INSTEAD OF WATCH AND SHORT ##########
     if(mode === LongShortMode.Watch && posEdge) {
         if(currentPositionSize < maxPosition) { 
-            console.log('[onChart] placeOrder 3:', placeOrder)
-            console.log('[onChart] mode 3 buyOrder:', mode)  
+            //console.log('[onChart] placeOrder 3:', placeOrder)
+            //console.log('[onChart] mode 3 buyOrder:', mode)  
             nextStrategyNetPos = Math.min(currentPositionSize + 1, maxPosition)
             prevState.lastTradeTime = Date.now()
             placeOrder({
@@ -346,10 +346,10 @@ const onChart = (prevState, {data, props}) => {
                     ],
                 }
             }).catch(err => {
-                console.error('[onChart] Error:', err)
+                //console.error('[onChart] Error:', err)
             })
         } else {
-            console.log('[onChart] max position reached')
+            //console.log('[onChart] max position reached')
             return { state: prevState, effects: [] }
         }
     }
