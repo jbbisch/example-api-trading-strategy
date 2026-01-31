@@ -625,6 +625,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             prevLongSma: 0,
             prevDistance: 0,
             DVncConfirmedHistory: Array(3).fill(false),
+            DVncConfirmed: false,
             DVncConfirmedBreak: false,
             DriftingVelocityNegativeCrossover: false,
             DriftingVelocityNegativeCrossoverCount: 0,
