@@ -134,6 +134,8 @@ const drawEffect = (state, action) => {
             'WS connId': socketStats?.connId ?? '—',
             'WS listeners': socketStats?.messageListeners ?? '—',
             'WS syncAttach': socketStats?.syncAttachCount ?? '—',
+            'WS reconnects': socketStats?.reconnectCalls ?? '—',
+            'WS lastReconnect': socketStats?.lastReconnectAt ? new Date(socketStats.lastReconnectAt).toLocaleTimeString() : '—',
         })    
     }
 
