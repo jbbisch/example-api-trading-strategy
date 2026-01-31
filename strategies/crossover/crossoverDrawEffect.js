@@ -9,7 +9,7 @@ const drawEffect = (state, action) => {
         const { props } = payload
         const { contract } = props
         const { product, position, mode, buffer, tlc, realizedPnL, buyDistance, sellDistance, buyTriggerSource, sellTriggerSource,} = state
-        const { LikelyNegativeCrossoverCount, PositiveReversalBreakdownReason, prbReasonCounts, prbArmedAt, prbTriggeredAt, PRBArmCount, PRBArmCountAAGMpcBreak, AAGMpcBreakCount, SAGMncBreakCount, SAGMncBreak, slopeFlatHistory, SharpDroppingVelocityNegativeCrossoverCount, SharpDroppingVelocityNegativeCrossoverHistory, flatVelocityHistory, flatMarketEntryConditionCount, flatMarketExitConditionCount, DriftingVelocityPositiveCrossoverConfirmedCount, DriftingVelocityPositiveCrossoverHistory, DriftingVelocityNegativeCrossoverHistory, DriftingVelocityNegativeCrossoverConfirmedCount, shortSmaVelocities, longSmaVelocities, distanceVelocities, distance, shortSma, SMAPositiveCrossoverCount, SMANegativeCrossoverCount, NegativeBounceNegativeCrossoverCount, BouncePositiveCrossoverCount, updatedDistanceValley, AcceleratingAbsoluteGapMomentumCrossoverCount, longSma, distanceOpen, GapMomentumLowCrossover, gapMomentumLowCrossoverCount, absoluteGapMomentum, absoluteGapMomentums, absoluteGapMomentumDifference, absoluteGapMomentumDifferences, slowingAbsoluteGapMomentum, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceOpenValues, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount, slowingAbsoluteGapMomentumCrossoverCount, momentumPeakNegativeCrossoverCount, PositiveReversalBreakdown, PositiveReversalBreakdownCount, reversalAttemptActive, barsSinceReversalAttempt, reversalEntryDistance, minDistanceSinceReversal} = tlc.state  
+        const { DVncConfirmedHistory, DVncConfirmedBreak, LikelyNegativeCrossoverCount, PositiveReversalBreakdownReason, prbReasonCounts, prbArmedAt, prbTriggeredAt, PRBArmCount, PRBArmCountAAGMpcBreak, AAGMpcBreakCount, SAGMncBreakCount, SAGMncBreak, slopeFlatHistory, SharpDroppingVelocityNegativeCrossoverCount, SharpDroppingVelocityNegativeCrossoverHistory, flatVelocityHistory, flatMarketEntryConditionCount, flatMarketExitConditionCount, DriftingVelocityPositiveCrossoverConfirmedCount, DriftingVelocityPositiveCrossoverHistory, DriftingVelocityNegativeCrossoverHistory, DriftingVelocityNegativeCrossoverConfirmedCount, shortSmaVelocities, longSmaVelocities, distanceVelocities, distance, shortSma, SMAPositiveCrossoverCount, SMANegativeCrossoverCount, NegativeBounceNegativeCrossoverCount, BouncePositiveCrossoverCount, updatedDistanceValley, AcceleratingAbsoluteGapMomentumCrossoverCount, longSma, distanceOpen, GapMomentumLowCrossover, gapMomentumLowCrossoverCount, absoluteGapMomentum, absoluteGapMomentums, absoluteGapMomentumDifference, absoluteGapMomentumDifferences, slowingAbsoluteGapMomentum, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceOpenValues, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount, slowingAbsoluteGapMomentumCrossoverCount, momentumPeakNegativeCrossoverCount, PositiveReversalBreakdown, PositiveReversalBreakdownCount, reversalAttemptActive, barsSinceReversalAttempt, reversalEntryDistance, minDistanceSinceReversal} = tlc.state  
 
         const formatDistanceArray = (distanceArray) => {
             if (!distanceArray || distanceArray.length === 0) return 'No Distance'
@@ -74,6 +74,8 @@ const drawEffect = (state, action) => {
             MomentumPeak: updatedMomentumPeak ? updatedMomentumPeak.join(', ') : 'N/A',
             DVpcHistory: (DriftingVelocityPositiveCrossoverHistory || []).map(v => v ? 'true' : 'false').join(', '),
             DVncHistory: (DriftingVelocityNegativeCrossoverHistory || []).map(v => v ? 'true' : 'false').join(', '),
+            DVncConfirmedHistory: (DVncConfirmedHistory || []).map(v => v ? 'true' : 'false').join(', '),
+            DVncConfirmedBreak: DVncConfirmedBreak ? 'true' : 'false',
             flatVelocityHistory: flatVelocityHistory.map(v => v ? 'true' : 'false').join(', '),
             slopeFlatHistory: (slopeFlatHistory || []).map(v => v ? 'true' : 'false').join(', '),
             SDVncHistory: (SharpDroppingVelocityNegativeCrossoverHistory || []).map(v => v ? 'true' : 'false').join(', '),
@@ -106,7 +108,7 @@ const drawEffect = (state, action) => {
             //sellDistance: formattedSellDistance,
             SMAncCount: SMANegativeCrossoverCount,
             LncCount: LikelyNegativeCrossoverCount,
-            DVncCount: DriftingVelocityNegativeCrossoverConfirmedCount,
+            DVncBCount: DriftingVelocityNegativeCrossoverConfirmedCount,
             //FMEncCount: flatMarketExitConditionCount,
             SAGMncCount: SAGMncBreakCount,
             NBncCount: NegativeBounceNegativeCrossoverCount,
