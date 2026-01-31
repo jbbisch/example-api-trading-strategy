@@ -363,7 +363,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const SMANegativeCrossover = (prevState.shortSmaOpen >= prevState.longSmaOpen && distanceOpen < 0.00)
         const NegativeBounceNegativeCrossover = (prevState.distanceOpen >= -0.32 && distanceOpen < -0.32)
         const LikelyNegativeCrossover = (prevState.distance > 0.28 && distance < 0.31)
-        const SlowingAbsoluteGapMomentumCrossover = (distance > 2.70 && updatedSlowingAbsoluteGapMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistancePeak.slice(-3).filter(v => v).length >= 1)
+        const SlowingAbsoluteGapMomentumCrossover = (distance > 2.65 && updatedSlowingAbsoluteGapMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistancePeak.slice(-3).filter(v => v).length >= 1)
         const updatedSAGMncHistory = [...prevState.SlowingAbsoluteGapMomentumCrossoverHistory.slice(1), SlowingAbsoluteGapMomentumCrossover]
         const SAGMncBreak = updatedSAGMncHistory.length >= 2 && updatedSAGMncHistory[updatedSAGMncHistory.length - 2] === true && updatedSAGMncHistory[updatedSAGMncHistory.length - 1] === false
         const SlowingMomentumNegativeCrossover = false //(distance > 2.70 && updatedSlowingMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistancePeak.slice(-3).filter(v => v).length >= 1)
