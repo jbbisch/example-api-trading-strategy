@@ -54,9 +54,12 @@ TradovateSocket.prototype._dbg = function (label, extra = {}) {
 TradovateSocket.prototype.request = function ({ url, query = '', body = {}, callback, disposer }) {
   const id = this.counter.increment()
 
-  // we keep a reference so we can detach exactly this listener if needed
+  // The socket instance this subscription is currently bound to
+  let wsRef = this.ws
+
+  // Build a listener that is bound to THIS requestId and only processes array messages
   const makeListener = () => (msg) => {
-    // only array messages
+    // only array messages (Tradovate sends arrays with leading 'a')
     if (typeof msg?.data !== 'string' || msg.data[0] !== 'a') return
 
     let items = []
@@ -65,47 +68,77 @@ TradovateSocket.prototype.request = function ({ url, query = '', body = {}, call
     } catch (_) {}
 
     for (const item of items) {
-      // deliver all items to the consumer
       callback(id, item)
     }
   }
 
-  // initial listener + send
   let listener = makeListener()
-  this.ws.addEventListener('message', listener)
-  this._dbg('REQUEST_ATTACH', { url, requestId: id })
+
+  const attach = () => {
+    if (!wsRef) return
+    wsRef.addEventListener('message', listener)
+    this._dbg('REQUEST_ATTACH', {
+      url,
+      requestId: id,
+      boundConnId: this._connId,
+      boundWsState: wsRef.readyState,
+      boundListeners:
+        typeof wsRef.listenerCount === 'function' ? wsRef.listenerCount('message') : 'n/a',
+    })
+  }
+
+  const detach = () => {
+    if (!wsRef || !listener) return
+    try {
+      wsRef.removeEventListener('message', listener)
+    } catch (_) {}
+    this._dbg('REQUEST_DETACH', {
+      url,
+      requestId: id,
+      boundConnId: this._connId,
+      boundWsState: wsRef.readyState,
+      boundListeners:
+        typeof wsRef.listenerCount === 'function' ? wsRef.listenerCount('message') : 'n/a',
+    })
+  }
 
   const send = () => {
-    if (this.ws.readyState === 1) {
-      // WebSocket.OPEN
-      this.ws.send(`${url}\n${id}\n${query}\n${JSON.stringify(body)}`)
+    if (!wsRef) return
+    if (wsRef.readyState === WebSocket.OPEN) {
+      wsRef.send(`${url}\n${id}\n${query}\n${JSON.stringify(body)}`)
     }
   }
+
+  // initial bind + send
+  attach()
   send()
 
-  // this function will be used on reconnect to rebind the listener AND resend
+  // used on reconnect to rebind listener to the NEW ws instance AND resend
   const resubscribe = () => {
-    try {
-      if (listener && this.ws) {
-        this.ws.removeEventListener('message', listener)
-      }
-    } catch (_) {}
+    // 1) detach from the OLD socket instance
+    detach()
 
-    // reattach a fresh listener bound to the NEW ws instance
+    // 2) move the reference to the CURRENT socket instance
+    wsRef = this.ws
+
+    // 3) create a fresh listener and attach to the NEW socket instance
     listener = makeListener()
-    this.ws.addEventListener('message', listener)
-    this._dbg('REQUEST_RESUB_ATTACH', { url, requestId: id })
+    attach()
+
+    // 4) resend on the new socket
     send()
+
     console.log('[tsRequest] resubscribed:', url)
   }
 
   const unsubscribe = () => {
     try {
       if (disposer && typeof disposer === 'function') disposer()
-      if (listener && this.ws) {
-        this.ws.removeEventListener('message', listener)
-      }
     } catch (_) {}
+
+    // detach from whichever socket instance we're currently bound to
+    detach()
+
     this.subscriptions = this.subscriptions.filter((sub) => sub.id !== id)
   }
 
