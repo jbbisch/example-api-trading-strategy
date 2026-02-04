@@ -171,17 +171,32 @@ TradovateSocket.prototype.synchronize = function (callback) {
 // /**
 //  * Set a function to be called when the socket synchronizes.
 //  */
-TradovateSocket.prototype.onSync = function (callback) {
+TradovateSocket.prototype.onSync = function(callback) {
   this._syncAttachCount += 1
   this._dbg('ONSYNC_ATTACH', { syncAttachCount: this._syncAttachCount })
-  this.ws.addEventListener('message', async (msg) => {
+
+  this._onSyncCallback = callback
+
+  // detach old handler from old ws, if present
+  if (this._onSyncHandler && this.ws) {
+    try { this.ws.removeEventListener('message', this._onSyncHandler) } catch (_) {}
+  }
+
+  const wsRef = this.ws  // <-- tiny addition
+
+  this._onSyncHandler = async (msg) => {
+    // <-- tiny addition
+    if (this.ws !== wsRef) return
+
     const { data } = msg
     const kind = data.slice(0, 1)
+
     switch (kind) {
-      case 'a':
+      case 'a': {
         const parsedData = JSON.parse(msg.data.slice(1))
         let schemaOk = {}
         const schemafields = ['users']
+
         parsedData.forEach((data) => {
           if (!data.d || typeof data.d !== 'object') return
           schemafields.forEach((k) => {
@@ -194,14 +209,17 @@ TradovateSocket.prototype.onSync = function (callback) {
           })
 
           if (schemaOk.value) {
-            callback(data.d)
+            this._onSyncCallback(data.d)
           }
         })
         break
+      }
       default:
         break
     }
-  })
+  }
+
+  this.ws.addEventListener('message', this._onSyncHandler)
 }
 
 TradovateSocket.prototype.setupHeartbeat = function (wsRef) {
