@@ -359,8 +359,25 @@ TradovateSocket.prototype.connect = async function (url) {
 TradovateSocket.prototype.disconnect = function () {
   console.log('closing websocket connection')
   this._dbg('DISCONNECT_BEFORE_CLOSE')
-  this.ws.removeAllListeners('message')
-  this.ws.close(1000, `Client initiated disconnect.`)
+
+  if (this.ws) {
+    // remove onSync handler if present
+    if (this._onSyncHandler) {
+      try {
+        this.ws.removeEventListener('message', this._onSyncHandler)
+      } catch (_) {}
+    }
+
+    // remove request listeners via their unsubscribe functions
+    this.subscriptions.forEach((sub) => {
+      try {
+        if (typeof sub.unsubscribe === 'function') sub.unsubscribe()
+      } catch (_) {}
+    })
+
+    this.ws.close(1000, 'Client initiated disconnect.')
+  }
+
   this.ws = null
   clearInterval(this.heartbeatInterval)
 }
