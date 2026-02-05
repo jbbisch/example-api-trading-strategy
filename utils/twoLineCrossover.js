@@ -135,6 +135,11 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const updatedDistanceValley = [...prevState.updatedDistanceValley.slice(1), distanceValley]
         if (updatedDistanceValley.length > 10) updatedDistanceValley.shift()
 
+        const longSlopeDown = updatedLongSmaValues.slice(-3).every((v, i, a) => i === 0 || v < a[i-1])
+        const longVelocityBearish = updatedLongSmaVelocities.slice(-3).every(v => v < -0.00010)
+        const distanceWorsening = updatedDistanceVelocities.slice(-3).every(v => v <= -0.12)
+        const trendPressureEasing = !(longSlopeDown && longVelocityBearish && distanceWorsening)
+
         const slowingMomentumNegativeCrossoverCount = prevState.slowingMomentumNegativeCrossoverCount || 0
         //const slowingDistanceMomentumCrossoverCount = prevState.slowingDistanceMomentumCrossoverCount || 0
         const momentumPeakNegativeCrossoverCount = prevState.momentumPeakNegativeCrossoverCount || 0
@@ -165,7 +170,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const DriftingVelocityPositiveCrossover = (updatedDistanceOpenValues.slice(-3).every(v => v < 0.00 && v > -2.50)) && updatedShortSmaVelocities.slice(-5).filter(v => Math.abs(v) < 0.0012).length >= 3 && updatedLongSmaVelocities.slice(-5).filter(v => Math.abs(v) < 0.0012).length >= 3 && updatedDistanceVelocities.slice(-5).filter(v => Math.abs(v) < 0.25).length >= 3
         const updatedDVpcHistory = [...prevState.DriftingVelocityPositiveCrossoverHistory.slice(1), DriftingVelocityPositiveCrossover]
         const DVpcConfirmed = updatedDVpcHistory.slice(-4).every(v => v === true)
-        const flatMarketEntryCondition = (distanceOpen < 0.00 && flatVelocity && !velocityBreakingOut && currentPrice <= twentySma - 1.3 * stdDevTwentySma)
+        const flatMarketEntryCondition = (distanceOpen < 0.00 && flatVelocity && !velocityBreakingOut && currentPrice <= twentySma - 1.3 * stdDevTwentySma && trendPressureEasing)
         const positiveCrossover = SMAPositiveCrossover || AAGMpcBreak || BouncePositiveCrossover || flatMarketEntryCondition || DVpcConfirmed
         
         // =================== PTbandPeak (profit-take) — SMApc-only arming ===================
@@ -181,7 +186,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         //    Start with 1.0 or 1.3 depending on how “small” you want the profit.
         //    (Smaller sigma = more frequent quick profits.)
         const PT_CFG = {
-          bandSigma: 1.0,
+          bandSigma: 1.18,          // band width in std devs
           requireNonFlat: true,     // optional safety gate
           minBarsArmed: 1,          // avoid firing immediately on same bar you arm
           maxBarsArmed: 20          // optional: auto-expire if it never hits
@@ -237,7 +242,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
 
         // =================== end PTbandPeak block ===================
 
-                // ---------- Positive Reversal Breakdown monitor (for positive longs started in negative distance) ----------
+        // ---------- Positive Reversal Breakdown monitor (for positive longs started in negative distance) ----------
                 // ---- PRBnc ARM/DISARM IMPROVEMENTS ----
         const PRB_ARM = {
           allowSMApc: false,
@@ -504,7 +509,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
                 sellTriggerSource.push(`${now} - PRBnc${tag ? '(' + tag + ')' : ''}`)
             }
             if (LikelyNegativeCrossover) sellTriggerSource.push(`${now} - Lnc`)
-            if (PTbandPeakExit) sellTriggerSource.push(`${now} - PTbandPeak`);
+            if (PTbandPeakExit) sellTriggerSource.push(`${now} - PTbandPeak`)
         }
 
         const next = {
