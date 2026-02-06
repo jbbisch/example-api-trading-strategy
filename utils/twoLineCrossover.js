@@ -173,75 +173,6 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const flatMarketEntryCondition = (distanceOpen < 0.00 && flatVelocity && !velocityBreakingOut && currentPrice <= twentySma - 1.3 * stdDevTwentySma && trendPressureEasing)
         const positiveCrossover = SMAPositiveCrossover || AAGMpcBreak || BouncePositiveCrossover || flatMarketEntryCondition || DVpcConfirmed
         
-        // =================== PTbandPeak (profit-take) — SMApc-only arming ===================
-
-        // 1) detect the ENTRY edge of "positiveCrossover" (this is your synthetic "we entered long" moment)
-        const posEdge = positiveCrossover && !prevState.positiveCrossover;
-
-        // 2) PT is eligible ONLY if this entry edge was caused by SMApc.
-        //    This prevents FMEpc → later SMApc from arming PT.
-        const ptEligible = posEdge && SMAPositiveCrossover;
-
-        // 3) Configure PT band (upper band off twentySma). Sigma should be tuned.
-        //    Start with 1.0 or 1.3 depending on how “small” you want the profit.
-        //    (Smaller sigma = more frequent quick profits.)
-        const PT_CFG = {
-          bandSigma: 1.18,          // band width in std devs
-          requireNonFlat: true,     // optional safety gate
-          minBarsArmed: 1,          // avoid firing immediately on same bar you arm
-          maxBarsArmed: 20          // optional: auto-expire if it never hits
-        };
-
-        // 4) PT state (persisted)
-        let ptArmed = !!prevState.ptArmed;
-        let ptArmedBy = prevState.ptArmedBy || null;
-        let ptArmedAtLocal;
-        let ptTriggeredAtLocal;
-        let ptBarsSinceArmed = (prevState.ptBarsSinceArmed || 0);
-
-        // 5) If we arm this bar, do it once and reset the timer
-        if (!ptArmed && ptEligible) {
-          ptArmed = true;
-          ptArmedBy = 'SMApc';
-          ptBarsSinceArmed = 0;
-          ptArmedAtLocal = new Date().toISOString();
-        } else if (ptArmed) {
-          ptBarsSinceArmed += 1;
-        }
-
-        // 6) Compute the PT band and trigger condition.
-        //    "bandPeak" = price closes at/above upper band while armed.
-        const upperBand = twentySma + (PT_CFG.bandSigma * stdDevTwentySma);
-
-        // Optional: require we are not in "flatVelocity" so we aren't taking profits in chop
-        const ptContextOk = PT_CFG.requireNonFlat ? !flatVelocity : true;
-
-        // avoid firing the exact bar we arm (or 0 bars after)
-        const ptMinBarsOk = ptBarsSinceArmed >= PT_CFG.minBarsArmed;
-
-        // This is the actual PT trigger
-        const PTbandPeak = ptArmed && ptContextOk && ptMinBarsOk && (currentPrice >= upperBand);
-
-        // Optional: auto-expire if it never hits
-        const ptExpired = ptArmed && ptBarsSinceArmed >= PT_CFG.maxBarsArmed;
-
-        // 7) PT exit event fires as a negative/exit condition (profit take)
-        const PTbandPeakExit = PTbandPeak;
-
-        // 8) Disarm rules:
-        //    - disarm if it fired
-        //    - disarm if it expires
-        //    - disarm if you are no longer in a "positive trade context"
-        //      (i.e., the strategy is not showing positiveCrossover anymore)
-        if (PTbandPeakExit || ptExpired || negativeCrossover) {
-          if (PTbandPeakExit) ptTriggeredAtLocal = new Date().toISOString();
-          ptArmed = false;
-          ptArmedBy = null;
-          ptBarsSinceArmed = 0;
-        }
-
-        // =================== end PTbandPeak block ===================
-
         // ---------- Positive Reversal Breakdown monitor (for positive longs started in negative distance) ----------
                 // ---- PRBnc ARM/DISARM IMPROVEMENTS ----
         const PRB_ARM = {
@@ -453,9 +384,82 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const flatMarketExitCondition = false //(distanceOpen > 0.00 && flatVelocity && !velocityBreakingOut && currentPrice >= twentySma + stdDevTwentySma)
         const SharpDroppingVelocityNegativeCrossover = false //(updatedLongSmaVelocities.slice(-1).every(v => v <= -0.00010000) && distance < -0.32)
         const updatedSharpDroppingVelocityNegativeCrossoverHistory = [...prevState.SharpDroppingVelocityNegativeCrossoverHistory.slice(1), SharpDroppingVelocityNegativeCrossover]
-        const negativeCrossover = SMANegativeCrossover || LikelyNegativeCrossover ||SAGMncBreak || GapMomentumLowCrossover || NegativeBounceNegativeCrossover || SlowingMomentumNegativeCrossover || MomentumPeakNegativeCrossover || DVncConfirmedBreak || flatMarketExitCondition || DistancePeakNegativeCrossover || SharpDroppingVelocityNegativeCrossover || PositiveReversalBreakdown || PTbandPeakExit
-        
+        const negCore = SMANegativeCrossover || LikelyNegativeCrossover ||SAGMncBreak || GapMomentumLowCrossover || NegativeBounceNegativeCrossover || SlowingMomentumNegativeCrossover || MomentumPeakNegativeCrossover || DVncConfirmedBreak || flatMarketExitCondition || DistancePeakNegativeCrossover || SharpDroppingVelocityNegativeCrossover || PositiveReversalBreakdown
 
+        // =================== PTbandPeak (profit-take) — SMApc-only arming ===================
+
+        // 1) detect the ENTRY edge of "positiveCrossover" (this is your synthetic "we entered long" moment)
+        const posEdge = positiveCrossover && !prevState.positiveCrossover;
+
+        // 2) PT is eligible ONLY if this entry edge was caused by SMApc.
+        //    This prevents FMEpc → later SMApc from arming PT.
+        const ptEligible = posEdge && SMAPositiveCrossover;
+
+        // 3) Configure PT band (upper band off twentySma). Sigma should be tuned.
+        //    Start with 1.0 or 1.3 depending on how “small” you want the profit.
+        //    (Smaller sigma = more frequent quick profits.)
+        const PT_CFG = {
+          bandSigma: 1.18,          // band width in std devs
+          requireNonFlat: true,     // optional safety gate
+          minBarsArmed: 1,          // avoid firing immediately on same bar you arm
+          maxBarsArmed: 20          // optional: auto-expire if it never hits
+        };
+
+        // 4) PT state (persisted)
+        let ptArmed = !!prevState.ptArmed;
+        let ptArmedBy = prevState.ptArmedBy || null;
+        let ptArmedAtLocal;
+        let ptTriggeredAtLocal;
+        let ptBarsSinceArmed = (prevState.ptBarsSinceArmed || 0);
+
+        // 5) If we arm this bar, do it once and reset the timer
+        if (!ptArmed && ptEligible) {
+          ptArmed = true;
+          ptArmedBy = 'SMApc';
+          ptBarsSinceArmed = 0;
+          ptArmedAtLocal = new Date().toISOString();
+        } else if (ptArmed) {
+          ptBarsSinceArmed += 1;
+        }
+
+        // 6) Compute the PT band and trigger condition.
+        //    "bandPeak" = price closes at/above upper band while armed.
+        const upperBand = twentySma + (PT_CFG.bandSigma * stdDevTwentySma);
+
+        // Optional: require we are not in "flatVelocity" so we aren't taking profits in chop
+        const ptContextOk = PT_CFG.requireNonFlat ? !flatVelocity : true;
+
+        // avoid firing the exact bar we arm (or 0 bars after)
+        const ptMinBarsOk = ptBarsSinceArmed >= PT_CFG.minBarsArmed;
+
+        // This is the actual PT trigger
+        const PTbandPeak = ptArmed && ptContextOk && ptMinBarsOk && (currentPrice >= upperBand);
+
+        // Optional: auto-expire if it never hits
+        const ptExpired = ptArmed && ptBarsSinceArmed >= PT_CFG.maxBarsArmed;
+
+        // 7) PT exit event fires as a negative/exit condition (profit take)
+        const PTbandPeakExit = PTbandPeak;
+
+        // 8) Disarm rules:
+        //    - disarm if it fired
+        //    - disarm if it expires
+        //    - disarm if you are no longer in a "positive trade context"
+        //      (i.e., the strategy is not showing positiveCrossover anymore)
+        const negEdge = negCore && !prevState.negativeCrossover
+
+        if (PTbandPeakExit || ptExpired || negEdge) {
+          if (PTbandPeakExit) ptTriggeredAtLocal = new Date().toISOString();
+          ptArmed = false;
+          ptArmedBy = null;
+          ptBarsSinceArmed = 0;
+        }
+
+        // =================== end PTbandPeak block ===================
+
+
+        const negativeCrossover = negCore || PTbandPeakExit
+        
         const updatedAcceleratingAbsoluteGapMomentumCrossoverCount = AcceleratingAbsoluteGapMomentumCrossover ? AcceleratingAbsoluteGapMomentumCrossoverCount + 1 : AcceleratingAbsoluteGapMomentumCrossoverCount
         const updatedSMANegativeCrossoverCount = SMANegativeCrossover ? SMANegativeCrossoverCount + 1 : SMANegativeCrossoverCount
         const updatedSMAPositiveCrossoverCount = SMAPositiveCrossover ? SMAPositiveCrossoverCount + 1 : SMAPositiveCrossoverCount
