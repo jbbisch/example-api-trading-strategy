@@ -286,10 +286,10 @@ TradovateSocket.prototype.connect = async function (url) {
       )
       clearInterval(this.heartbeatInterval) // Clear the heartbeat interval on close
       if (event.code !== 1000) {
-        // Non-normal closure should try to reconnect
-        console.log('(onClose) Attempting to reconnect...')
+      // Non-normal closure should try to reconnect
+      console.log('(onClose) Attempting to reconnect...')
       if (!this._reconnecting && !this._reconnectTimer) this.reconnect()
-        this.reconnectAttempts += 1
+      this.reconnectAttempts += 1
       }
       res()
     })
