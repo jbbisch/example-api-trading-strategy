@@ -391,7 +391,8 @@ TradovateSocket.prototype.disconnect = function () {
     try {
       this.ws.close(1000, 'Client initiated disconnect.')
     } catch (_) {}
-
+  }
+  
   this.ws = null
   clearInterval(this.heartbeatInterval)
 }
@@ -522,6 +523,8 @@ TradovateSocket.prototype.reconnect = async function () {
         console.error('[TsReconnect] Reconnection failed:', err)
         this.reconnectAttempts += 1
         this.reconnect() // try again
+      } finally {
+        this._reconnecting = false
       }
     }, backoff)
   }
