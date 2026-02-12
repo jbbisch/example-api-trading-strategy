@@ -25,7 +25,9 @@ function TradovateSocket() {
   this._connId = 0
   this._syncAttachCount = 0
   this._reconnectCalls = 0
-  this._lastReconnectAt = 0
+  this._lastReconnectAt = 0  
+  this._reconnectTimer = null
+  this._reconnecting = false
 }
 
 TradovateSocket.prototype.getSocket = function () {
@@ -272,7 +274,7 @@ TradovateSocket.prototype.connect = async function (url) {
       if (this.ws !== wsRef) return // <— added stale guard
       console.error('[ConnectErrorEvent] Websocket error: ' + err)
       clearInterval(this.heartbeatInterval)
-      this.reconnect()
+      if (!this._reconnecting && !this._reconnectTimer) this.reconnect()
       this.reconnectAttempts += 1
       rej(err)
     })
@@ -286,7 +288,7 @@ TradovateSocket.prototype.connect = async function (url) {
       if (event.code !== 1000) {
         // Non-normal closure should try to reconnect
         console.log('(onClose) Attempting to reconnect...')
-        this.reconnect()
+      if (!this._reconnecting && !this._reconnectTimer) this.reconnect()
         this.reconnectAttempts += 1
       }
       res()
@@ -360,6 +362,12 @@ TradovateSocket.prototype.disconnect = function () {
   console.log('closing websocket connection')
   this._dbg('DISCONNECT_BEFORE_CLOSE')
 
+  // NEW: cancel any scheduled reconnect so it can't fire after an intentional disconnect
+  if (this._reconnectTimer) {
+    clearTimeout(this._reconnectTimer)
+    this._reconnectTimer = null
+  }
+
   if (this.ws) {
     // remove onSync handler if present
     if (this._onSyncHandler) {
@@ -375,8 +383,14 @@ TradovateSocket.prototype.disconnect = function () {
       } catch (_) {}
     })
 
-    this.ws.close(1000, 'Client initiated disconnect.')
-  }
+    // NEW: hard-kill the socket to avoid "ghost OPEN sockets"
+    try {
+      if (typeof this.ws.terminate === 'function') this.ws.terminate()
+    } catch (_) {}
+
+    try {
+      this.ws.close(1000, 'Client initiated disconnect.')
+    } catch (_) {}
 
   this.ws = null
   clearInterval(this.heartbeatInterval)
@@ -390,6 +404,16 @@ TradovateSocket.prototype.isConnected = function () {
  * Attempts to reconnect the WebSocket after an unexpected closure.
  */
 TradovateSocket.prototype.reconnect = async function () {
+  // NEW: single-flight reconnect guard
+  if (this._reconnecting || this._reconnectTimer) {
+    this._dbg('RECONNECT_SKIPPED', {
+      reconnecting: this._reconnecting,
+      hasTimer: !!this._reconnectTimer,
+      wsState: this.ws ? this.ws.readyState : null,
+    })
+    return
+  }
+  
   this._reconnectCalls += 1
   this._lastReconnectAt = Date.now()
   this._dbg('RECONNECT_CALL', {
@@ -408,7 +432,12 @@ TradovateSocket.prototype.reconnect = async function () {
     const backoff = Math.min(30000, Math.pow(2, this.reconnectAttempts) * 1000)
     console.log(`[TsReconnect] Waiting ${backoff}ms before reconnect attempt...`)
 
-    setTimeout(async () => {
+    // NEW: store timer id so we can guard + cancel it
+    this._reconnectTimer = setTimeout(async () => {
+      // timer is now firing; clear it
+      this._reconnectTimer = null
+      this._reconnecting = true
+
       try {
         console.log('[TsReconnect] Renewing access token...')
         const tokenResult = await renewAccessToken()
