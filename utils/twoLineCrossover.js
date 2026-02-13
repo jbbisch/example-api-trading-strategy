@@ -388,14 +388,11 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
 
         // =================== PTbandPeak (profit-take) — SMApc-only arming ===================
 
-        // 1) detect the ENTRY edge of "positiveCrossover" (this is your synthetic "we entered long" moment)
-        const posEdge = positiveCrossover && !prevState.positiveCrossover;
-
-        // 2) PT is eligible ONLY if this entry edge was caused by SMApc.
+        // 1) PT is eligible ONLY if this entry edge was caused by SMApc.
         //    This prevents FMEpc → later SMApc from arming PT.
-        const ptEligible = posEdge && SMAPositiveCrossover;
+        const ptEligible = !!prevState.tradeJustEntered && prevState.tradeEntrySignal === 'SMApc';
 
-        // 3) Configure PT band (upper band off twentySma). Sigma should be tuned.
+        // 2) Configure PT band (upper band off twentySma). Sigma should be tuned.
         //    Start with 1.0 or 1.3 depending on how “small” you want the profit.
         //    (Smaller sigma = more frequent quick profits.)
         const PT_CFG = {
@@ -405,14 +402,14 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
           maxBarsArmed: 20          // optional: auto-expire if it never hits
         };
 
-        // 4) PT state (persisted)
+        // 3) PT state (persisted)
         let ptArmed = !!prevState.ptArmed;
         let ptArmedBy = prevState.ptArmedBy || null;
         let ptArmedAtLocal;
         let ptTriggeredAtLocal;
         let ptBarsSinceArmed = (prevState.ptBarsSinceArmed || 0);
 
-        // 5) If we arm this bar, do it once and reset the timer
+        // 4) If we arm this bar, do it once and reset the timer
         if (!ptArmed && ptEligible) {
           ptArmed = true;
           ptArmedBy = 'SMApc';
@@ -422,7 +419,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
           ptBarsSinceArmed += 1;
         }
 
-        // 6) Compute the PT band and trigger condition.
+        // 5) Compute the PT band and trigger condition.
         //    "bandPeak" = price closes at/above upper band while armed.
         const upperBand = twentySma + (PT_CFG.bandSigma * stdDevTwentySma);
 
@@ -438,10 +435,10 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         // Optional: auto-expire if it never hits
         const ptExpired = ptArmed && ptBarsSinceArmed >= PT_CFG.maxBarsArmed;
 
-        // 7) PT exit event fires as a negative/exit condition (profit take)
+        // 6) PT exit event fires as a negative/exit condition (profit take)
         const PTbandPeakExit = PTbandPeak;
 
-        // 8) Disarm rules:
+        // 7) Disarm rules:
         //    - disarm if it fired
         //    - disarm if it expires
         //    - disarm if you are no longer in a "positive trade context"
