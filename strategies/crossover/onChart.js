@@ -39,7 +39,11 @@ const onChart = (prevState, {data, props}) => {
     
     const ORDER_TIMEOUT_MS = 15 * 1000 // 15 seconds
 
-    const lastTlc = tlc.state
+    const lastTlc = {
+        ...tlc.state,
+        tradeJustEntered: !!prevState.tradeJustEntered,
+        tradeEntrySignal: prevState.tradeEntrySignal || null,
+    }
     prevState.lastSMAUpdate = Date.now()
     const nextTlcState = tlc(lastTlc, bufferData)
     const { negativeCrossover, positiveCrossover, distance } = nextTlcState
@@ -298,6 +302,7 @@ const onChart = (prevState, {data, props}) => {
         if(currentPositionSize < maxPosition) { 
             //console.log('[onChart] placeOrder 3:', placeOrder)
             //console.log('[onChart] mode 3 buyOrder:', mode)  
+            let entrySignal = nextTlcState.SMAPositiveCrossover ? 'SMApc' : nestTlcState.AAGMpcBreak ? 'AAGMpc' : nextTlcState.flatMarketEntryCondition ? 'FMEpc' : nextTlcState.DVpcConfirmed ? 'DVpcC' : 'unknown';
             nextStrategyNetPos = Math.min(currentPositionSize + 1, maxPosition)
             prevState.lastTradeTime = Date.now()
             placeOrder({
@@ -323,6 +328,8 @@ const onChart = (prevState, {data, props}) => {
                         ...prevState,
                         mode: LongShortMode.Long,
                         strategyNetPos: nextStrategyNetPos,
+                        tradeEntrySignal: entrySignal,
+                        tradeJustEntered: true,
                         buyTriggerSource: [...buyLog],
                         buyDistance: [...buyDistance],
                         orderInFlight: true,
@@ -362,6 +369,8 @@ const onChart = (prevState, {data, props}) => {
         state: {
             ...prevState,
             strategyNetPos: nextStrategyNetPos,
+            tradeJustEntered: false,
+            tradeEntrySignal: prevState.tradeEntrySignal || null,
             buyTriggerSource: clearTriggers ? [] : [...(prevState.buyTriggerSource || []), ...(nextTlcState.buyTriggerSource || [])],
             sellTriggerSource: clearTriggers ? [] : [...(prevState.sellTriggerSource || []), ...(nextTlcState.sellTriggerSource || [])],
             buyDistance: clearTriggers ? [] : [...(prevState.buyDistance || []), ...(nextTlcState.buyDistance || [])],
