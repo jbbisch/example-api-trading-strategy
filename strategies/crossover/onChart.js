@@ -232,6 +232,22 @@ const onChart = (prevState, {data, props}) => {
             nextStrategyNetPos = Math.max(currentPositionSize - 1, 0)
             prevState.lastTradeTime = Date.now()
             const sellLog = [...(prevState.sellTriggerSource || [])]
+            if (nextTlcState.SMANegativeCrossover) trackTrigger(sellLog, 'SMAnc')
+            //else if (nextTlcState.SMAPositiveCrossover) trackTrigger(sellLog, 'SMAPositiveCrossover')
+            //else if (nextTlcState.LikelyNegativeCrossover) trackTrigger(sellLog, 'Lnc')
+            else if (nextTlcState.NegativeBounceNegativeCrossover) trackTrigger(sellLog, 'NBnc')
+            //else if (nextTlcState.SlowingMomentumNegativeCrossover) trackTrigger(sellLog, 'SLMnc')
+            else if (nextTlcState.SAGMncBreak) trackTrigger(sellLog, 'SAGMnc')
+            else if (nextTlcState.GapMomentumLowCrossover) trackTrigger(sellLog, 'GMLnc')
+            //if (nextTlcState.BigDistancePullback) trackTrigger(sellLog, 'BigDistancePullback')
+            else if (nextTlcState.MomentumPeakNegativeCrossover) trackTrigger(sellLog, 'MPnc')
+            else if (nextTlcState.DistancePeakNegativeCrossover) trackTrigger(sellLog, 'DPnc')
+            else if (nextTlcState.flatMarketExitCondition) trackTrigger(sellLog, 'FMEnc')
+            else if (nextTlcState.DriftingVelocityNegativeCrossover) trackTrigger(sellLog, 'DVnc')
+            else if (nextTlcState.PositiveReversalBreakdown) {
+                const reason = nextTlcState.PositiveReversalBreakdownReason ? `(${nextTlcState.PositiveReversalBreakdownReason})` : ''
+                trackTrigger(sellLog, `PRBnc${reason}`)
+            }
             placeOrder({
                 accountId: parseInt(process.env.ID),
                 contractId: contract.id,
@@ -244,22 +260,6 @@ const onChart = (prevState, {data, props}) => {
                 orderType: "Market"
             }).then(response => {
                 trackDistance(sellDistance, lastTlc.distance, distance)
-                if (nextTlcState.SMANegativeCrossover) trackTrigger(sellLog, 'SMAnc')
-                //else if (nextTlcState.SMAPositiveCrossover) trackTrigger(sellLog, 'SMAPositiveCrossover')
-                //else if (nextTlcState.LikelyNegativeCrossover) trackTrigger(sellLog, 'Lnc')
-                else if (nextTlcState.NegativeBounceNegativeCrossover) trackTrigger(sellLog, 'NBnc')
-                //else if (nextTlcState.SlowingMomentumNegativeCrossover) trackTrigger(sellLog, 'SLMnc')
-                else if (nextTlcState.SAGMncBreak) trackTrigger(sellLog, 'SAGMnc')
-                else if (nextTlcState.GapMomentumLowCrossover) trackTrigger(sellLog, 'GMLnc')
-                //if (nextTlcState.BigDistancePullback) trackTrigger(sellLog, 'BigDistancePullback')
-                else if (nextTlcState.MomentumPeakNegativeCrossover) trackTrigger(sellLog, 'MPnc')
-                else if (nextTlcState.DistancePeakNegativeCrossover) trackTrigger(sellLog, 'DPnc')
-                else if (nextTlcState.flatMarketExitCondition) trackTrigger(sellLog, 'FMEnc')
-                else if (nextTlcState.DriftingVelocityNegativeCrossover) trackTrigger(sellLog, 'DVnc')
-                else if (nextTlcState.PositiveReversalBreakdown) {
-                    const reason = nextTlcState.PositiveReversalBreakdownReason ? `(${nextTlcState.PositiveReversalBreakdownReason})` : ''
-                    trackTrigger(sellLog, `PRBnc${reason}`)
-                }
                 console.log('[onChart] response 3:', response)
             }).catch(err => {
                 //console.error('[onChart] Error:', err)
@@ -307,6 +307,10 @@ const onChart = (prevState, {data, props}) => {
             nextStrategyNetPos = Math.min(currentPositionSize + 1, maxPosition)
             prevState.lastTradeTime = Date.now()
             const buyLog = [...(prevState.buyTriggerSource || [])]
+            if (nextTlcState.SMAPositiveCrossover) trackTrigger(buyLog, 'SMApc')
+            else if (nextTlcState.AAGMpcBreak) trackTrigger(buyLog, 'AAGMpc')
+            else if (nextTlcState.DVpcConfirmed) trackTrigger(buyLog, 'DVpcC')
+            else if (nextTlcState.flatMarketEntryCondition) trackTrigger(buyLog, 'FMEpc')
             placeOrder({
                 accountId: parseInt(process.env.ID),
                 contractId: contract.id,
@@ -319,10 +323,6 @@ const onChart = (prevState, {data, props}) => {
                 orderType: "Market"
             }).then(response => {
                 trackDistance(buyDistance, lastTlc.distance, distance)
-                if (nextTlcState.SMAPositiveCrossover) trackTrigger(buyLog, 'SMApc')
-                else if (nextTlcState.AAGMpcBreak) trackTrigger(buyLog, 'AAGMpc')
-                else if (nextTlcState.DVpcConfirmed) trackTrigger(buyLog, 'DVpcC')
-                else if (nextTlcState.flatMarketEntryCondition) trackTrigger(buyLog, 'FMEpc')
                 console.log('[onChart] response 3:', response)
             }).catch(err => {
                 //console.error('[onChart] Error:', err)
