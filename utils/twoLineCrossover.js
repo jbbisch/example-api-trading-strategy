@@ -410,11 +410,14 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         let ptBarsSinceArmed = (prevState.ptBarsSinceArmed || 0);
 
         // 4) If we arm this bar, do it once and reset the timer
+        let consumedTradeJustEntered = false
+
         if (!ptArmed && ptEligible) {
           ptArmed = true;
           ptArmedBy = 'SMApc';
           ptBarsSinceArmed = 0;
           ptArmedAtLocal = new Date().toISOString();
+          consumedTradeJustEntered = true;
         } else if (ptArmed) {
           ptBarsSinceArmed += 1;
         }
@@ -636,6 +639,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             ptBarsSinceArmed: ptBarsSinceArmed,
             ptArmedAt: (typeof ptArmedAtLocal !== 'undefined') ? ptArmedAtLocal : (prevState.ptArmedAt || null),
             ptTriggeredAt: (typeof ptTriggeredAtLocal !== 'undefined') ? ptTriggeredAtLocal : (prevState.ptTriggeredAt || null),
+            tradeJustEntered: consumedTradeJustEntered ? false : !!prevState.tradeJustEntered,
+            tradeEntrySignal: prevState.tradeEntrySignal || null,
         }
 
         console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover, ' Momentum: ', next.momentum, ' Distance Momentum: ', next.distanceMomentum, 'MomentumPeak: ', next.momentumPeak, 'DistancePeak: ', next.distancePeak, 'Updated Momentum Peak: ', next.updatedMomentumPeak, 'Updated Distance Peak: ', next.updatedDistancePeak)
@@ -756,6 +761,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             ptBarsSinceArmed: 0,
             ptArmedAt: null,
             ptTriggeredAt: null,
+            tradeJustEntered: false,
+            tradeEntrySignal: null,
         }
     }
 
