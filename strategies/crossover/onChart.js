@@ -59,10 +59,8 @@ const onChart = (prevState, {data, props}) => {
 
         if (lockAge > ORDER_TIMEOUT_MS) {
             //console.warn('[onChart] FAILSAFE UNLOCK:', 'OrderInFlight stuck for', lockAge, 'ms - unlocking')
-            return { state: {...prevState, orderInFlight: false, orderInFlightAt: null }, effects: [] }
+            prevState = {...prevState, orderInFlight: false, orderInFlightAt: null }
         }
-        //console.log('[onChart] Order in flight - waiting for fill')
-        return { state: prevState, effects: [] }
     }
 
     const canUsePositive = currentPositionSize <= 0
@@ -71,10 +69,11 @@ const onChart = (prevState, {data, props}) => {
     const rawNegEdge = negativeCrossover && !lastTlc.negativeCrossover
     const rawPosEdge = positiveCrossover && !lastTlc.positiveCrossover
 
+    const ordersLocked = !!prevState.orderInFlight
 
     // EDGE TRIGGERING
-    const negEdge = canUseNegative ? rawNegEdge : false
-    const posEdge = canUsePositive ? rawPosEdge : false
+    const negEdge = (!ordersLocked &&canUseNegative) ? rawNegEdge : false
+    const posEdge = (!ordersLocked && canUsePositive) ? rawPosEdge : false
 
     const longBracket = {
         qty: orderQuantity,
@@ -269,7 +268,7 @@ const onChart = (prevState, {data, props}) => {
                     ...prevState,
                     mode: LongShortMode.Short,
                     strategyNetPos: nextStrategyNetPos,
-                    sellTriggerSource: [...sellLog],
+                    sellTriggerSource: sellLog,
                     sellDistance: [...sellDistance],
                     orderInFlight: true,
                     orderInFlightAt: Date.now(),
@@ -334,7 +333,7 @@ const onChart = (prevState, {data, props}) => {
                     strategyNetPos: nextStrategyNetPos,
                     tradeEntrySignal: entrySignal,
                     tradeJustEntered: true,
-                    buyTriggerSource: [...buyLog],
+                    buyTriggerSource: buyLog,
                     buyDistance: [...buyDistance],
                     orderInFlight: true,
                     orderInFlightAt: Date.now(),
