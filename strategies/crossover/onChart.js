@@ -231,19 +231,7 @@ const onChart = (prevState, {data, props}) => {
             //console.log('[onChart] mode 2 placeOrder:', mode)
             nextStrategyNetPos = Math.max(currentPositionSize - 1, 0)
             prevState.lastTradeTime = Date.now()
-            placeOrder({
-                accountId: parseInt(process.env.ID),
-                contractId: contract.id,
-                admin: true,
-                accountSpec: process.env.SPEC,
-                deviceId: process.env.DEVICE_ID,
-                symbol: contract.name,
-                action: "Sell",
-                orderQty: 1,
-                orderType: "Market"
-            }).then(response => {
-                trackDistance(sellDistance, lastTlc.distance, distance)
-                const sellLog = prevState.sellTriggerSource || (prevState.sellTriggerSource = [])
+            const sellLog = prevState.sellTriggerSource || (prevState.sellTriggerSource = [])
                 if (nextTlcState.SMANegativeCrossover) trackTrigger(sellLog, 'SMAnc')
                     //else if (nextTlcState.SMAPositiveCrossover) trackTrigger(sellLog, 'SMAPositiveCrossover')
                     //else if (nextTlcState.LikelyNegativeCrossover) trackTrigger(sellLog, 'Lnc')
@@ -259,8 +247,20 @@ const onChart = (prevState, {data, props}) => {
                     else if (nextTlcState.PositiveReversalBreakdown) {
                         const reason = nextTlcState.PositiveReversalBreakdownReason ? `(${nextTlcState.PositiveReversalBreakdownReason})` : ''
                         trackTrigger(sellLog, `PRBnc${reason}`)
-                //console.log('[onChart] response 2:', response)  
-            }}).catch(err => {
+                    }
+            placeOrder({
+                accountId: parseInt(process.env.ID),
+                contractId: contract.id,
+                admin: true,
+                accountSpec: process.env.SPEC,
+                deviceId: process.env.DEVICE_ID,
+                symbol: contract.name,
+                action: "Sell",
+                orderQty: 1,
+                orderType: "Market"
+            }).then(response => {
+                trackDistance(sellDistance, lastTlc.distance, distance)
+            }).catch(err => {
                 //console.error('[onChart] Error:', err)
             })
             return {
@@ -305,6 +305,12 @@ const onChart = (prevState, {data, props}) => {
             let entrySignal = nextTlcState.SMAPositiveCrossover ? 'SMApc' : nextTlcState.AAGMpcBreak ? 'AAGMpc' : nextTlcState.flatMarketEntryCondition ? 'FMEpc' : nextTlcState.DVpcConfirmed ? 'DVpcC' : 'unknown';
             nextStrategyNetPos = Math.min(currentPositionSize + 1, maxPosition)
             prevState.lastTradeTime = Date.now()
+            const buyLog = prevState.buyTriggerSource || (prevState.buyTriggerSource = [])
+                if (nextTlcState.SMAPositiveCrossover) trackTrigger(buyLog, 'SMApc')
+                else if (nextTlcState.AAGMpcBreak) trackTrigger(buyLog, 'AAGMpc')
+                else if (nextTlcState.BouncePositiveCrossover) trackTrigger(buyLog, 'Bpc')
+                else if (nextTlcState.flatMarketEntryCondition) trackTrigger(buyLog, 'FMEpc')
+                console.log('[onChart] response 3:', response)
             placeOrder({
                 accountId: parseInt(process.env.ID),
                 contractId: contract.id,
@@ -317,12 +323,6 @@ const onChart = (prevState, {data, props}) => {
                 orderType: "Market"
             }).then(response => {
                 trackDistance(buyDistance, lastTlc.distance, distance)
-                const buyLog = prevState.buyTriggerSource || (prevState.buyTriggerSource = [])
-                if (nextTlcState.SMAPositiveCrossover) trackTrigger(buyLog, 'SMApc')
-                else if (nextTlcState.AAGMpcBreak) trackTrigger(buyLog, 'AAGMpc')
-                else if (nextTlcState.BouncePositiveCrossover) trackTrigger(buyLog, 'Bpc')
-                else if (nextTlcState.flatMarketEntryCondition) trackTrigger(buyLog, 'FMEpc')
-                console.log('[onChart] response 3:', response)
             }).catch(err => {
                 //console.error('[onChart] Error:', err)
             })
