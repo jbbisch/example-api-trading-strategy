@@ -25,7 +25,7 @@ function TradovateSocket() {
   this._connId = 0
   this._syncAttachCount = 0
   this._reconnectCalls = 0
-  this._lastReconnectAt = 0  
+  this._lastReconnectAt = 0
   this._reconnectTimer = null
   this._reconnecting = false
 }
