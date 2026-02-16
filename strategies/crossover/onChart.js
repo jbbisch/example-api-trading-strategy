@@ -260,6 +260,7 @@ const onChart = (prevState, {data, props}) => {
                 orderType: "Market"
             }).then(response => {
                 trackDistance(sellDistance, lastTlc.distance, distance)
+                console.log('[onChart] response 3:', response)
             }).catch(err => {
                 //console.error('[onChart] Error:', err)
             })
@@ -310,7 +311,6 @@ const onChart = (prevState, {data, props}) => {
                 else if (nextTlcState.AAGMpcBreak) trackTrigger(buyLog, 'AAGMpc')
                 else if (nextTlcState.BouncePositiveCrossover) trackTrigger(buyLog, 'Bpc')
                 else if (nextTlcState.flatMarketEntryCondition) trackTrigger(buyLog, 'FMEpc')
-                console.log('[onChart] response 3:', response)
             placeOrder({
                 accountId: parseInt(process.env.ID),
                 contractId: contract.id,
@@ -323,6 +323,7 @@ const onChart = (prevState, {data, props}) => {
                 orderType: "Market"
             }).then(response => {
                 trackDistance(buyDistance, lastTlc.distance, distance)
+                console.log('[onChart] response 3:', response)
             }).catch(err => {
                 //console.error('[onChart] Error:', err)
             })
