@@ -23,10 +23,7 @@ const onChart = (prevState, {data, props}) => {
     }
 
     const chillOut = 4 * 60 * 1000 // 4 minutes pause after placing an order
-    if (prevState.lastTradeTime && now - prevState.lastTradeTime < chillOut) {
-        //console.log('[OnChart] Chill out time')
-        return { state: prevState, effects: [] }
-    }
+    const inChillOut = prevState.lastTradeTime && (now - prevState.lastTradeTime < chillOut)
 
     const minutes = now.getMinutes()
     const seconds = now.getSeconds()
@@ -72,8 +69,8 @@ const onChart = (prevState, {data, props}) => {
     const ordersLocked = !!prevState.orderInFlight
 
     // EDGE TRIGGERING
-    const negEdge = (!ordersLocked &&canUseNegative) ? rawNegEdge : false
-    const posEdge = (!ordersLocked && canUsePositive) ? rawPosEdge : false
+    const negEdge = (!ordersLocked && !inChillOut && canUseNegative) ? rawNegEdge : false
+    const posEdge = (!ordersLocked && !inChillOut && canUsePositive) ? rawPosEdge : false
 
     const longBracket = {
         qty: orderQuantity,
@@ -369,7 +366,7 @@ const onChart = (prevState, {data, props}) => {
         state: {
             ...prevState,
             strategyNetPos: nextStrategyNetPos,
-            tradeJustEntered: false,
+            tradeJustEntered: prevState.tradeJustEntered,
             tradeEntrySignal: prevState.tradeEntrySignal || null,
             buyTriggerSource: clearTriggers ? [] : [...(prevState.buyTriggerSource || []), ...(nextTlcState.buyTriggerSource || [])],
             sellTriggerSource: clearTriggers ? [] : [...(prevState.sellTriggerSource || []), ...(nextTlcState.sellTriggerSource || [])],
