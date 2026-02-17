@@ -372,8 +372,8 @@ const onChart = (prevState, {data, props}) => {
         state: {
             ...prevState,
             strategyNetPos: nextStrategyNetPos,
-            tradeJustEntered: !!nextTlcState.tradeJustEntered,
-            tradeEntrySignal: nextTlcState.tradeEntrySignal ?? prevState.tradeEntrySignal ?? null,
+            tradeJustEntered: prevState.tradeJustEntered,
+            tradeEntrySignal: prevState.tradeEntrySignal ?? null,
             buyTriggerSource: clearTriggers ? [] : [...(prevState.buyTriggerSource || []), ...(nextTlcState.buyTriggerSource || [])],
             sellTriggerSource: clearTriggers ? [] : [...(prevState.sellTriggerSource || []), ...(nextTlcState.sellTriggerSource || [])],
             buyDistance: clearTriggers ? [] : [...(prevState.buyDistance || []), ...(nextTlcState.buyDistance || [])],
