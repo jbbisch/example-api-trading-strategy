@@ -390,7 +390,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
 
         // 1) PT is eligible ONLY if this entry edge was caused by SMApc.
         //    This prevents FMEpc → later SMApc from arming PT.
-        const ptEligible = !!prevState.tradeJustEntered && prevState.tradeEntrySignal === 'SMApc';
+        //const ptEligible = !!prevState.tradeJustEntered && prevState.tradeEntrySignal === 'SMApc';
 
         // 2) Configure PT band (upper band off twentySma). Sigma should be tuned.
         //    Start with 1.0 or 1.3 depending on how “small” you want the profit.
@@ -409,18 +409,20 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         let ptTriggeredAtLocal;
         let ptBarsSinceArmed = (prevState.ptBarsSinceArmed || 0);
 
-        // 4) If we arm this bar, do it once and reset the timer
-        let consumedTradeJustEntered = false
+        if (ptArmed) ptBarsSinceArmed += 1;
 
-        if (!ptArmed && ptEligible) {
-          ptArmed = true;
-          ptArmedBy = 'SMApc';
-          ptBarsSinceArmed = 0;
-          ptArmedAtLocal = new Date().toISOString();
-          consumedTradeJustEntered = true;
-        } else if (ptArmed) {
-          ptBarsSinceArmed += 1;
-        }
+        // 4) If we arm this bar, do it once and reset the timer
+        //let consumedTradeJustEntered = false
+
+        // if (!ptArmed && ptEligible) {
+        //   ptArmed = true;
+        //   ptArmedBy = 'SMApc';
+        //   ptBarsSinceArmed = 0;
+        //   ptArmedAtLocal = new Date().toISOString();
+        //   consumedTradeJustEntered = true;
+        // } else if (ptArmed) {
+        //   ptBarsSinceArmed += 1;
+        // }
 
         // 5) Compute the PT band and trigger condition.
         //    "bandPeak" = price closes at/above upper band while armed.
@@ -482,8 +484,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const updatedPositiveReversalBreakdownCount = PositiveReversalBreakdown ? PositiveReversalBreakdownCount + 1 : PositiveReversalBreakdownCount
         const updatedLikelyNegativeCrossoverCount = LikelyNegativeCrossover ? LikelyNegativeCrossoverCount + 1 : LikelyNegativeCrossoverCount
 
-        const buyTriggerSource = [...(prevState.TriggerSource || [])]
-        const sellTriggerSource = [...(prevState.TriggerSource || [])]
+        const buyTriggerSource = [...(prevState.buyTriggerSource || [])]
+        const sellTriggerSource = [...(prevState.sellTriggerSource || [])]
 
         if (positiveCrossover) {
             if (SMAPositiveCrossover) buyTriggerSource.push(`${now} - SMApc`)
@@ -639,7 +641,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             ptBarsSinceArmed: ptBarsSinceArmed,
             ptArmedAt: (typeof ptArmedAtLocal !== 'undefined') ? ptArmedAtLocal : (prevState.ptArmedAt || null),
             ptTriggeredAt: (typeof ptTriggeredAtLocal !== 'undefined') ? ptTriggeredAtLocal : (prevState.ptTriggeredAt || null),
-            tradeJustEntered: consumedTradeJustEntered ? false : !!prevState.tradeJustEntered,
+            // tradeJustEntered: consumedTradeJustEntered ? false : !!prevState.tradeJustEntered,
             tradeEntrySignal: prevState.tradeEntrySignal || null,
         }
 
@@ -761,7 +763,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             ptBarsSinceArmed: 0,
             ptArmedAt: null,
             ptTriggeredAt: null,
-            tradeJustEntered: false,
+            // tradeJustEntered: false,
             tradeEntrySignal: null,
         }
     }
