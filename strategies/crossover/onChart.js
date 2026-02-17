@@ -299,7 +299,7 @@ const onChart = (prevState, {data, props}) => {
         if(currentPositionSize < maxPosition) { 
             //console.log('[onChart] placeOrder 3:', placeOrder)
             //console.log('[onChart] mode 3 buyOrder:', mode)  
-            let entrySignal = nextTlcState.SMAPositiveCrossover ? 'SMApc' : nextTlcState.AAGMpcBreak ? 'AAGMpc' : nextTlcState.flatMarketEntryCondition ? 'FMEpc' : nextTlcState.DVpcConfirmed ? 'DVpcC' : 'unknown';
+            let entrySignal = nextTlcState.AAGMpcBreak ? 'AAGMpc' : nextTlcState.flatMarketEntryCondition ? 'FMEpc' : nextTlcState.DVpcConfirmed ? 'DVpcC' : nextTlcState.SMAPositiveCrossover ? 'SMApc' : 'unknown';
             nextStrategyNetPos = Math.min(currentPositionSize + 1, maxPosition)
             prevState.lastTradeTime = Date.now()
             const buyLog = [...(prevState.buyTriggerSource || [])]
@@ -323,6 +323,8 @@ const onChart = (prevState, {data, props}) => {
             }).catch(err => {
                 //console.error('[onChart] Error:', err)
             })
+            const shouldArmPT = (entrySignal === 'SMApc')
+
             return {
                 state: {
                     ...prevState,
@@ -330,6 +332,10 @@ const onChart = (prevState, {data, props}) => {
                     strategyNetPos: nextStrategyNetPos,
                     tradeEntrySignal: entrySignal,
                     tradeJustEntered: true,
+                    ptArmed: shouldArmPT ? true : (prevState.ptArmed || false),
+                    ptArmedBy: shouldArmPT ? 'SMApc' : (prevState.ptArmedBy || null),
+                    ptBarsSinceArmed: shouldArmPT ? 0 : (prevState.ptBarsSinceArmed || 0),
+                    ptArmedAt: shouldArmPT ? new Date().toISOString() : (prevState.ptArmedAt || null),
                     buyTriggerSource: buyLog,
                     buyDistance: [...buyDistance],
                     orderInFlight: true,
