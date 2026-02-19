@@ -38,6 +38,12 @@ const onChart = (prevState, {data, props}) => {
 
     const lastTlc = {
         ...tlc.state,
+        ptArmed: !!prevState.ptArmed,
+        ptArmedBy: prevState.ptArmedBy || null,
+        ptBarsSinceArmed: prevState.ptBarsSinceArmed || 0,
+        ptArmedAt: prevState.ptArmedAt || null,
+        ptTriggeredAt: prevState.ptTriggeredAt || null,
+        
         tradeJustEntered: !!prevState.tradeJustEntered,
         tradeEntrySignal: prevState.tradeEntrySignal || null,
     }
