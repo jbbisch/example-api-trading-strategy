@@ -117,8 +117,6 @@ TradovateSocket.prototype.request = function ({ url, query = '', body = {}, call
 
   // used on reconnect to rebind listener to the NEW ws instance AND resend
   const resubscribe = () => {
-    const sub = this.subscriptions.find(s => s.id === id)
-    if (sub && sub.boundConnId === this._connId) return
     // 1) detach from the OLD socket instance
     detach()
 
@@ -132,7 +130,6 @@ TradovateSocket.prototype.request = function ({ url, query = '', body = {}, call
     // 4) resend on the new socket
     send()
 
-    if (sub) sub.boundConnId = this._connId
     console.log('[tsRequest] resubscribed:', url)
   }
 
@@ -148,7 +145,7 @@ TradovateSocket.prototype.request = function ({ url, query = '', body = {}, call
   }
 
   // keep everything we need to resubscribe later
-  this.subscriptions.push({ url, query, body, callback, disposer, resubscribe, unsubscribe, id, boundConnId: this._connId })
+  this.subscriptions.push({ url, query, body, callback, disposer, resubscribe, unsubscribe, id })
 
   return unsubscribe
 }
@@ -319,6 +316,19 @@ TradovateSocket.prototype.connect = async function (url) {
               ? process.env.ACCESS_TOKEN
               : process.env.MD_ACCESS_TOKEN
           wsRef.send(`authorize\n0\n\n${token}`)
+
+          interval = setInterval(() => {
+            // IMPORTANT: keep interval tied to this socket instance
+            if (this.ws !== wsRef) {
+              clearInterval(interval)
+              return
+            }
+            if (wsRef.readyState == 0 || wsRef.readyState == 3 || wsRef.readyState == 2) {
+              clearInterval(interval)
+              return
+            }
+            wsRef.send('[]')
+          }, 2500)
           break
 
         case 'h':
@@ -372,14 +382,6 @@ TradovateSocket.prototype.disconnect = function () {
         if (typeof sub.unsubscribe === 'function') sub.unsubscribe()
       } catch (_) {}
     })
-
-    if (this.ws) {
-      try{
-        if (typeof this.ws.removeAllListeners === 'function') {
-          this.ws.removeAllListeners()
-        }
-      } catch (_) {}
-    }
 
     // NEW: hard-kill the socket to avoid "ghost OPEN sockets"
     try {
@@ -463,16 +465,8 @@ TradovateSocket.prototype.reconnect = async function () {
           connId: this._connId,
         })
 
-        // Resubscribe to stored subscriptions
-        this.subscriptions.forEach((sub) => {
-          if (typeof sub.resubscribe === 'function') {
-            sub.resubscribe()
-          } else if (typeof sub.subscription === 'function') {
-            sub.subscription() // legacy fallback
-          }
-        })
-        this._dbg('AFTER_RESUBSCRIBE_ALL', { subs: this.subscriptions.length })
-
+        this.subscriptions = []
+        
         // Reinitialize strategy
         if (this.strategy) {
           const strategyProps = this.strategy.props
