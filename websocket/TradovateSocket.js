@@ -439,6 +439,8 @@ TradovateSocket.prototype.reconnect = async function () {
       this._reconnectTimer = null
       this._reconnecting = true
 
+      this._dbg('RECONNECT_STRATEGY_SNAPSHOT', { hasStrategy: !!this.strategy })
+
       try {
         console.log('[TsReconnect] Renewing access token...')
         const tokenResult = await renewAccessToken()
@@ -465,10 +467,10 @@ TradovateSocket.prototype.reconnect = async function () {
           connId: this._connId,
         })
 
-        this.subscriptions = []
-        
         // Reinitialize strategy
         if (this.strategy) {
+          this.subscriptions = []
+        
           const strategyProps = this.strategy.props
           this.strategy = new this.strategy.constructor(strategyProps)
 
@@ -500,6 +502,10 @@ TradovateSocket.prototype.reconnect = async function () {
           }
         } else {
           console.log('[TsReconnect] No strategy to reinitialize.')
+          this.subscriptions.forEach((sub) => {
+            if (typeof sub.resubscribe === 'function') sub.resubscribe()
+          })
+          this._dbg('AFTER_RESUBSCRIBE_ALL_FALLBACK', { subs: this.subscriptions.length })
         }
 
         // Resynchronize with server
