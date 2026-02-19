@@ -484,10 +484,13 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const updatedPositiveReversalBreakdownCount = PositiveReversalBreakdown ? PositiveReversalBreakdownCount + 1 : PositiveReversalBreakdownCount
         const updatedLikelyNegativeCrossoverCount = LikelyNegativeCrossover ? LikelyNegativeCrossoverCount + 1 : LikelyNegativeCrossoverCount
 
-        const buyTriggerSource = [...(prevState.buyTriggerSource || [])]
-        const sellTriggerSource = [...(prevState.sellTriggerSource || [])]
+        const posEdgeLog = positiveCrossover && !prevState.positiveCrossover
+        const negEdgeLog = negativeCrossover && !prevState.negativeCrossover
 
-        if (positiveCrossover) {
+        const buyTriggerSource = []
+        const sellTriggerSource = []
+
+        if (posEdgeLog) {
             if (SMAPositiveCrossover) buyTriggerSource.push(`${now} - SMApc`)
             if (AAGMpcBreak) buyTriggerSource.push(`${now} - AAGMpc`)
             if (BouncePositiveCrossover) buyTriggerSource.push(`${now} - Bpc`)
@@ -495,7 +498,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             //if (DriftingVelocityPositiveCrossover) buyTriggerSource.push(`${now} - DVpc`)
             if (DVpcConfirmed) buyTriggerSource.push(`${now} - DVpcC`)
         }
-        if (negativeCrossover) {
+        if (negEdgeLog) {
             if (SMANegativeCrossover) sellTriggerSource.push(`${now} - SMAnc`)
             if (SAGMncBreak) sellTriggerSource.push(`${now} - SAGMnc`)
             if (NegativeBounceNegativeCrossover) sellTriggerSource.push(`${now} - NBnc`)
