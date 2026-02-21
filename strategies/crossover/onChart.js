@@ -305,7 +305,6 @@ const onChart = (prevState, {data, props}) => {
         if(currentPositionSize < maxPosition) { 
             //console.log('[onChart] placeOrder 3:', placeOrder)
             //console.log('[onChart] mode 3 buyOrder:', mode)  
-            let entrySignal = nextTlcState.AAGMpcBreak ? 'AAGMpc' : nextTlcState.flatMarketEntryCondition ? 'FMEpc' : nextTlcState.DVpcConfirmed ? 'DVpcC' : nextTlcState.SMAPositiveCrossover ? 'SMApc' : 'unknown';
             nextStrategyNetPos = Math.min(currentPositionSize + 1, maxPosition)
             prevState.lastTradeTime = Date.now()
             const buyLog = [...(prevState.buyTriggerSource || [])]
@@ -329,7 +328,10 @@ const onChart = (prevState, {data, props}) => {
             }).catch(err => {
                 //console.error('[onChart] Error:', err)
             })
-            const shouldArmPT = (entrySignal === 'SMApc')
+            const smaEdge = !!nextTlcState.SMAPositiveCrossover && !lastTlc.SMAPositiveCrossover
+            const shouldArmPT = smaEdge
+
+            let entrySignal = nextTlcState.AAGMpcBreak ? 'AAGMpc' : nextTlcState.flatMarketEntryCondition ? 'FMEpc' : nextTlcState.DVpcConfirmed ? 'DVpcC' : smaEdge ? 'SMApc' : 'unknown';
 
             return {
                 state: {
