@@ -768,6 +768,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             ptBarsSinceArmed: 0,
             ptArmedAt: null,
             ptTriggeredAt: null,
+            PTarmCount: 0,
             // tradeJustEntered: false,
             tradeEntrySignal: null,
         }
