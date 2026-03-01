@@ -333,6 +333,11 @@ const onChart = (prevState, {data, props}) => {
 
             let entrySignal = nextTlcState.AAGMpcBreak ? 'AAGMpc' : nextTlcState.flatMarketEntryCondition ? 'FMEpc' : nextTlcState.DVpcConfirmed ? 'DVpcC' : smaEdge ? 'SMApc' : 'unknown';
 
+            const prevPtArmed = !!prevState.ptArmed
+            const nextPtArmed = !!(shouldArmPT ? true : (prevState.ptArmed || false))
+            const ptArmEdge = !prevPtArmed && nextPtArmed
+            const nextPTarmCount = (prevState.PTarmCount || 0) + (ptArmEdge ? 1 : 0)
+
             return {
                 state: {
                     ...prevState,
@@ -341,6 +346,7 @@ const onChart = (prevState, {data, props}) => {
                     tradeEntrySignal: entrySignal,
                     tradeJustEntered: true,
                     ptArmed: shouldArmPT ? true : (prevState.ptArmed || false),
+                    PTarmCount: nextPTarmCount,
                     ptArmedBy: shouldArmPT ? 'SMApc' : (prevState.ptArmedBy || null),
                     ptBarsSinceArmed: shouldArmPT ? 0 : (prevState.ptBarsSinceArmed || 0),
                     ptArmedAt: shouldArmPT ? new Date().toISOString() : (prevState.ptArmedAt || null),
