@@ -448,7 +448,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         //    - disarm if it expires
         //    - disarm if you are no longer in a "positive trade context"
         //      (i.e., the strategy is not showing positiveCrossover anymore)
-        const negEdge = negCore && !prevState.negativeCrossover
+        const negEdge = negCore
 
         if (PTbandPeakExit || ptExpired || negEdge) {
           if (PTbandPeakExit) ptTriggeredAtLocal = new Date().toISOString();
