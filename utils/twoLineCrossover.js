@@ -397,7 +397,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         //    (Smaller sigma = more frequent quick profits.)
         const PT_CFG = {
           bandSigma: 1.18,          // band width in std devs
-          requireNonFlat: true,     // optional safety gate
+          requireFlat: true,     // optional safety gate
           minBarsArmed: 1,          // avoid firing immediately on same bar you arm
           maxBarsArmed: 20          // optional: auto-expire if it never hits
         };
@@ -429,7 +429,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const upperBand = twentySma + (PT_CFG.bandSigma * stdDevTwentySma);
 
         // Optional: require we are not in "flatVelocity" so we aren't taking profits in chop
-        const ptContextOk = PT_CFG.requireNonFlat ? !flatVelocity : true;
+        const ptContextOk = (PT_CFG.requireFlat ? flatVelocity : true) && !velocityBreakingOut;
 
         // avoid firing the exact bar we arm (or 0 bars after)
         const ptMinBarsOk = ptBarsSinceArmed >= PT_CFG.minBarsArmed;
