@@ -285,7 +285,7 @@ const onChart = (prevState, {data, props}) => {
                 try {
                     const row = await tradeLogger.finalizeExitAndAppend({
                         exitOrderId,
-                        exitTrigger: exitSignal,
+                        exitTrigger: exitSignal || "unknown",
                         exitAction: "Sell",
                         baseUrl,
                         accessToken,
@@ -373,7 +373,7 @@ const onChart = (prevState, {data, props}) => {
                     
                     tradeLogger.startEntry({
                         entryOrderId,
-                        entryTrigger: entrySignal,
+                        entryTrigger: entrySignal || "unknown",
                         entryAction: "Buy",
                         qty: 1,
                         symbol: contract.name,
