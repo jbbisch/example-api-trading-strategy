@@ -348,10 +348,10 @@ const onChart = (prevState, {data, props}) => {
             nextStrategyNetPos = Math.min(currentPositionSize + 1, maxPosition)
             prevState.lastTradeTime = Date.now()
             const buyLog = [...(prevState.buyTriggerSource || [])]
-            if (nextTlcState.SMAPositiveCrossover) trackTrigger(buyLog, 'SMApc')
-            else if (nextTlcState.AAGMpcBreak) trackTrigger(buyLog, 'AAGMpc')
+            if (nextTlcState.AAGMpcBreak) trackTrigger(buyLog, 'AAGMpc')
             else if (nextTlcState.DVpcConfirmed) trackTrigger(buyLog, 'DVpcC')
             else if (nextTlcState.flatMarketEntryCondition) trackTrigger(buyLog, 'FMEpc')
+            else if (nextTlcState.SMAPositiveCrossover) trackTrigger(buyLog, 'SMApc')
             const smaEdge = !!nextTlcState.SMAPositiveCrossover && !lastTlc.SMAPositiveCrossover
             let entrySignal = nextTlcState.AAGMpcBreak ? 'AAGMpc' : nextTlcState.flatMarketEntryCondition ? 'FMEpc' : nextTlcState.DVpcConfirmed ? 'DVpcC' : smaEdge ? 'SMApc' : 'unknown';
             placeOrder({
@@ -364,7 +364,7 @@ const onChart = (prevState, {data, props}) => {
                 action: "Buy",
                 orderQty: 1,
                 orderType: "Market"
-            }).then(response => {
+            }).then(async (response) => {
                 trackDistance(buyDistance, lastTlc.distance, distance)
                 console.log('[onChart] response 3:', response)
                 try {
