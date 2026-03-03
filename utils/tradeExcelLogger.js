@@ -3,6 +3,7 @@ const ExcelJS = require("exceljs");
 const path = require("path");
 const fs = require("fs");
 const { getTradingDayDate } = require("./tradingDay");
+const { loadOpenTrade, saveOpenTrade, clearOpenTrade } = require("./openTradeStore")
 
 function ensureDirForFile(filePath) {
   const dir = path.dirname(filePath);
