@@ -9,6 +9,7 @@ const tradeLogger = new TradeExcelLogger({
     workbookPath: "./Trade_Pairs_Analysis.xlsx",
     sheetName: "Raw Trades",
     valuePerPoint: 5.0, //MES
+    openTradePath: "./data/openTrade.json"
 })
 
 const maxPosition = 1 // 1 contract
