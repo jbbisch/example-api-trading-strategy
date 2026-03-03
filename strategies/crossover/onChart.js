@@ -1,7 +1,15 @@
 const { LongShortMode } = require("../common/longShortMode")
 const { placeOrder } = require("../../endpoints/placeOrder")
 const { liquidatePosition } = require("../../endpoints/liquidatePosition")
+const { TradeExcelLogger } = require("../../utils/tradingExcelLogger")
+const { getFillsByOrderId, computeAvgFillPrice, extractFillTimestamp } = require("../../utils/tradovateFills")
 //console.log('[onChart] placeOrder:', placeOrder)
+
+const tradeLogger = new TradeExcelLogger({
+    workbookPath: "./Trade_Pairs_Analysis.xlsx",
+    sheetName: "Raw Trades",
+    ValuePerPoint: 5.0, //MES
+})
 
 const maxPosition = 1 // 1 contract
 
@@ -263,6 +271,39 @@ const onChart = (prevState, {data, props}) => {
             }).then(response => {
                 trackDistance(sellDistance, lastTlc.distance, distance)
                 console.log('[onChart] response 3:', response)
+
+                try {
+                    const exitOrderId = response?.orderId ?? response?.id
+                    if (!exitOrderId) {
+                        console.warn("[tradeLogger] No exit orderId found in response")
+                        return
+                    }
+
+                    const baseUrl = process.env.HTTP_URL
+                    const accessToken = process.env.ACCESS_TOKEN
+
+                    if (!accessToken) {
+                        console.warn("[TRADELOG] ACCESS_TOKEN missing")
+                        return
+                    }
+
+                    try {
+                        const row = await tradeLogger.finalizeExitAndAppend({
+                            exitOrderId,
+                            exitAction: exitSignal,
+                            exitAction: "Sell",
+                            baseUrl,
+                            accessToken,
+                            getFillsByOrderId,
+                            computeAvgFillPrice,
+                            extractFillTimestamp,
+                            notes: `${contract.name} qty=1`
+                        })
+                        console.log("[TRADELOG] appended:", row)
+                    }   catch (err) {
+                        console.error("[TRADELOG] failed:', err.message")
+                    }
+                }
             }).catch(err => {
                 //console.error('[onChart] Error:', err)
             })
@@ -325,6 +366,24 @@ const onChart = (prevState, {data, props}) => {
             }).then(response => {
                 trackDistance(buyDistance, lastTlc.distance, distance)
                 console.log('[onChart] response 3:', response)
+                try {
+                    const entryOrderId = response?.orderId ?? response?.id;
+                    if (!entryOrderId) {
+                        console.warn("[tradeLogger] No entry orderId found in  response")
+                        return
+                    }
+                    
+                    tradeLogger.startEntry({
+                        entryOrderId,
+                        entryTrigger: entrySignal,
+                        entryAction: "Buy",
+                        qty: 1,
+                        symbol: contract.name,
+                    })
+                    console.log("[TRADELOG] entry orderId:", entryOrderId, "signal:", entrySignal)
+                }   catch (e) {
+                    console.warn("[tradeLogger] startEntry failed:", e?.message || e)
+                }
             }).catch(err => {
                 //console.error('[onChart] Error:', err)
             })
