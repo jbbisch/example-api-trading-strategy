@@ -352,6 +352,7 @@ const onChart = (prevState, {data, props}) => {
             else if (nextTlcState.AAGMpcBreak) trackTrigger(buyLog, 'AAGMpc')
             else if (nextTlcState.DVpcConfirmed) trackTrigger(buyLog, 'DVpcC')
             else if (nextTlcState.flatMarketEntryCondition) trackTrigger(buyLog, 'FMEpc')
+            const smaEdge = !!nextTlcState.SMAPositiveCrossover && !lastTlc.SMAPositiveCrossover
             let entrySignal = nextTlcState.AAGMpcBreak ? 'AAGMpc' : nextTlcState.flatMarketEntryCondition ? 'FMEpc' : nextTlcState.DVpcConfirmed ? 'DVpcC' : smaEdge ? 'SMApc' : 'unknown';
             placeOrder({
                 accountId: parseInt(process.env.ID),
@@ -387,7 +388,6 @@ const onChart = (prevState, {data, props}) => {
             }).catch(err => {
                 //console.error('[onChart] Error:', err)
             })
-            const smaEdge = !!nextTlcState.SMAPositiveCrossover && !lastTlc.SMAPositiveCrossover
             const shouldArmPT = smaEdge
 
             const prevPtArmed = !!prevState.ptArmed
