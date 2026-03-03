@@ -243,15 +243,17 @@ const onChart = (prevState, {data, props}) => {
             nextStrategyNetPos = Math.max(currentPositionSize - 1, 0)
             prevState.lastTradeTime = Date.now()
             const exitSignal =
-              nextTlcState.SMANegativeCrossover ? "SMAnc" :
-              nextTlcState.NegativeBounceNegativeCrossover ? "NBnc" :
-              nextTlcState.SAGMncBreak ? "SAGMnc" :
-              nextTlcState.GapMomentumLowCrossover ? "GMLnc" :
-              nextTlcState.MomentumPeakNegativeCrossover ? "MPnc" :
-              nextTlcState.DistancePeakNegativeCrossover ? "DPnc" :
-              nextTlcState.flatMarketExitCondition ? "FMEnc" :
-              nextTlcState.DriftingVelocityNegativeCrossover ? "DVnc" :
-              nextTlcState.PositiveReversalBreakdown ? `PRBnc${nextTlcState.PositiveReversalBreakdownReason ? `(${nextTlcState.PositiveReversalBreakdownReason})` : ""}` :
+              nextTlcState.PTbandPeakExit ? "PTbandPeak" :
+              nextTlcState.SAGMncBreak ? "SGM" :
+            //   nextTlcState.GapMomentumLowCrossover ? "GML" :
+            //   nextTlcState.MomentumPeakNegativeCrossover ? "MP" :
+            //   nextTlcState.DistancePeakNegativeCrossover ? "DP" :
+            //   nextTlcState.flatMarketExitCondition ? "FME" :
+              nextTlcState.DriftingVelocityNegativeCrossover ? "DVC" :
+              nextTlcState.LikelyNegativeCrossover ? "LNC" :
+              nextTlcState.SMANegativeCrossover ? "SMA" :
+              nextTlcState.NegativeBounceNegativeCrossover ? "NB" :
+              nextTlcState.PositiveReversalBreakdown ? `PRB${nextTlcState.PositiveReversalBreakdownReason ? `(${nextTlcState.PositiveReversalBreakdownReason})` : ""}` :
               "unknown";
             const sellLog = [...(prevState.sellTriggerSource || [])]
             trackTrigger(sellLog, exitSignal);
@@ -345,10 +347,10 @@ const onChart = (prevState, {data, props}) => {
             prevState.lastTradeTime = Date.now()
             const smaEdge = !!nextTlcState.SMAPositiveCrossover && !lastTlc.SMAPositiveCrossover;
             const entrySignal =
-              nextTlcState.AAGMpcBreak ? "AAGMpc" :
-              nextTlcState.DVpcConfirmed ? "DVpcC" :
-              nextTlcState.flatMarketEntryCondition ? "FMEpc" :
-              smaEdge ? "SMApc" :
+              nextTlcState.AAGMpcBreak ? "AGM" :
+              nextTlcState.DVpcConfirmed ? "DV" :
+              nextTlcState.flatMarketEntryCondition ? "FM" :
+              smaEdge ? "SMA" :
               "unknown";
             const buyLog = [...(prevState.buyTriggerSource || [])]
             trackTrigger(buyLog, entrySignal);
