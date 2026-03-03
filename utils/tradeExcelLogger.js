@@ -51,8 +51,13 @@ class TradeExcelLogger {
 
     this.valuePerPoint = Number.isFinite(opts.valuePerPoint) ? opts.valuePerPoint : 5.0;
 
-    // In-memory open trade state
-    this.open = null;
+    // Persistent open trade state
+    this.openTradePath = opts.openTradePath || path.resolve(process.cwd(), "data", "openTrade.json");
+    this.open = loadOpenTrade(this.openTradePath) || null;
+
+    if (this.open) {
+      console.log("[TRADELOG] Restored open trade from disk:", this.open.entryOrderId);
+    }
   }
 
   startEntry({ entryOrderId, entryTrigger, entryAction, qty, symbol, entryTime }) {
@@ -63,7 +68,7 @@ class TradeExcelLogger {
       entryAction: entryAction || "Buy", // "Buy" for long entry, "Sell" for short entry
       qty: qty ?? 1,
       symbol: symbol || "",
-      entryTime: entryTime ? new Date(entryTime) : new Date(),
+      entryTime: entryTime ? new Date(entryTime).toISOString() : new Date().toISOString(),
     };
     saveOpenTrade(this.open, this.openTradePath)
   }
