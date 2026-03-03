@@ -490,37 +490,39 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const buyTriggerSource = []
         const sellTriggerSource = []
 
-        if (posEdgeLog) {
-            if (SMAPositiveCrossover) buyTriggerSource.push(`${now} - SMApc`)
-            if (AAGMpcBreak) buyTriggerSource.push(`${now} - AAGMpc`)
-            if (BouncePositiveCrossover) buyTriggerSource.push(`${now} - Bpc`)
-            if (flatMarketEntryCondition) buyTriggerSource.push(`${now} - FMEpc`)
-            //if (DriftingVelocityPositiveCrossover) buyTriggerSource.push(`${now} - DVpc`)
-            if (DVpcConfirmed) buyTriggerSource.push(`${now} - DVpcC`)
+        if (ENABLE_TLC_TRIGGER_LOGS) {
+          if (posEdgeLog) {
+              if (SMAPositiveCrossover) buyTriggerSource.push(`${now} - SMApc`)
+              if (AAGMpcBreak) buyTriggerSource.push(`${now} - AAGMpc`)
+              if (BouncePositiveCrossover) buyTriggerSource.push(`${now} - Bpc`)
+              if (flatMarketEntryCondition) buyTriggerSource.push(`${now} - FMEpc`)
+              //if (DriftingVelocityPositiveCrossover) buyTriggerSource.push(`${now} - DVpc`)
+              if (DVpcConfirmed) buyTriggerSource.push(`${now} - DVpcC`)
+          }
+          if (negEdgeLog) {
+              if (SMANegativeCrossover) sellTriggerSource.push(`${now} - SMAnc`)
+              if (SAGMncBreak) sellTriggerSource.push(`${now} - SAGMnc`)
+              if (NegativeBounceNegativeCrossover) sellTriggerSource.push(`${now} - NBnc`)
+              //if (SlowingMomentumNegativeCrossover) sellTriggerSource.push(`${now} - SLMnc`)
+              //if (GapMomentumLowCrossover) sellTriggerSource.push(`${now} - GMLnc`)
+              //if (BigDistancePullback) sellTriggerSource.push(`${now} - BigDistancePullback`)
+              //if (MomentumPeakNegativeCrossover) sellTriggerSource.push(`${now} - MPnc`)
+              //if (DistancePeakNegativeCrossover) sellTriggerSource.push(`${now} - DPnc`)
+              //if (DriftingVelocityNegativeCrossover) sellTriggerSource.push(`${now} - DVnc`)
+              if (DVncConfirmedBreak) sellTriggerSource.push(`${now} - DVncCB`)
+              //if (flatMarketExitCondition) sellTriggerSource.push(`${now} - FMEnc`)
+              if (SharpDroppingVelocityNegativeCrossover) sellTriggerSource.push(`${now} - SDVnc`)
+              if (PositiveReversalBreakdown) {
+                  const tag = (typeof updatedPositiveReversalBreakdownReason !== 'undefined')
+                    ? updatedPositiveReversalBreakdownReason
+                    : (prevState.PositiveReversalBreakdownReason || '')
+                  sellTriggerSource.push(`${now} - PRBnc${tag ? '(' + tag + ')' : ''}`)
+              }
+              if (LikelyNegativeCrossover) sellTriggerSource.push(`${now} - Lnc`)
+              if (PTbandPeakExit) sellTriggerSource.push(`${now} - PTbandPeak`)
+          }
         }
-        if (negEdgeLog) {
-            if (SMANegativeCrossover) sellTriggerSource.push(`${now} - SMAnc`)
-            if (SAGMncBreak) sellTriggerSource.push(`${now} - SAGMnc`)
-            if (NegativeBounceNegativeCrossover) sellTriggerSource.push(`${now} - NBnc`)
-            //if (SlowingMomentumNegativeCrossover) sellTriggerSource.push(`${now} - SLMnc`)
-            //if (GapMomentumLowCrossover) sellTriggerSource.push(`${now} - GMLnc`)
-            //if (BigDistancePullback) sellTriggerSource.push(`${now} - BigDistancePullback`)
-            //if (MomentumPeakNegativeCrossover) sellTriggerSource.push(`${now} - MPnc`)
-            //if (DistancePeakNegativeCrossover) sellTriggerSource.push(`${now} - DPnc`)
-            //if (DriftingVelocityNegativeCrossover) sellTriggerSource.push(`${now} - DVnc`)
-            if (DVncConfirmedBreak) sellTriggerSource.push(`${now} - DVncCB`)
-            //if (flatMarketExitCondition) sellTriggerSource.push(`${now} - FMEnc`)
-            if (SharpDroppingVelocityNegativeCrossover) sellTriggerSource.push(`${now} - SDVnc`)
-            if (PositiveReversalBreakdown) {
-                const tag = (typeof updatedPositiveReversalBreakdownReason !== 'undefined')
-                  ? updatedPositiveReversalBreakdownReason
-                  : (prevState.PositiveReversalBreakdownReason || '')
-                sellTriggerSource.push(`${now} - PRBnc${tag ? '(' + tag + ')' : ''}`)
-            }
-            if (LikelyNegativeCrossover) sellTriggerSource.push(`${now} - Lnc`)
-            if (PTbandPeakExit) sellTriggerSource.push(`${now} - PTbandPeak`)
-        }
-
+        
         const next = {
             shortSma: shortSma,
             longSma: longSma,
