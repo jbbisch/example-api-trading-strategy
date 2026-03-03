@@ -249,7 +249,7 @@ const onChart = (prevState, {data, props}) => {
             //   nextTlcState.MomentumPeakNegativeCrossover ? "MP" :
             //   nextTlcState.DistancePeakNegativeCrossover ? "DP" :
             //   nextTlcState.flatMarketExitCondition ? "FME" :
-              nextTlcState.DriftingVelocityNegativeCrossover ? "DVC" :
+              nextTlcState.DVncConfirmedBreak ? "DVC" :
               nextTlcState.LikelyNegativeCrossover ? "LNC" :
               nextTlcState.SMANegativeCrossover ? "SMA" :
               nextTlcState.NegativeBounceNegativeCrossover ? "NB" :
@@ -445,8 +445,8 @@ const onChart = (prevState, {data, props}) => {
             strategyNetPos: nextStrategyNetPos,
             tradeJustEntered: prevState.tradeJustEntered,
             tradeEntrySignal: prevState.tradeEntrySignal ?? null,
-            buyTriggerSource: clearTriggers ? [] : [...(prevState.buyTriggerSource || []), ...(nextTlcState.buyTriggerSource || [])],
-            sellTriggerSource: clearTriggers ? [] : [...(prevState.sellTriggerSource || []), ...(nextTlcState.sellTriggerSource || [])],
+            buyTriggerSource: clearTriggers ? [] : [...(prevState.buyTriggerSource || [])],
+            sellTriggerSource: clearTriggers ? [] : [...(prevState.sellTriggerSource || [])],
             buyDistance: clearTriggers ? [] : [...(prevState.buyDistance || []), ...(nextTlcState.buyDistance || [])],
             sellDistance: clearTriggers ? [] : [...(prevState.sellDistance || []), ...(nextTlcState.sellDistance || [])],
         },
