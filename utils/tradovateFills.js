@@ -7,7 +7,7 @@ async function getFillsByOrderId({ baseUrl, accessToken, orderId }) {
   if (!accessToken) throw new Error("getFillsByOrderId: accessToken required");
   if (!orderId && orderId !== 0) throw new Error("getFillsByOrderId: orderId required");
 
-  const url = new URL("/v1/fill/deps", baseUrl);
+  const url = new URL("/fill/deps", baseUrl);
   url.searchParams.set("masterid", String(orderId));
 
   const res = await fetch(url.toString(), {
