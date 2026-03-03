@@ -241,24 +241,19 @@ const onChart = (prevState, {data, props}) => {
             //console.log('[onChart] mode 2 placeOrder:', mode)
             nextStrategyNetPos = Math.max(currentPositionSize - 1, 0)
             prevState.lastTradeTime = Date.now()
+            const exitSignal =
+              nextTlcState.SMANegativeCrossover ? "SMAnc" :
+              nextTlcState.NegativeBounceNegativeCrossover ? "NBnc" :
+              nextTlcState.SAGMncBreak ? "SAGMnc" :
+              nextTlcState.GapMomentumLowCrossover ? "GMLnc" :
+              nextTlcState.MomentumPeakNegativeCrossover ? "MPnc" :
+              nextTlcState.DistancePeakNegativeCrossover ? "DPnc" :
+              nextTlcState.flatMarketExitCondition ? "FMEnc" :
+              nextTlcState.DriftingVelocityNegativeCrossover ? "DVnc" :
+              nextTlcState.PositiveReversalBreakdown ? `PRBnc${nextTlcState.PositiveReversalBreakdownReason ? `(${nextTlcState.PositiveReversalBreakdownReason})` : ""}` :
+              "unknown";
             const sellLog = [...(prevState.sellTriggerSource || [])]
-            if (nextTlcState.SMANegativeCrossover) trackTrigger(sellLog, 'SMAnc')
-            //else if (nextTlcState.SMAPositiveCrossover) trackTrigger(sellLog, 'SMAPositiveCrossover')
-            //else if (nextTlcState.LikelyNegativeCrossover) trackTrigger(sellLog, 'Lnc')
-            else if (nextTlcState.NegativeBounceNegativeCrossover) trackTrigger(sellLog, 'NBnc')
-            //else if (nextTlcState.SlowingMomentumNegativeCrossover) trackTrigger(sellLog, 'SLMnc')
-            else if (nextTlcState.SAGMncBreak) trackTrigger(sellLog, 'SAGMnc')
-            else if (nextTlcState.GapMomentumLowCrossover) trackTrigger(sellLog, 'GMLnc')
-            //if (nextTlcState.BigDistancePullback) trackTrigger(sellLog, 'BigDistancePullback')
-            else if (nextTlcState.MomentumPeakNegativeCrossover) trackTrigger(sellLog, 'MPnc')
-            else if (nextTlcState.DistancePeakNegativeCrossover) trackTrigger(sellLog, 'DPnc')
-            else if (nextTlcState.flatMarketExitCondition) trackTrigger(sellLog, 'FMEnc')
-            else if (nextTlcState.DriftingVelocityNegativeCrossover) trackTrigger(sellLog, 'DVnc')
-            else if (nextTlcState.PositiveReversalBreakdown) {
-                const reason = nextTlcState.PositiveReversalBreakdownReason ? `(${nextTlcState.PositiveReversalBreakdownReason})` : ''
-                trackTrigger(sellLog, `PRBnc${reason}`)
-            }
-            let exitSignal = null
+            trackTrigger(sellLog, exitSignal);
             placeOrder({
                 accountId: parseInt(process.env.ID),
                 contractId: contract.id,
@@ -347,13 +342,15 @@ const onChart = (prevState, {data, props}) => {
             //console.log('[onChart] mode 3 buyOrder:', mode)  
             nextStrategyNetPos = Math.min(currentPositionSize + 1, maxPosition)
             prevState.lastTradeTime = Date.now()
+            const smaEdge = !!nextTlcState.SMAPositiveCrossover && !lastTlc.SMAPositiveCrossover;
+            const entrySignal =
+              nextTlcState.AAGMpcBreak ? "AAGMpc" :
+              nextTlcState.DVpcConfirmed ? "DVpcC" :
+              nextTlcState.flatMarketEntryCondition ? "FMEpc" :
+              smaEdge ? "SMApc" :
+              "unknown";
             const buyLog = [...(prevState.buyTriggerSource || [])]
-            if (nextTlcState.AAGMpcBreak) trackTrigger(buyLog, 'AAGMpc')
-            else if (nextTlcState.DVpcConfirmed) trackTrigger(buyLog, 'DVpcC')
-            else if (nextTlcState.flatMarketEntryCondition) trackTrigger(buyLog, 'FMEpc')
-            else if (nextTlcState.SMAPositiveCrossover) trackTrigger(buyLog, 'SMApc')
-            const smaEdge = !!nextTlcState.SMAPositiveCrossover && !lastTlc.SMAPositiveCrossover
-            let entrySignal = nextTlcState.AAGMpcBreak ? 'AAGMpc' : nextTlcState.flatMarketEntryCondition ? 'FMEpc' : nextTlcState.DVpcConfirmed ? 'DVpcC' : smaEdge ? 'SMApc' : 'unknown';
+            trackTrigger(buyLog, entrySignal);
             placeOrder({
                 accountId: parseInt(process.env.ID),
                 contractId: contract.id,
