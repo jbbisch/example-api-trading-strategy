@@ -8,7 +8,7 @@ const { getFillsByOrderId, computeAvgFillPrice, extractFillTimestamp } = require
 const tradeLogger = new TradeExcelLogger({
     workbookPath: "./Trade_Pairs_Analysis.xlsx",
     sheetName: "Raw Trades",
-    ValuePerPoint: 5.0, //MES
+    valuePerPoint: 5.0, //MES
 })
 
 const maxPosition = 1 // 1 contract
@@ -258,6 +258,7 @@ const onChart = (prevState, {data, props}) => {
                 const reason = nextTlcState.PositiveReversalBreakdownReason ? `(${nextTlcState.PositiveReversalBreakdownReason})` : ''
                 trackTrigger(sellLog, `PRBnc${reason}`)
             }
+            let exitSignal = null
             placeOrder({
                 accountId: parseInt(process.env.ID),
                 contractId: contract.id,
@@ -268,41 +269,39 @@ const onChart = (prevState, {data, props}) => {
                 action: "Sell",
                 orderQty: 1,
                 orderType: "Market"
-            }).then(response => {
+            }).then(async (response) => {
                 trackDistance(sellDistance, lastTlc.distance, distance)
                 console.log('[onChart] response 3:', response)
 
+                const exitOrderId = response?.orderId ?? response?.id
+                if (!exitOrderId) {
+                    console.warn("[tradeLogger] No exit orderId found in response")
+                    return
+                }
+
+                const baseUrl = process.env.HTTP_URL
+                const accessToken = process.env.ACCESS_TOKEN
+
+                if (!accessToken) {
+                    console.warn("[TRADELOG] ACCESS_TOKEN missing")
+                    return
+                }
+
                 try {
-                    const exitOrderId = response?.orderId ?? response?.id
-                    if (!exitOrderId) {
-                        console.warn("[tradeLogger] No exit orderId found in response")
-                        return
-                    }
-
-                    const baseUrl = process.env.HTTP_URL
-                    const accessToken = process.env.ACCESS_TOKEN
-
-                    if (!accessToken) {
-                        console.warn("[TRADELOG] ACCESS_TOKEN missing")
-                        return
-                    }
-
-                    try {
-                        const row = await tradeLogger.finalizeExitAndAppend({
-                            exitOrderId,
-                            exitAction: exitSignal,
-                            exitAction: "Sell",
-                            baseUrl,
-                            accessToken,
-                            getFillsByOrderId,
-                            computeAvgFillPrice,
-                            extractFillTimestamp,
-                            notes: `${contract.name} qty=1`
-                        })
-                        console.log("[TRADELOG] appended:", row)
-                    }   catch (err) {
-                        console.error("[TRADELOG] failed:', err.message")
-                    }
+                    const row = await tradeLogger.finalizeExitAndAppend({
+                        exitOrderId,
+                        exitTrigger: exitSignal,
+                        exitAction: "Sell",
+                        baseUrl,
+                        accessToken,
+                        getFillsByOrderId,
+                        computeAvgFillPrice,
+                        extractFillTimestamp,
+                        notes: `${contract.name} qty=1`
+                    })
+                    console.log("[TRADELOG] appended:", row)
+                }   catch (err) {
+                    console.error("[TRADELOG] failed:", err?.message || err)
                 }
             }).catch(err => {
                 //console.error('[onChart] Error:', err)
@@ -353,6 +352,7 @@ const onChart = (prevState, {data, props}) => {
             else if (nextTlcState.AAGMpcBreak) trackTrigger(buyLog, 'AAGMpc')
             else if (nextTlcState.DVpcConfirmed) trackTrigger(buyLog, 'DVpcC')
             else if (nextTlcState.flatMarketEntryCondition) trackTrigger(buyLog, 'FMEpc')
+            let entrySignal = nextTlcState.AAGMpcBreak ? 'AAGMpc' : nextTlcState.flatMarketEntryCondition ? 'FMEpc' : nextTlcState.DVpcConfirmed ? 'DVpcC' : smaEdge ? 'SMApc' : 'unknown';
             placeOrder({
                 accountId: parseInt(process.env.ID),
                 contractId: contract.id,
@@ -389,8 +389,6 @@ const onChart = (prevState, {data, props}) => {
             })
             const smaEdge = !!nextTlcState.SMAPositiveCrossover && !lastTlc.SMAPositiveCrossover
             const shouldArmPT = smaEdge
-
-            let entrySignal = nextTlcState.AAGMpcBreak ? 'AAGMpc' : nextTlcState.flatMarketEntryCondition ? 'FMEpc' : nextTlcState.DVpcConfirmed ? 'DVpcC' : smaEdge ? 'SMApc' : 'unknown';
 
             const prevPtArmed = !!prevState.ptArmed
             const nextPtArmed = !!(shouldArmPT ? true : (prevState.ptArmed || false))
