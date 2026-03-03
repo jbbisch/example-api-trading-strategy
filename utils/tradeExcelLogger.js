@@ -65,6 +65,7 @@ class TradeExcelLogger {
       symbol: symbol || "",
       entryTime: entryTime ? new Date(entryTime) : new Date(),
     };
+    saveOpenTrade(this.open, this.openTradePath)
   }
 
   attachEntryFromPlaceOrderResponse({ response, entryTrigger, entryAction, qty, symbol }) {
@@ -139,6 +140,7 @@ class TradeExcelLogger {
 
     // clear open trade
     this.open = null;
+    clearOpenTrade(this.openTradePath)
 
     return row;
   }
