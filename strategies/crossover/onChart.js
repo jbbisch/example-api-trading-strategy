@@ -304,6 +304,9 @@ const onChart = (prevState, {data, props}) => {
             }).catch(err => {
                 //console.error('[onChart] Error:', err)
             })
+            
+            tlc.state = nextTlcState
+            
             return {
                 state: {
                     ...prevState,
@@ -313,6 +316,12 @@ const onChart = (prevState, {data, props}) => {
                     sellDistance: [...sellDistance],
                     orderInFlight: true,
                     orderInFlightAt: Date.now(),
+                    tradeJustEntered: false,
+                    ptArmed: false,
+                    ptArmedBy: null,
+                    ptBarsSinceArmed: 0,
+                    ptArmedAt: null,
+                    ptTriggeredAt: nextTlcState.ptTriggeredAt || prevState.ptTriggeredAt || null,
                 },
                 effects: [
                     // FOR WEBSOCKET Liquidates any existing position
@@ -394,6 +403,15 @@ const onChart = (prevState, {data, props}) => {
             const nextPtArmed = !!(shouldArmPT ? true : (prevState.ptArmed || false))
             const ptArmEdge = !prevPtArmed && nextPtArmed
             const nextPTarmCount = (prevState.PTarmCount || 0) + (ptArmEdge ? 1 : 0)
+            
+            tlc.state = {
+              ...nextTlcState,
+              ptArmed: shouldArmPT ? true : !!nextTlcState.ptArmed,
+              ptArmedBy: shouldArmPT ? 'SMApc' : (nextTlcState.ptArmedBy || null),
+              ptBarsSinceArmed: shouldArmPT ? 0 : (nextTlcState.ptBarsSinceArmed || 0),
+              ptArmedAt: shouldArmPT ? new Date().toISOString() : (nextTlcState.ptArmedAt || null),
+              ptTriggeredAt: shouldArmPT ? null : (nextTlcState.ptTriggeredAt || null),
+            };
 
             return {
                 state: {
