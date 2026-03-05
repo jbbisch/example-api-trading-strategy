@@ -276,6 +276,7 @@ TradovateSocket.prototype.connect = async function (url) {
       clearInterval(this.heartbeatInterval)
       if (!this._reconnecting && !this._reconnectTimer) this.reconnect()
       this.reconnectAttempts += 1
+      this.reconnect(`ws_error:${err?.message || 'unknown'}`)
       rej(err)
     })
 
@@ -291,6 +292,7 @@ TradovateSocket.prototype.connect = async function (url) {
       if (!this._reconnecting && !this._reconnectTimer) this.reconnect()
       this.reconnectAttempts += 1
       }
+      this.reconnect(`ws_close:${event.code}`)
       res()
     })
 
@@ -405,6 +407,13 @@ TradovateSocket.prototype.isConnected = function () {
  * Attempts to reconnect the WebSocket after an unexpected closure.
  */
 TradovateSocket.prototype.reconnect = async function () {
+  // If we are already connected or connecting, do nothing.
+  const st = this.ws ? this.ws.readyState : null
+  if (st === WebSocket.OPEN || st === WebSocket.CONNECTING) {
+    this._dbg('RECONNECT_SKIP_ALREADY_UP', { reason, wsState: st })
+    return
+  }
+  
   // NEW: single-flight reconnect guard
   if (this._reconnecting || this._reconnectTimer) {
     this._dbg('RECONNECT_SKIPPED', {
