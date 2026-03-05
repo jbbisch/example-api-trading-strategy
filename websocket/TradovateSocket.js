@@ -404,7 +404,7 @@ TradovateSocket.prototype.isConnected = function () {
 /**
  * Attempts to reconnect the WebSocket after an unexpected closure.
  */
-TradovateSocket.prototype.reconnect = async function () {
+TradovateSocket.prototype.reconnect = async function (reason = 'unknown') {
   // If we are already connected or connecting, do nothing.
   const st = this.ws ? this.ws.readyState : null
   if (st === WebSocket.OPEN || st === WebSocket.CONNECTING) {
