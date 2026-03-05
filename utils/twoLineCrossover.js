@@ -1,6 +1,8 @@
 const { calculateSma } = require("./helpers")
 const { calculateSmaOpen } = require("./helpers")
 
+const ENABLE_TLC_TRIGGER_LOGS = false
+
 module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
     function nextTLC(prevState, data) {
         const { timestamp, open, high, low, close } = data
@@ -311,65 +313,37 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const PositiveReversalBreakdown = reversalAttemptActive && (
           madeLowerLow || velocitiesBearish || bandRejection || timeStopFailed || persistentBandRide
         );
-        
-        if (PositiveReversalBreakdown && !prevState.PositiveReversalBreakdown) {
-  // Choose ONE reason in priority order (top wins)
-  let reason = null;
-
-  if (madeLowerLow) {
-    reason = 'newLow';
-  } else if (velocitiesBearish) {
-    reason = 'bearishVelocity';
-  } else if (bandRejection) {
-    reason = 'bandRejection';
-  } else if (persistentBandRide) {
-    reason = 'bandRide';
-  } else if (timeStopFailed) {
-    reason = 'timeStop';
-  } else {
-    // Fallback in case PRB is true but none of the flags are true
-    reason = 'unknown';
-  }
-
-  // Count ONLY the chosen reason (so counts match what you export)
-  const prbReasonCounts = { ...(prevState.prbReasonCounts || {}) };
-  prbReasonCounts[reason] = (prbReasonCounts[reason] || 0) + 1;
-
-  prbTriggeredAtLocal = new Date().toISOString();
-  updatedPositiveReversalBreakdownReason = reason; // <-- single reason, no join('|')
-  updatedPrbReasonCounts = prbReasonCounts;
-
-  console.log(
-    '[PRBnc TRADE]',
-    `reason=${updatedPositiveReversalBreakdownReason}`,
-    `armedBy=${reversalArmedBy || 'n/a'}`,
-    `armedAt=${prevState.prbArmedAt || prbArmedAtLocal || 'n/a'}`,
-    `triggeredAt=${prbTriggeredAtLocal}`,
-    `bars=${barsSinceReversalAttempt}`,
-    `entryDist=${Number.isFinite(reversalEntryDistance) ? reversalEntryDistance.toFixed(2) : 'N/A'}`,
-    `minDist=${Number.isFinite(minDistanceSinceReversal) ? minDistanceSinceReversal.toFixed(2) : 'N/A'}`,
-    `distOpen=${Number.isFinite(distanceOpen) ? distanceOpen.toFixed(2) : 'N/A'}`
-  );
-}
 
         if (PositiveReversalBreakdown && !prevState.PositiveReversalBreakdown) {
-          const reasons = [];
-          if (madeLowerLow)       reasons.push('newLow');
-          if (velocitiesBearish)  reasons.push('bearishVelocity');
-          if (bandRejection)      reasons.push('bandRejection');
-          if (persistentBandRide) reasons.push('bandRide')
-          if (timeStopFailed)     reasons.push('timeStop');
+          // Choose ONE reason in priority order (top wins)
+          let reason = null;
 
-        const prbReasonCounts = { ...(prevState.prbReasonCounts || {}) }
-        for (const r of reasons) prbReasonCounts[r] = (prbReasonCounts[r] || 0) + 1
+          if (madeLowerLow) {
+            reason = 'newLow';
+          } else if (velocitiesBearish) {
+            reason = 'bearishVelocity';
+          } else if (bandRejection) {
+            reason = 'bandRejection';
+          } else if (persistentBandRide) {
+            reason = 'bandRide';
+          } else if (timeStopFailed) {
+            reason = 'timeStop';
+          } else {
+            // Fallback in case PRB is true but none of the flags are true
+            reason = 'unknown';
+          }
 
-          prbTriggeredAtLocal = new Date().toISOString()
-          updatedPositiveReversalBreakdownReason = reasons.join('|')
-          updatedPrbReasonCounts = prbReasonCounts
+          // Count ONLY the chosen reason (so counts match what you export)
+          const prbReasonCounts = { ...(prevState.prbReasonCounts || {}) };
+          prbReasonCounts[reason] = (prbReasonCounts[reason] || 0) + 1;
+
+          prbTriggeredAtLocal = new Date().toISOString();
+          updatedPositiveReversalBreakdownReason = reason; // <-- single reason, no join('|')
+          updatedPrbReasonCounts = prbReasonCounts;
 
           console.log(
             '[PRBnc TRADE]',
-            `reasons=${updatedPositiveReversalBreakdownReason}`,
+            `reason=${updatedPositiveReversalBreakdownReason}`,
             `armedBy=${reversalArmedBy || 'n/a'}`,
             `armedAt=${prevState.prbArmedAt || prbArmedAtLocal || 'n/a'}`,
             `triggeredAt=${prbTriggeredAtLocal}`,
@@ -377,7 +351,6 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             `entryDist=${Number.isFinite(reversalEntryDistance) ? reversalEntryDistance.toFixed(2) : 'N/A'}`,
             `minDist=${Number.isFinite(minDistanceSinceReversal) ? minDistanceSinceReversal.toFixed(2) : 'N/A'}`,
             `distOpen=${Number.isFinite(distanceOpen) ? distanceOpen.toFixed(2) : 'N/A'}`
-      
           );
         }
 
@@ -480,45 +453,45 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         // Optional: auto-expire if it never hits
         const ptExpired = ptArmed && ptBarsSinceArmed >= PT_CFG.maxBarsArmed;
 
-        // ---- Adaptive impulse-fail exit (velocity-based bailout) ----
-        const IMPULSE_CFG = {
-          impulseBars: 3,     // evaluate after 3 bars since armed
-          lookback: 10,       // adaptive threshold lookback on dv
-          dvFloor: 0.08,      // minimum dv threshold
-          dvMult: 0.75,       // threshold = mean(|dv|) * dvMult
-          needPosCount: 2,    // need 2 of last 3 dv values above threshold
-          requireImproving: true
-        };
+        // // ---- Adaptive impulse-fail exit (velocity-based bailout) ----
+        // const IMPULSE_CFG = {
+        //   impulseBars: 3,     // evaluate after 3 bars since armed
+        //   lookback: 10,       // adaptive threshold lookback on dv
+        //   dvFloor: 0.08,      // minimum dv threshold
+        //   dvMult: 0.75,       // threshold = mean(|dv|) * dvMult
+        //   needPosCount: 2,    // need 2 of last 3 dv values above threshold
+        //   requireImproving: true
+        // };
 
-        const bearishStructure = longSma < twentySma;
-        const stillBelow20 = currentPrice < twentySma;
+        // const bearishStructure = longSma < twentySma;
+        // const stillBelow20 = currentPrice < twentySma;
 
-        const dvSeries = (updatedDistanceVelocities || []).slice(-IMPULSE_CFG.lookback);
-        const dvAbs = dvSeries.map(v => Math.abs(v)).filter(Number.isFinite);
+        // const dvSeries = (updatedDistanceVelocities || []).slice(-IMPULSE_CFG.lookback);
+        // const dvAbs = dvSeries.map(v => Math.abs(v)).filter(Number.isFinite);
 
-        const dvMeanAbs = dvAbs.length ? (dvAbs.reduce((s,v)=>s+v,0) / dvAbs.length) : 0;
-        const dvPosThresh = Math.max(IMPULSE_CFG.dvFloor, dvMeanAbs * IMPULSE_CFG.dvMult);
+        // const dvMeanAbs = dvAbs.length ? (dvAbs.reduce((s,v)=>s+v,0) / dvAbs.length) : 0;
+        // const dvPosThresh = Math.max(IMPULSE_CFG.dvFloor, dvMeanAbs * IMPULSE_CFG.dvMult);
 
-        const last3dv = (updatedDistanceVelocities || []).slice(-3);
-        const dvPosCount = last3dv.filter(v => Number.isFinite(v) && v > dvPosThresh).length;
+        // const last3dv = (updatedDistanceVelocities || []).slice(-3);
+        // const dvPosCount = last3dv.filter(v => Number.isFinite(v) && v > dvPosThresh).length;
 
-        const dvImproving = last3dv.length === 3
-          ? (last3dv[2] > last3dv[1] || last3dv[1] > last3dv[0])
-          : true;
+        // const dvImproving = last3dv.length === 3
+        //   ? (last3dv[2] > last3dv[1] || last3dv[1] > last3dv[0])
+        //   : true;
 
-        const failedImpulse =
-          (dvPosCount < IMPULSE_CFG.needPosCount) ||
-          (IMPULSE_CFG.requireImproving && !dvImproving);
+        // const failedImpulse =
+        //   (dvPosCount < IMPULSE_CFG.needPosCount) ||
+        //   (IMPULSE_CFG.requireImproving && !dvImproving);
 
-        const impulseFailExit =
-          ptArmed &&
-          ptBarsSinceArmed >= IMPULSE_CFG.impulseBars &&
-          bearishStructure &&
-          stillBelow20 &&
-          failedImpulse;
-        
+        // const impulseFailExit =
+        //   ptArmed &&
+        //   ptBarsSinceArmed >= IMPULSE_CFG.impulseBars &&
+        //   bearishStructure &&
+        //   stillBelow20 &&
+        //   failedImpulse;
+
         // 6) PT exit event fires as a negative/exit condition (profit take)
-        const PTbandPeakExit = PTbandPeak || impulseFailExit;
+        const PTbandPeakExit = PTbandPeak; //|| impulseFailExit;
 
         // 7) Disarm rules:
         //    - disarm if it fired
@@ -599,7 +572,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
               if (PTbandPeakExit) sellTriggerSource.push(`${now} - PTbandPeak`)
           }
         }
-        
+
         const next = {
             shortSma: shortSma,
             longSma: longSma,
