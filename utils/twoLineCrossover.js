@@ -311,6 +311,46 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const PositiveReversalBreakdown = reversalAttemptActive && (
           madeLowerLow || velocitiesBearish || bandRejection || timeStopFailed || persistentBandRide
         );
+        
+        if (PositiveReversalBreakdown && !prevState.PositiveReversalBreakdown) {
+  // Choose ONE reason in priority order (top wins)
+  let reason = null;
+
+  if (madeLowerLow) {
+    reason = 'newLow';
+  } else if (velocitiesBearish) {
+    reason = 'bearishVelocity';
+  } else if (bandRejection) {
+    reason = 'bandRejection';
+  } else if (persistentBandRide) {
+    reason = 'bandRide';
+  } else if (timeStopFailed) {
+    reason = 'timeStop';
+  } else {
+    // Fallback in case PRB is true but none of the flags are true
+    reason = 'unknown';
+  }
+
+  // Count ONLY the chosen reason (so counts match what you export)
+  const prbReasonCounts = { ...(prevState.prbReasonCounts || {}) };
+  prbReasonCounts[reason] = (prbReasonCounts[reason] || 0) + 1;
+
+  prbTriggeredAtLocal = new Date().toISOString();
+  updatedPositiveReversalBreakdownReason = reason; // <-- single reason, no join('|')
+  updatedPrbReasonCounts = prbReasonCounts;
+
+  console.log(
+    '[PRBnc TRADE]',
+    `reason=${updatedPositiveReversalBreakdownReason}`,
+    `armedBy=${reversalArmedBy || 'n/a'}`,
+    `armedAt=${prevState.prbArmedAt || prbArmedAtLocal || 'n/a'}`,
+    `triggeredAt=${prbTriggeredAtLocal}`,
+    `bars=${barsSinceReversalAttempt}`,
+    `entryDist=${Number.isFinite(reversalEntryDistance) ? reversalEntryDistance.toFixed(2) : 'N/A'}`,
+    `minDist=${Number.isFinite(minDistanceSinceReversal) ? minDistanceSinceReversal.toFixed(2) : 'N/A'}`,
+    `distOpen=${Number.isFinite(distanceOpen) ? distanceOpen.toFixed(2) : 'N/A'}`
+  );
+}
 
         if (PositiveReversalBreakdown && !prevState.PositiveReversalBreakdown) {
           const reasons = [];
