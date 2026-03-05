@@ -274,9 +274,8 @@ TradovateSocket.prototype.connect = async function (url) {
       if (this.ws !== wsRef) return // <— added stale guard
       console.error('[ConnectErrorEvent] Websocket error: ' + err)
       clearInterval(this.heartbeatInterval)
-      if (!this._reconnecting && !this._reconnectTimer) this.reconnect()
+      if (!this._reconnecting && !this._reconnectTimer) this.reconnect(`ws_error:${err?.message || 'unknown'}`)
       this.reconnectAttempts += 1
-      this.reconnect(`ws_error:${err?.message || 'unknown'}`)
       rej(err)
     })
 
@@ -289,10 +288,9 @@ TradovateSocket.prototype.connect = async function (url) {
       if (event.code !== 1000) {
       // Non-normal closure should try to reconnect
       console.log('(onClose) Attempting to reconnect...')
-      if (!this._reconnecting && !this._reconnectTimer) this.reconnect()
+      if (!this._reconnecting && !this._reconnectTimer) this.reconnect(`ws_close:${event.code}:${event.reason || ''}`)
       this.reconnectAttempts += 1
       }
-      this.reconnect(`ws_close:${event.code}`)
       res()
     })
 
