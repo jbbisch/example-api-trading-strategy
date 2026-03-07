@@ -141,10 +141,12 @@ const onChart = (prevState, {data, props}) => {
         const nowET = new Date(nowUTC.toLocaleString("en-US", { timeZone: "America/New_York" }))
 
         const isFriday = nowET.getDay() === 5
-        const isTime = nowET.getHours() === 17 && nowET.getMinutes() >= 40
+        const isTime = nowET.getHours() >= 15 && nowET.getMinutes() >= 55
 
         return isFriday && isTime
     }
+    
+    const flattenForWeekend = isWeekendExit()
 
     // USE DURING BEAR MARKET INSTEAD OF WATCH AND LONG ##########
     // if(mode === LongShortMode.Watch && negativeCrossover ) {
@@ -246,7 +248,7 @@ const onChart = (prevState, {data, props}) => {
     // }
 
     // USE DURING BULL MARKET INSTEAD OF WATCH AND SHORT ##########
-    if(mode === LongShortMode.Long && negEdge || isWeekendExit()) {
+    if(mode === LongShortMode.Long && negEdge || flattenForWeekend) {
         if(currentPositionSize >= maxPosition) {
             //console.log('[onChart] liquidatePosition 2:', placeOrder)
             //console.log('[onChart] mode 2 placeOrder:', mode)
@@ -358,7 +360,7 @@ const onChart = (prevState, {data, props}) => {
     }
 
     // USE DURING BULL MARKET INSTEAD OF WATCH AND SHORT ##########
-    if(mode === LongShortMode.Watch && posEdge) {
+    if(mode === LongShortMode.Watch && posEdge && !flattenForWeekend) {
         if(currentPositionSize < maxPosition) { 
             //console.log('[onChart] placeOrder 3:', placeOrder)
             //console.log('[onChart] mode 3 buyOrder:', mode)  
