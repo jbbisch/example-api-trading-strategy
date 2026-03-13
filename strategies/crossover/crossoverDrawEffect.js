@@ -9,7 +9,7 @@ const drawEffect = (state, action) => {
         const { props } = payload
         const { contract } = props
         const { PTarmCount, product, position, mode, buffer, tlc, realizedPnL, buyDistance, sellDistance, buyTriggerSource, sellTriggerSource,} = state
-        const { PTbandPeak, PTbandPeakExit, ptArmed, ptArmedBy, ptBarsSinceArmed, ptArmedAt, ptTriggeredAt, DVncConfirmedHistory, DVncConfirmedBreak, LikelyNegativeCrossoverCount, PositiveReversalBreakdownReason, prbReasonCounts, prbArmedAt, prbTriggeredAt, PRBArmCount, PRBArmCountAAGMpcBreak, AAGMpcBreakCount, SAGMncBreakCount, SAGMncBreak, slopeFlatHistory, SharpDroppingVelocityNegativeCrossoverCount, SharpDroppingVelocityNegativeCrossoverHistory, flatVelocityHistory, flatMarketEntryConditionCount, flatMarketExitConditionCount, DriftingVelocityPositiveCrossoverConfirmedCount, DriftingVelocityPositiveCrossoverHistory, DriftingVelocityNegativeCrossoverHistory, DriftingVelocityNegativeCrossoverConfirmedCount, shortSmaVelocities, longSmaVelocities, distanceVelocities, distance, shortSma, SMAPositiveCrossoverCount, SMANegativeCrossoverCount, NegativeBounceNegativeCrossoverCount, BouncePositiveCrossoverCount, updatedDistanceValley, AcceleratingAbsoluteGapMomentumCrossoverCount, longSma, distanceOpen, GapMomentumLowCrossover, gapMomentumLowCrossoverCount, absoluteGapMomentum, absoluteGapMomentums, absoluteGapMomentumDifference, absoluteGapMomentumDifferences, slowingAbsoluteGapMomentum, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceOpenValues, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount, slowingAbsoluteGapMomentumCrossoverCount, momentumPeakNegativeCrossoverCount, PositiveReversalBreakdown, PositiveReversalBreakdownCount, reversalAttemptActive, barsSinceReversalAttempt, reversalEntryDistance, minDistanceSinceReversal} = tlc.state  
+        const { sellSignalDebug, PTbandPeak, PTbandPeakExit, ptArmed, ptArmedBy, ptBarsSinceArmed, ptArmedAt, ptTriggeredAt, DVncConfirmedHistory, DVncConfirmedBreak, LikelyNegativeCrossoverCount, PositiveReversalBreakdownReason, prbReasonCounts, prbArmedAt, prbTriggeredAt, PRBArmCount, PRBArmCountAAGMpcBreak, AAGMpcBreakCount, SAGMncBreakCount, SAGMncBreak, slopeFlatHistory, SharpDroppingVelocityNegativeCrossoverCount, SharpDroppingVelocityNegativeCrossoverHistory, flatVelocityHistory, flatMarketEntryConditionCount, flatMarketExitConditionCount, DriftingVelocityPositiveCrossoverConfirmedCount, DriftingVelocityPositiveCrossoverHistory, DriftingVelocityNegativeCrossoverHistory, DriftingVelocityNegativeCrossoverConfirmedCount, shortSmaVelocities, longSmaVelocities, distanceVelocities, distance, shortSma, SMAPositiveCrossoverCount, SMANegativeCrossoverCount, NegativeBounceNegativeCrossoverCount, BouncePositiveCrossoverCount, updatedDistanceValley, AcceleratingAbsoluteGapMomentumCrossoverCount, longSma, distanceOpen, GapMomentumLowCrossover, gapMomentumLowCrossoverCount, absoluteGapMomentum, absoluteGapMomentums, absoluteGapMomentumDifference, absoluteGapMomentumDifferences, slowingAbsoluteGapMomentum, momentum, momentumDifferences, shortSmaValues, distanceMomentum, distanceOpenValues, distanceValues, slowingDistanceMomentum, distanceMomentumDifferences, distanceMomentumDifference, momentumPeak, distancePeak, updatedMomentumPeak, updatedDistancePeak, triggerSource, slowingMomentum, momentumDifference, slowingMomentumNegativeCrossoverCount, slowingDistanceMomentumCrossoverCount, slowingAbsoluteGapMomentumCrossoverCount, momentumPeakNegativeCrossoverCount, PositiveReversalBreakdown, PositiveReversalBreakdownCount, reversalAttemptActive, barsSinceReversalAttempt, reversalEntryDistance, minDistanceSinceReversal} = tlc.state  
 
         const formatDistanceArray = (distanceArray) => {
             if (!distanceArray || distanceArray.length === 0) return 'No Distance'
@@ -46,7 +46,7 @@ const drawEffect = (state, action) => {
             }
             return rows.join('\n')
         }
-        
+
         const boolText = (v) => v ? 'true' : 'false'
 
         const fmtNum = (v, digits = 2) =>
@@ -73,32 +73,32 @@ const drawEffect = (state, action) => {
             'Distance on currentOpen': distanceOpenValues.map(value => value.toFixed(2)).join(', '),
             //AbsoluteGapMomentum: absoluteGapMomentum !== undefined ? absoluteGapMomentum.toFixed(8) : 'N/A',
             AbsoluteGapMomentums: (absoluteGapMomentums || []).map(v => v.toFixed(8)).join(', '),
-            //AbsoluteGapMomentumDifference: absoluteGapMomentumDifference !== undefined ? absoluteGapMomentumDifference.toFixed(8) : 'N/A',
-            //AbsoluteGapMomentumDifferences: (absoluteGapMomentumDifferences || []).map(v => v.toFixed(8)).join(', '),
-            //DistanceMomentum: distanceMomentum.toFixed(8),
-            //slowingDistanceMomentum: slowingDistanceMomentum.join(', '),
-            //distanceMomentumDifference: distanceMomentumDifference.toFixed(8),
-            //'Distance Momentum Differences': distanceMomentumDifferences.map(v => v.toFixed(8)).join(', '),
+            // AbsoluteGapMomentumDifference: absoluteGapMomentumDifference !== undefined ? absoluteGapMomentumDifference.toFixed(8) : 'N/A',
+            // AbsoluteGapMomentumDifferences: (absoluteGapMomentumDifferences || []).map(v => v.toFixed(8)).join(', '),
+            // DistanceMomentum: distanceMomentum.toFixed(8),
+            // slowingDistanceMomentum: slowingDistanceMomentum.join(', '),
+            // distanceMomentumDifference: distanceMomentumDifference.toFixed(8),
+            // 'Distance Momentum Differences': distanceMomentumDifferences.map(v => v.toFixed(8)).join(', '),
             DistanceValley: updatedDistanceValley ? updatedDistanceValley.join(', ') : 'N/A',
             DistancePeak: updatedDistancePeak ? updatedDistancePeak.join(', ') : 'N/A',
-            MomentumPeak: updatedMomentumPeak ? updatedMomentumPeak.join(', ') : 'N/A',
-            DVpcHistory: (DriftingVelocityPositiveCrossoverHistory || []).map(v => v ? 'true' : 'false').join(', '),
+            //MomentumPeak: updatedMomentumPeak ? updatedMomentumPeak.join(', ') : 'N/A',
+            //DVpcHistory: (DriftingVelocityPositiveCrossoverHistory || []).map(v => v ? 'true' : 'false').join(', '),
             DVncHistory: (DriftingVelocityNegativeCrossoverHistory || []).map(v => v ? 'true' : 'false').join(', '),
             DVncConfirmedHistory: (DVncConfirmedHistory || []).map(v => v ? 'true' : 'false').join(', '),
             DVncConfirmedBreak: DVncConfirmedBreak ? 'true' : 'false',
             flatVelocityHistory: flatVelocityHistory.map(v => v ? 'true' : 'false').join(', '),
-            slopeFlatHistory: (slopeFlatHistory || []).map(v => v ? 'true' : 'false').join(', '),
-            SDVncHistory: (SharpDroppingVelocityNegativeCrossoverHistory || []).map(v => v ? 'true' : 'false').join(', '),
+            //slopeFlatHistory: (slopeFlatHistory || []).map(v => v ? 'true' : 'false').join(', '),
+            //SDVncHistory: (SharpDroppingVelocityNegativeCrossoverHistory || []).map(v => v ? 'true' : 'false').join(', '),
             shortSmaVelocities: (shortSmaVelocities || []).map(v => v.toFixed(8)).join(", "),
             longSmaVelocities: (longSmaVelocities || []).map(v => v.toFixed(8)).join(", "),
             distanceVelocities: (distanceVelocities || []).map(v => v.toFixed(8)).join(", "),
             slowingAbsoluteGapMomentum: (slowingAbsoluteGapMomentum || []).join(', '),
-            //ShortSmaMomentum: momentum.toFixed(8),
-            //'Short SMA Values': shortSmaValues.map(value => value.toFixed(2)).join(', '),
-            //LONGsma: longSma.toFixed(2),
-            //slowingMomentum: slowingMomentum.join(', '),
-            //momentumDifference: momentumDifference.toFixed(8),
-            //'Momentum Differences': momentumDifferences.map(value => value.toFixed(8)).join(', '),
+            // ShortSmaMomentum: momentum.toFixed(8),
+            // 'Short SMA Values': shortSmaValues.map(value => value.toFixed(2)).join(', '),
+            // 'Long SMA': longSma.toFixed(2),
+            // slowingMomentum: slowingMomentum.join(', '),
+            // momentumDifference: momentumDifference.toFixed(8),
+            // 'Momentum Differences': momentumDifferences.map(value => value.toFixed(8)).join(', '),
             // 'p&l': position && position.netPos !== 0 && product 
             //     ? `$${calculatePnL({
             //         price: buffer.last()?.price || buffer.last()?.price || 0, 
@@ -109,21 +109,21 @@ const drawEffect = (state, action) => {
             //     : '$0.00',
             buyTriggerSource: buyTriggers,
             //buyDistance: formattedBuyDistance,
-            SMApcCount: SMAPositiveCrossoverCount,
-            DVpcCount: DriftingVelocityPositiveCrossoverConfirmedCount,
-            FMEpcCount: flatMarketEntryConditionCount,
-            AAGMpcCount: AAGMpcBreakCount,
+            //SMApcCount: SMAPositiveCrossoverCount,
+            //DVpcCount: DriftingVelocityPositiveCrossoverConfirmedCount,
+            //FMEpcCount: flatMarketEntryConditionCount,
+            //AAGMpcCount: AAGMpcBreakCount,
             //BpcCount: BouncePositiveCrossoverCount,
             sellTriggerSource: sellTriggers,
             //sellDistance: formattedSellDistance,
-            SMAncCount: SMANegativeCrossoverCount,
-            LncCount: LikelyNegativeCrossoverCount,
-            DVncBCount: DriftingVelocityNegativeCrossoverConfirmedCount,
+            //SMAncCount: SMANegativeCrossoverCount,
+            //LncCount: LikelyNegativeCrossoverCount,
+            //DVncBCount: DriftingVelocityNegativeCrossoverConfirmedCount,
             //FMEncCount: flatMarketExitConditionCount,
-            SAGMncCount: SAGMncBreakCount,
-            NBncCount: NegativeBounceNegativeCrossoverCount,
-            PRBncCount: PositiveReversalBreakdownCount,
-            PRB: PositiveReversalBreakdown ? 'true' : 'false',
+            //SAGMncCount: SAGMncBreakCount,
+            //NBncCount: NegativeBounceNegativeCrossoverCount,
+            //PRBncCount: PositiveReversalBreakdownCount,
+            //PRB: PositiveReversalBreakdown ? 'true' : 'false',
             PRBactive: reversalAttemptActive ? 'true' : 'false',
             PRBbars: barsSinceReversalAttempt,
             PRBentryDist: Number.isFinite(reversalEntryDistance) ? reversalEntryDistance.toFixed(2) : 'N/A', 
@@ -134,7 +134,7 @@ const drawEffect = (state, action) => {
             PRBtriggeredAt: prbTriggeredAt || '—',
             PRBarmCount: PRBArmCount || 0,
             PTarmed: ptArmed ? 'true' : 'false',
-            PTarmedBy: ptArmedBy || '—',
+            //PTarmedBy: ptArmedBy || '—',
             PTbars: ptBarsSinceArmed ?? 0,
             PTexit: PTbandPeakExit ? 'true' : 'false',
             PTarmedAt: ptArmedAt || '—',
