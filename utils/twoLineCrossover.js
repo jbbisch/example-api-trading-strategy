@@ -142,6 +142,8 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const distanceWorsening = updatedDistanceVelocities.slice(-3).every(v => v <= -0.12)
         const trendPressureEasing = !(longSlopeDown && longVelocityBearish && distanceWorsening)
 
+        const lncBlockedForEntryCooldown = prevState.lastEntryTime && (Date.now() - prevState.lastEntryTime < 13 * 60 * 1000) // 13-minute cooldown after entry
+
         const slowingMomentumNegativeCrossoverCount = prevState.slowingMomentumNegativeCrossoverCount || 0
         //const slowingDistanceMomentumCrossoverCount = prevState.slowingDistanceMomentumCrossoverCount || 0
         const momentumPeakNegativeCrossoverCount = prevState.momentumPeakNegativeCrossoverCount || 0
@@ -164,7 +166,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         const PositiveReversalBreakdownCount = prevState.PositiveReversalBreakdownCount || 0
         const LikelyNegativeCrossoverCount = prevState.LikelyNegativeCrossoverCount || 0
 
-        const SMAPositiveCrossover = (prevState.shortSma <= prevState.longSma && distance > 0.00)
+        const SMAPositiveCrossover = (prevState.shortSma <= prevState.longSma && distance > 0.00)// && currentPrice >= twentySma
         const AcceleratingAbsoluteGapMomentumCrossover = (distanceOpen < -2.70 && updatedSlowingAbsoluteGapMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistanceValley.slice(-3).filter(v => v).length >= 1)
         const updatedAAGMpcHistory = [...prevState.AcceleratingAbsoluteGapMomentumCrossoverHistory.slice(1), AcceleratingAbsoluteGapMomentumCrossover]
         const AAGMpcBreak = updatedAAGMpcHistory.length >= 2 && updatedAAGMpcHistory[updatedAAGMpcHistory.length - 2] === true && updatedAAGMpcHistory[updatedAAGMpcHistory.length - 1] === false
@@ -178,24 +180,22 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         // ---------- Positive Reversal Breakdown monitor (for positive longs started in negative distance) ----------
                 // ---- PRBnc ARM/DISARM IMPROVEMENTS ----
         const PRB_ARM = {
-          allowSMApc: false,
-          allowAAGMpcBreak: true,
           allowDVpcConfirmed: true,
-          allowFlatMarketEntry: true
+          allowFlatMarketEntry: true,
+          allowAAGMpcBreak: true
         };
 
         const armedBy = {
-          SMApc:  SMAPositiveCrossover,
-          AAGMpc: AAGMpcBreak,
           DVpcC:  DVpcConfirmed,
           FMEpc:  flatMarketEntryCondition,
+          AAGMpc: AAGMpcBreak,
+
         };
 
         const canArmSignal =
-          (PRB_ARM.allowSMApc && armedBy.SMApc) ||
-          (PRB_ARM.allowAAGMpcBreak && armedBy.AAGMpc) ||
           (PRB_ARM.allowDVpcConfirmed && armedBy.DVpcC) ||
-          (PRB_ARM.allowFlatMarketEntry && armedBy.FMEpc);
+          (PRB_ARM.allowFlatMarketEntry && armedBy.FMEpc) ||
+          (PRB_ARM.allowAAGMpcBreak && armedBy.AAGMpc);
 
         // Bearish context: any TWO of these means we’re still “underwater-ish”
         const bearFlags = {
@@ -226,10 +226,9 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
           barsSinceReversalAttempt = 0;
           reversalEntryDistance    = distanceOpen;  // snapshot
           minDistanceSinceReversal = distanceOpen;
-          reversalArmedBy          = armedBy.SMApc ? 'SMApc'
-                                : armedBy.AAGMpc ? 'AAGMpc'
-                                : armedBy.DVpcC  ? 'DVpcC'
+          reversalArmedBy          = armedBy.DVpcC  ? 'DVpcC'
                                 : armedBy.FMEpc  ? 'FMEpc'
+                                : armedBy.AAGMpc ? 'AAGMpc'
                                 : 'unknown';
           prbArmedAtLocal = new Date().toISOString()
           updatedPRBArmCount = (prevState.PRBArmCount || 0) + 1
@@ -380,7 +379,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         
         const SMANegativeCrossover = (prevState.shortSmaOpen >= prevState.longSmaOpen && distanceOpen < 0.00)
         const NegativeBounceNegativeCrossover = (prevState.distanceOpen >= -0.32 && distanceOpen < -0.32)
-        const LikelyNegativeCrossover = (prevState.distance > 0.28 && distance < 0.31)
+        const LikelyNegativeCrossover = (prevState.distance > 0.28 && distance < 0.31) && !lncBlockedForEntryCooldown
         const SlowingAbsoluteGapMomentumCrossover = (distance > 2.65 && updatedSlowingAbsoluteGapMomentum.slice(-5).filter(v => v).length >= 3 && updatedDistancePeak.slice(-3).filter(v => v).length >= 1)
         const updatedSAGMncHistory = [...prevState.SlowingAbsoluteGapMomentumCrossoverHistory.slice(1), SlowingAbsoluteGapMomentumCrossover]
         const SAGMncBreak = updatedSAGMncHistory.length >= 2 && updatedSAGMncHistory[updatedSAGMncHistory.length - 2] === true && updatedSAGMncHistory[updatedSAGMncHistory.length - 1] === false
@@ -453,45 +452,45 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
         // Optional: auto-expire if it never hits
         const ptExpired = ptArmed && ptBarsSinceArmed >= PT_CFG.maxBarsArmed;
 
-        // // ---- Adaptive impulse-fail exit (velocity-based bailout) ----
-        // const IMPULSE_CFG = {
-        //   impulseBars: 3,     // evaluate after 3 bars since armed
-        //   lookback: 10,       // adaptive threshold lookback on dv
-        //   dvFloor: 0.08,      // minimum dv threshold
-        //   dvMult: 0.75,       // threshold = mean(|dv|) * dvMult
-        //   needPosCount: 2,    // need 2 of last 3 dv values above threshold
-        //   requireImproving: true
-        // };
+        // ---- Adaptive impulse-fail exit (velocity-based bailout) ----
+        const IMPULSE_CFG = {
+          impulseBars: 3,     // evaluate after 3 bars since armed
+          lookback: 10,       // adaptive threshold lookback on dv
+          dvFloor: 0.08,      // minimum dv threshold
+          dvMult: 0.75,       // threshold = mean(|dv|) * dvMult
+          needPosCount: 2,    // need 2 of last 3 dv values above threshold
+          requireImproving: true
+        };
 
-        // const bearishStructure = longSma < twentySma;
-        // const stillBelow20 = currentPrice < twentySma;
+        const bearishStructure = longSma < twentySma;
+        const stillBelow20 = currentPrice < twentySma;
 
-        // const dvSeries = (updatedDistanceVelocities || []).slice(-IMPULSE_CFG.lookback);
-        // const dvAbs = dvSeries.map(v => Math.abs(v)).filter(Number.isFinite);
+        const dvSeries = (updatedDistanceVelocities || []).slice(-IMPULSE_CFG.lookback);
+        const dvAbs = dvSeries.map(v => Math.abs(v)).filter(Number.isFinite);
 
-        // const dvMeanAbs = dvAbs.length ? (dvAbs.reduce((s,v)=>s+v,0) / dvAbs.length) : 0;
-        // const dvPosThresh = Math.max(IMPULSE_CFG.dvFloor, dvMeanAbs * IMPULSE_CFG.dvMult);
+        const dvMeanAbs = dvAbs.length ? (dvAbs.reduce((s,v)=>s+v,0) / dvAbs.length) : 0;
+        const dvPosThresh = Math.max(IMPULSE_CFG.dvFloor, dvMeanAbs * IMPULSE_CFG.dvMult);
 
-        // const last3dv = (updatedDistanceVelocities || []).slice(-3);
-        // const dvPosCount = last3dv.filter(v => Number.isFinite(v) && v > dvPosThresh).length;
+        const last3dv = (updatedDistanceVelocities || []).slice(-3);
+        const dvPosCount = last3dv.filter(v => Number.isFinite(v) && v > dvPosThresh).length;
 
-        // const dvImproving = last3dv.length === 3
-        //   ? (last3dv[2] > last3dv[1] || last3dv[1] > last3dv[0])
-        //   : true;
+        const dvImproving = last3dv.length === 3
+          ? (last3dv[2] > last3dv[1] || last3dv[1] > last3dv[0])
+          : true;
 
-        // const failedImpulse =
-        //   (dvPosCount < IMPULSE_CFG.needPosCount) ||
-        //   (IMPULSE_CFG.requireImproving && !dvImproving);
+        const failedImpulse =
+          (dvPosCount < IMPULSE_CFG.needPosCount) ||
+          (IMPULSE_CFG.requireImproving && !dvImproving);
 
-        // const impulseFailExit =
-        //   ptArmed &&
-        //   ptBarsSinceArmed >= IMPULSE_CFG.impulseBars &&
-        //   bearishStructure &&
-        //   stillBelow20 &&
-        //   failedImpulse;
+        const impulseFailExit =
+          ptArmed &&
+          ptBarsSinceArmed >= IMPULSE_CFG.impulseBars &&
+          bearishStructure &&
+          stillBelow20 &&
+          failedImpulse;
 
         // 6) PT exit event fires as a negative/exit condition (profit take)
-        const PTbandPeakExit = PTbandPeak; //|| impulseFailExit;
+        const PTbandPeakExit = PTbandPeak || impulseFailExit;
 
         // 7) Disarm rules:
         //    - disarm if it fired
@@ -511,7 +510,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
 
 
         const negativeCrossover = negCore || PTbandPeakExit
-        
+
         const sellSignalDebug = {
             SAGMncBreak: {
                 signal: SAGMncBreak,
@@ -954,6 +953,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             belowBandStreak: Array(4).fill(false),
             LikelyNegativeCrossover: false,
             LikelyNegativeCrossoverCount: 0,
+            lastEntryTime: null,
             PTbandPeak: false,
             PTbandPeakExit: false,
             ptArmed: false,
