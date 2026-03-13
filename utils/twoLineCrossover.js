@@ -512,6 +512,146 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
 
         const negativeCrossover = negCore || PTbandPeakExit
         
+        const sellSignalDebug = {
+            SAGMncBreak: {
+                signal: SAGMncBreak,
+
+                setupSignal: SlowingAbsoluteGapMomentumCrossover,
+                distanceValue: distance,
+                distanceOk: distance > 2.65,
+
+                slowingAbsGapMomentumWindow: updatedSlowingAbsoluteGapMomentum.slice(-5),
+                slowingAbsGapMomentumCount: updatedSlowingAbsoluteGapMomentum.slice(-5).filter(Boolean).length,
+                slowingAbsGapMomentumOk: updatedSlowingAbsoluteGapMomentum.slice(-5).filter(Boolean).length >= 3,
+
+                distancePeakWindow: updatedDistancePeak.slice(-3),
+                distancePeakCount: updatedDistancePeak.slice(-3).filter(Boolean).length,
+                distancePeakOk: updatedDistancePeak.slice(-3).filter(Boolean).length >= 1,
+
+                historyWindow: updatedSAGMncHistory.slice(-2),
+                historyReady: updatedSAGMncHistory.length >= 2,
+                prevWasTrue: updatedSAGMncHistory.length >= 2
+                    ? updatedSAGMncHistory[updatedSAGMncHistory.length - 2] === true
+                    : false,
+                nowIsFalse: updatedSAGMncHistory.length >= 2
+                    ? updatedSAGMncHistory[updatedSAGMncHistory.length - 1] === false
+                    : false,
+            },
+
+            DVncConfirmedBreak: {
+                signal: DVncConfirmedBreak,
+
+                setupSignal: DriftingVelocityNegativeCrossover,
+
+                distanceOpenWindow: updatedDistanceOpenValues.slice(-3),
+                distanceOpenWindowOk: updatedDistanceOpenValues.slice(-3).every(v => v > 0.00 && v < 2.50),
+
+                shortVelWindow: updatedShortSmaVelocities.slice(-5),
+                shortVelQuietCount: updatedShortSmaVelocities.slice(-5).filter(v => Math.abs(v) < 0.0012).length,
+                shortVelQuietOk: updatedShortSmaVelocities.slice(-5).filter(v => Math.abs(v) < 0.0012).length >= 3,
+
+                longVelWindow: updatedLongSmaVelocities.slice(-5),
+                longVelQuietCount: updatedLongSmaVelocities.slice(-5).filter(v => Math.abs(v) < 0.0012).length,
+                longVelQuietOk: updatedLongSmaVelocities.slice(-5).filter(v => Math.abs(v) < 0.0012).length >= 3,
+
+                distanceVelWindow: updatedDistanceVelocities.slice(-5),
+                distanceVelQuietCount: updatedDistanceVelocities.slice(-5).filter(v => Math.abs(v) < 0.25).length,
+                distanceVelQuietOk: updatedDistanceVelocities.slice(-5).filter(v => Math.abs(v) < 0.25).length >= 3,
+
+                dvncHistoryWindow: updatedDVncHistory.slice(-3),
+                dvncConfirmed: DVncConfirmed,
+
+                confirmedHistoryWindow: updatedDVncConfirmedHistory.slice(-2),
+                confirmedHistoryReady: updatedDVncConfirmedHistory.length >= 2,
+                prevConfirmedWasTrue: updatedDVncConfirmedHistory.length >= 2
+                    ? updatedDVncConfirmedHistory[updatedDVncConfirmedHistory.length - 2] === true
+                    : false,
+                nowConfirmedIsFalse: updatedDVncConfirmedHistory.length >= 2
+                    ? updatedDVncConfirmedHistory[updatedDVncConfirmedHistory.length - 1] === false
+                    : false,
+            },
+
+            PositiveReversalBreakdown: {
+                signal: PositiveReversalBreakdown,
+
+                reversalAttemptActive,
+                barsSinceReversalAttempt,
+                reversalEntryDistance,
+                minDistanceSinceReversal,
+                reversalArmedBy: reversalArmedBy || null,
+
+                madeLowerLow,
+                madeLowerLowThreshold: Number.isFinite(minDistanceSinceReversal)
+                    ? (minDistanceSinceReversal - PRB_CFG.newLowSlack)
+                    : null,
+
+                shortVelLast3: updatedShortSmaVelocities.slice(-3),
+                shortVelAllNonPositive: updatedShortSmaVelocities.slice(-3).every(v => v <= 0),
+
+                longVelLast3: updatedLongSmaVelocities.slice(-3),
+                longVelHasBearish: updatedLongSmaVelocities.slice(-3).some(v => v < -PRB_CFG.velEps),
+
+                distanceVelLast3: updatedDistanceVelocities.slice(-3),
+                distanceVelAllBearish: updatedDistanceVelocities.slice(-3).every(v => v <= -PRB_CFG.distVelEps),
+
+                velocitiesBearish,
+
+                touchedLowerBandHistory: updatedTouchedLowerBandHistory.slice(-3),
+                touchedLowerBandRecently: updatedTouchedLowerBandHistory.slice(-3).some(Boolean),
+
+                currentPrice,
+                lowerBand,
+                bandBreakMargin,
+                closeBelowBand,
+
+                noImprovement,
+                flatVelocity,
+                bandRejection,
+
+                belowBandStreakLast4: updatedBelowBandStreak.slice(-4),
+                belowBandStreakCount: updatedBelowBandStreak.slice(-4).filter(Boolean).length,
+                bandSlopeDown,
+                persistentBandRide,
+
+                maxBarsToImprove: PRB_CFG.maxBarsToImprove,
+                improvedTowardZero,
+                timeStopFailed,
+
+                reason: (typeof updatedPositiveReversalBreakdownReason !== 'undefined')
+                    ? updatedPositiveReversalBreakdownReason
+                    : (prevState.PositiveReversalBreakdownReason || null),
+            },
+
+            LikelyNegativeCrossover: {
+                signal: LikelyNegativeCrossover,
+                prevDistance: prevState.distance,
+                prevDistanceOk: prevState.distance > 0.28,
+                currentDistance: distance,
+                currentDistanceOk: distance < 0.31,
+            },
+
+            PTbandPeakExit: {
+                signal: PTbandPeakExit,
+
+                ptArmed,
+                ptArmedBy: ptArmedBy || null,
+                ptBarsSinceArmed,
+                ptMinBarsRequired: PT_CFG.minBarsArmed,
+
+                requireFlat: PT_CFG.requireFlat,
+                flatVelocity,
+                velocityBreakingOut,
+                ptContextOk,
+
+                currentPrice,
+                upperBand,
+                currentPriceAboveUpperBand: currentPrice >= upperBand,
+
+                ptMinBarsOk,
+                ptExpired,
+            },
+        }
+        
         const updatedAcceleratingAbsoluteGapMomentumCrossoverCount = AcceleratingAbsoluteGapMomentumCrossover ? AcceleratingAbsoluteGapMomentumCrossoverCount + 1 : AcceleratingAbsoluteGapMomentumCrossoverCount
         const updatedSMANegativeCrossoverCount = SMANegativeCrossover ? SMANegativeCrossoverCount + 1 : SMANegativeCrossoverCount
         const updatedSMAPositiveCrossoverCount = SMAPositiveCrossover ? SMAPositiveCrossoverCount + 1 : SMAPositiveCrossoverCount
@@ -699,6 +839,7 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             ptTriggeredAt: (typeof ptTriggeredAtLocal !== 'undefined') ? ptTriggeredAtLocal : (prevState.ptTriggeredAt || null),
             // tradeJustEntered: consumedTradeJustEntered ? false : !!prevState.tradeJustEntered,
             tradeEntrySignal: prevState.tradeEntrySignal || null,
+            sellSignalDebug: sellSignalDebug,
         }
 
         console.log('Updating state with new SMA values: Previous State - Short SMA: ', prevState.shortSma, ' Long SMA: ', prevState.longSma, ' Distance: ', prevState.distance, ' Current State - Short SMA: ', next.shortSma, ' Long SMA: ', next.longSma, ' Distance: ', next.distance, ' Positive Crossover: ', next.positiveCrossover, ' Negative Crossover: ', next.negativeCrossover, ' Momentum: ', next.momentum, ' Distance Momentum: ', next.distanceMomentum, 'MomentumPeak: ', next.momentumPeak, 'DistancePeak: ', next.distancePeak, 'Updated Momentum Peak: ', next.updatedMomentumPeak, 'Updated Distance Peak: ', next.updatedDistancePeak)
@@ -823,6 +964,13 @@ module.exports = function twoLineCrossover(shortPeriod, longPeriod) {
             PTarmCount: 0,
             // tradeJustEntered: false,
             tradeEntrySignal: null,
+            sellSignalDebug: {
+                SAGMncBreak: {},
+                DVncConfirmedBreak: {},
+                PositiveReversalBreakdown: {},
+                LikelyNegativeCrossover: {},
+                PTbandPeakExit: {},
+            },
         }
     }
 
