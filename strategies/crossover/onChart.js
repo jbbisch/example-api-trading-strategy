@@ -154,6 +154,92 @@ const onChart = (prevState, {data, props}) => {
 
     const flattenForSession = isDailyExit()
     
+    function getEasternTimeParts() {
+    const nowUTC = new Date()
+    const nowET = new Date(
+        nowUTC.toLocaleString("en-US", { timeZone: "America/New_York" })
+    )
+
+    const day = nowET.getDay() // 0=Sun, 1=Mon, ... 5=Fri, 6=Sat
+    const totalMinutes = nowET.getHours() * 60 + nowET.getMinutes()
+
+    return { day, totalMinutes }
+}
+
+function shouldFlattenForSession() {
+    const { day, totalMinutes } = getEasternTimeParts()
+    return day >= 1 && day <= 5 && totalMinutes >= (16 * 60 + 40)
+}
+
+function isEntryBlockedForSessionBreak() {
+    const { day, totalMinutes } = getEasternTimeParts()
+
+    const breakStart = 16 * 60 + 40 // 4:40 PM ET
+    const reopen = 18 * 60 // 6:00 PM ET
+
+    if (day >= 1 && day <= 4) {
+        return totalMinutes >= breakStart && totalMinutes < reopen
+    }
+
+    if (day === 5) {
+        return totalMinutes >= breakStart
+    }
+
+    if (day === 6) {
+        return true
+    }
+
+    if (day === 0) {
+        return totalMinutes < reopen
+    }
+
+    return false
+}
+
+const flattenForSession = shouldFlattenForSession()
+const entryBlockedForSessionBreak = isEntryBlockedForSessionBreak()
+
+function shouldFlattenForSession() {
+    const { day, totalMinutes } = getEasternTimeParts()
+    const flattenStart = 16 * 60 + 40
+    const reopen = 18 * 60
+
+    if (day >= 1 && day <= 4) {
+        return totalMinutes >= flattenStart && totalMinutes < reopen
+    }
+
+    if (day === 5) {
+        return totalMinutes >= flattenStart
+    }
+
+    return false
+}
+
+function isEntryBlockedForSessionBreak() {
+    const { day, totalMinutes } = getEasternTimeParts()
+    const breakStart = 16 * 60 + 40
+    const reopen = 18 * 60
+
+    if (day >= 1 && day <= 4) {
+        return totalMinutes >= breakStart && totalMinutes < reopen
+    }
+
+    if (day === 5) {
+        return totalMinutes >= breakStart
+    }
+
+    if (day === 6) {
+        return true
+    }
+
+    if (day === 0) {
+        return totalMinutes < reopen
+    }
+
+    return false
+}
+
+
     // USE DURING BEAR MARKET INSTEAD OF WATCH AND LONG ##########
     // if(mode === LongShortMode.Watch && negativeCrossover ) {
     //    if(currentPositionSize === 0) {
