@@ -55,6 +55,7 @@ const onChart = (prevState, {data, props}) => {
         
         tradeJustEntered: !!prevState.tradeJustEntered,
         tradeEntrySignal: prevState.tradeEntrySignal || null,
+        lastEntryTime: prevState.lastEntryTime || null,
     }
     prevState.lastSMAUpdate = Date.now()
     const nextTlcState = tlc(lastTlc, bufferData)
@@ -135,21 +136,23 @@ const onChart = (prevState, {data, props}) => {
         const nowET = new Date(nowUTC.toLocaleString("en-US", {timeZone: "America/New_York"}))
         return nowET.getHours() === 9 && nowET.getMinutes() === 0
     }
-    
-    function isWeekendExit() {
+
+    function isDailyExit() {
         const nowUTC = new Date()
         const nowET = new Date(
             nowUTC.toLocaleString("en-US", { timeZone: "America/New_York" })
         )
 
-        const isFriday = nowET.getDay() === 5
+        const day = nowET.getDay() // 0 (Sunday) to 6 (Saturday)
         const totalMinutes = nowET.getHours() * 60 + nowET.getMinutes()
-        const isTime = totalMinutes >= (15 * 60 + 55) // 3:55 PM ET or later
+        
+        const isWeekday = day >= 1 && day <= 5 // Monday to Friday
+        const isTime = totalMinutes >= (16 * 60 + 40) // 4:40 PM ET or later
 
-        return isFriday && isTime
+        return isWeekday && isTime
     }
 
-    const flattenForWeekend = isWeekendExit()
+    const flattenForSession = isDailyExit()
     
     // USE DURING BEAR MARKET INSTEAD OF WATCH AND LONG ##########
     // if(mode === LongShortMode.Watch && negativeCrossover ) {
@@ -251,7 +254,7 @@ const onChart = (prevState, {data, props}) => {
     // }
 
     // USE DURING BULL MARKET INSTEAD OF WATCH AND SHORT ##########
-    if ((mode === LongShortMode.Long && negEdge) || flattenForWeekend) {
+    if ((mode === LongShortMode.Long && negEdge) || flattenForSession) {
         if(currentPositionSize >= maxPosition) {
             //console.log('[onChart] liquidatePosition 2:', placeOrder)
             //console.log('[onChart] mode 2 placeOrder:', mode)
@@ -269,7 +272,7 @@ const onChart = (prevState, {data, props}) => {
               nextTlcState.SMANegativeCrossover ? "SMA" :
               nextTlcState.NegativeBounceNegativeCrossover ? "NB" :
               nextTlcState.PositiveReversalBreakdown ? `PRB${nextTlcState.PositiveReversalBreakdownReason ? `(${nextTlcState.PositiveReversalBreakdownReason})` : ""}` :
-              "unknown";
+              "SMA";
             const sellLog = [...(prevState.sellTriggerSource || [])]
             trackTrigger(sellLog, exitSignal);
             placeOrder({
@@ -325,13 +328,14 @@ const onChart = (prevState, {data, props}) => {
             return {
                 state: {
                     ...prevState,
-                    mode: LongShortMode.Short,
+                    mode: LongShortMode.Watch,
                     strategyNetPos: nextStrategyNetPos,
                     sellTriggerSource: sellLog,
                     sellDistance: [...sellDistance],
                     orderInFlight: true,
                     orderInFlightAt: Date.now(),
                     tradeJustEntered: false,
+                    lastEntryTime: null,
                     ptArmed: false,
                     ptArmedBy: null,
                     ptBarsSinceArmed: 0,
@@ -363,19 +367,20 @@ const onChart = (prevState, {data, props}) => {
     }
 
     // USE DURING BULL MARKET INSTEAD OF WATCH AND SHORT ##########
-    if(mode === LongShortMode.Watch && posEdge && !flattenForWeekend) {
+    if(mode === LongShortMode.Watch && posEdge && !flattenForSession) {
         if(currentPositionSize < maxPosition) { 
             //console.log('[onChart] placeOrder 3:', placeOrder)
             //console.log('[onChart] mode 3 buyOrder:', mode)  
             nextStrategyNetPos = Math.min(currentPositionSize + 1, maxPosition)
             prevState.lastTradeTime = Date.now()
+            prevState.lastEntryTime = Date.now()
             const smaEdge = !!nextTlcState.SMAPositiveCrossover && !lastTlc.SMAPositiveCrossover;
             const entrySignal =
-              nextTlcState.AAGMpcBreak ? "AGM" :
               nextTlcState.DVpcConfirmed ? "DV" :
               nextTlcState.flatMarketEntryCondition ? "FM" :
+              nextTlcState.AAGMpcBreak ? "AGM" :
               smaEdge ? "SMA" :
-              "unknown";
+              "SMA";
             const buyLog = [...(prevState.buyTriggerSource || [])]
             trackTrigger(buyLog, entrySignal);
             placeOrder({
@@ -435,6 +440,7 @@ const onChart = (prevState, {data, props}) => {
                     strategyNetPos: nextStrategyNetPos,
                     tradeEntrySignal: entrySignal,
                     tradeJustEntered: true,
+                    lastEntryTime: Date.now(),
                     ptArmed: shouldArmPT ? true : (prevState.ptArmed || false),
                     PTarmCount: nextPTarmCount,
                     ptArmedBy: shouldArmPT ? 'SMApc' : (prevState.ptArmedBy || null),
@@ -478,8 +484,9 @@ const onChart = (prevState, {data, props}) => {
             strategyNetPos: nextStrategyNetPos,
             tradeJustEntered: prevState.tradeJustEntered,
             tradeEntrySignal: prevState.tradeEntrySignal ?? null,
-            buyTriggerSource: clearTriggers ? [] : [...(prevState.buyTriggerSource || [])],
-            sellTriggerSource: clearTriggers ? [] : [...(prevState.sellTriggerSource || [])],
+            lastEntryTime: prevState.lastEntryTime ?? null,
+            buyTriggerSource: clearTriggers ? [] : [...(prevState.buyTriggerSource || []), ...(nextTlcState.buyTriggerSource || [])],
+            sellTriggerSource: clearTriggers ? [] : [...(prevState.sellTriggerSource || []), ...(nextTlcState.sellTriggerSource || [])],
             buyDistance: clearTriggers ? [] : [...(prevState.buyDistance || []), ...(nextTlcState.buyDistance || [])],
             sellDistance: clearTriggers ? [] : [...(prevState.sellDistance || []), ...(nextTlcState.sellDistance || [])],
         },
