@@ -2,6 +2,7 @@ const { LongShortMode } = require("../common/longShortMode")
 const { placeOrder } = require("../../endpoints/placeOrder")
 const { liquidatePosition } = require("../../endpoints/liquidatePosition")
 const { TradeExcelLogger } = require("../../utils/tradingExcelLogger")
+const { appendReplayRow } = require("../../utils/replayCsvLogger")
 const { getFillsByOrderId, computeAvgFillPrice, extractFillTimestamp } = require("../../utils/tradovateFills")
 //console.log('[onChart] placeOrder:', placeOrder)
 
@@ -59,6 +60,21 @@ const onChart = (prevState, {data, props}) => {
     }
     prevState.lastSMAUpdate = Date.now()
     const nextTlcState = tlc(lastTlc, bufferData)
+    if (props.dev_mode) {
+      appendReplayRow({
+        timestamp: data.timestamp,
+        open: data.open,
+        high: data.high,
+        low: data.low,
+        close: data.close,
+        volume: data.volume,
+        positiveCrossover: nextTlcState.positiveCrossover,
+        negativeCrossover: nextTlcState.negativeCrossover,
+        distance: nextTlcState.distance,
+        longSmaVelocity: nextTlcState.longSmaVelocity,
+        distanceVelocity: nextTlcState.distanceVelocity,
+      })
+    }
     const { negativeCrossover, positiveCrossover, distance } = nextTlcState
 
     const currentPositionSize =
