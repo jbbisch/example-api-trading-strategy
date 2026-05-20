@@ -86,12 +86,13 @@ async function main() {
             }
         }, 1 * 60 * 1000)
 
-    const maybeReplayString = await askForReplay(REPLAY_TIMES)
+//    const maybeReplayString = await askForReplay(REPLAY_TIMES)
 
-    if(maybeReplayString) {
-        const replaySocket = getReplaySocket()
-        await replaySocket.connect(process.env.REPLAY_URL)
-    } else {
+//    if(maybeReplayString) {
+//        const replaySocket = getReplaySocket()
+//        await replaySocket.connect(process.env.REPLAY_URL)
+//    } else
+         {
             const socket = getSocket()
             const mdSocket = getMdSocket()
 
@@ -99,9 +100,9 @@ async function main() {
                 socket.connect(process.env.WS_URL),
                 mdSocket.connect(process.env.MD_URL)
             ])
-    }
+        }
     
-        Strategy = await configureRobot(ALL_STRATEGIES,REPLAY_TIMES)
+        Strategy = await configureRobot(ALL_STRATEGIES, REPLAY_TIMES)
         Strategy.init()
 
         socket.strategy = Strategy
