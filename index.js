@@ -92,19 +92,20 @@ async function main() {
 //        const replaySocket = getReplaySocket()
 //        await replaySocket.connect(process.env.REPLAY_URL)
 //    } else
-         {
-            const socket = getSocket()
-            const mdSocket = getMdSocket()
-
-            await Promise.all([
-                socket.connect(process.env.WS_URL),
-                mdSocket.connect(process.env.MD_URL)
-            ])
-        }
+//         {
+//            const socket = getSocket()
+//            const mdSocket = getMdSocket()
+//
+//            await Promise.all([
+//                socket.connect(process.env.WS_URL),
+//                mdSocket.connect(process.env.MD_URL)
+//            ])
+//        }
     
         Strategy = await configureRobot(ALL_STRATEGIES, REPLAY_TIMES)
         Strategy.init()
 
+        const socket = getSocket()
         socket.strategy = Strategy
         socket.strategyProps = Strategy.props
         
