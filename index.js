@@ -101,7 +101,7 @@ async function main() {
             ])
     }
     
-        Strategy = await configureRobot(ALL_STRATEGIES)
+        Strategy = await configureRobot(ALL_STRATEGIES,REPLAY_TIMES)
         Strategy.init()
 
         socket.strategy = Strategy
