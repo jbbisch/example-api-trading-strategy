@@ -49,16 +49,16 @@ const ALL_STRATEGIES = {
 }
 
 //Replay times must be JSON strings!
-// const REPLAY_TIMES = [
-//     {
-//         start: new Date(`2023-10-15T22:30`).toJSON(), //use your local time, .toJSON will transform it to universal
-//         stop: new Date(`2023-10-19T22:31`).toJSON()
-//     },
+const REPLAY_TIMES = [
+    {
+        start: new Date(`2023-10-15T22:30`).toJSON(), //use your local time, .toJSON will transform it to universal
+        stop: new Date(`2023-10-19T22:31`).toJSON()
+    },
 //     {
 //         start: new Date(`2023-10-22T22:31`).toJSON(),
 //         stop: new Date(`2023-10-26T22:32`).toJSON(),
 //    }
-// ]
+]
 
 let Strategy = null
 
@@ -86,12 +86,12 @@ async function main() {
             }
         }, 1 * 60 * 1000)
 
-    // const maybeReplayString = await askForReplay(REPLAY_TIMES)
+    const maybeReplayString = await askForReplay(REPLAY_TIMES)
 
-    // if(maybeReplayString) {
-    //     const replaySocket = getReplaySocket()
-    //     await replaySocket.connect(process.env.REPLAY_URL)
-    // } else {
+    if(maybeReplayString) {
+        const replaySocket = getReplaySocket()
+        await replaySocket.connect(process.env.REPLAY_URL)
+    } else {
             const socket = getSocket()
             const mdSocket = getMdSocket()
 
@@ -99,7 +99,7 @@ async function main() {
                 socket.connect(process.env.WS_URL),
                 mdSocket.connect(process.env.MD_URL)
             ])
-    // }
+    }
     
         Strategy = await configureRobot(ALL_STRATEGIES)
         Strategy.init()
