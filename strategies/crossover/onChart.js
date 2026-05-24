@@ -24,26 +24,39 @@ const onChart = (prevState, {data, props}) => {
     const bufferData = buffer.getData()
 
     const now = new Date()
+
+    const replayMode = !!props.dev_mode
+    const replayNow = replayMode ? new Date(data.timestamp) : now
     
     // Update SMA only at specific intervals
-    const dataPause = 1 * 60 * 1000 // 1 minute pause after processing data
-    if (prevState.lastSMAUpdate && now - prevState.lastSMAUpdate < dataPause) {
-        //console.log('[onChart] Waiting for next SMA update interval', prevState.lastSMAUpdate);
-        return { state: prevState, effects: [] };
+    if (!replayMode) {
+        const dataPause = 1 * 60 * 1000 // 1 minute pause after processing data
+        if (prevState.lastSMAUpdate && now - prevState.lastSMAUpdate < dataPause) {
+            //console.log('[onChart] Waiting for next SMA update interval', prevState.lastSMAUpdate);
+            return { state: prevState, effects: [] };
+        }
+
+        const chillOut = 4 * 60 * 1000 // 4 minutes pause after placing an order
+        const inChillOut = prevState.lastTradeTime && (now - prevState.lastTradeTime < chillOut)
+
+        const minutes = now.getMinutes()
+        const seconds = now.getSeconds()
+
+        if(minutes % 5 !== 0 || seconds > 30 ) { 
+            //console.log('[onChart] Not a 5 minute interval - skip processing')
+            return { state: prevState, effects: [] }
+        } // 30 second window on every 5th minute interval to update SMA and place order
+        // allows for delay in data feed and tries to avoid false signals
+        }
+
+    if (replayMode) {
+        const replayMinutes = replayNow.getMinutes()
+
+        if (replayMinutes % 5 !== 0) {
+            return { state: prevState, effects: [] }
+        }
     }
 
-    const chillOut = 4 * 60 * 1000 // 4 minutes pause after placing an order
-    const inChillOut = prevState.lastTradeTime && (now - prevState.lastTradeTime < chillOut)
-
-    const minutes = now.getMinutes()
-    const seconds = now.getSeconds()
-
-    if(minutes % 5 !== 0 || seconds > 30 ) { 
-        //console.log('[onChart] Not a 5 minute interval - skip processing')
-        return { state: prevState, effects: [] }
-    } // 30 second window on every 5th minute interval to update SMA and place order
-      // allows for delay in data feed and tries to avoid false signals
-    
     const ORDER_TIMEOUT_MS = 15 * 1000 // 15 seconds
 
     const lastTlc = {
@@ -58,7 +71,7 @@ const onChart = (prevState, {data, props}) => {
         tradeEntrySignal: prevState.tradeEntrySignal || null,
         lastEntryTime: prevState.lastEntryTime || null,
     }
-    prevState.lastSMAUpdate = Date.now()
+    prevState.lastSMAUpdate = replayMode ? replayNow.getTime() : Date.now()
     const nextTlcState = tlc(lastTlc, bufferData)
     if (props.dev_mode) {
       appendReplayRow({
