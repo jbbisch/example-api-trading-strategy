@@ -2,8 +2,8 @@ const { LongShortMode } = require("../common/longShortMode")
 const { placeOrder } = require("../../endpoints/placeOrder")
 const { liquidatePosition } = require("../../endpoints/liquidatePosition")
 const { TradeExcelLogger } = require("../../utils/tradingExcelLogger")
-const { appendReplayRow } = require("../../utils/replayCsvLogger")
 const { getFillsByOrderId, computeAvgFillPrice, extractFillTimestamp } = require("../../utils/tradovateFills")
+const { appendReplayRow } = require("../../utils/replayCsvLogger")
 //console.log('[onChart] placeOrder:', placeOrder)
 
 const tradeLogger = new TradeExcelLogger({
