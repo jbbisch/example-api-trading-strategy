@@ -38,7 +38,7 @@ process.env.REPLAY_URL  = 'wss://replay.tradovateapi.com/v1/websocket'
 process.env.USER        = ''    
 process.env.PASS        = '' 
 process.env.SEC         = ''
-process.env.CID         = 0
+process.env.CID         = 
 
 //END ENVIRONMENT VARIABLES -----------------------------------------------------------------------------------
 
@@ -51,8 +51,8 @@ const ALL_STRATEGIES = {
 //Replay times must be JSON strings!
 const REPLAY_TIMES = [
     {
-        start: new Date(`2023-10-15T22:30`).toJSON(), //use your local time, .toJSON will transform it to universal
-        stop: new Date(`2023-10-19T22:31`).toJSON()
+        start: new Date(`2025-01-01T22:30`).toJSON(), //use your local time, .toJSON will transform it to universal
+        stop: new Date(`2025-12-31T22:31`).toJSON()
     },
 //     {
 //         start: new Date(`2023-10-22T22:31`).toJSON(),
@@ -86,28 +86,25 @@ async function main() {
             }
         }, 1 * 60 * 1000)
 
-//    const maybeReplayString = await askForReplay(REPLAY_TIMES)
+    const maybeReplayString = await askForReplay(REPLAY_TIMES)
 
-//    if(maybeReplayString) {
-//        const replaySocket = getReplaySocket()
-//        await replaySocket.connect(process.env.REPLAY_URL)
-//    } else
-//         {
-//            const socket = getSocket()
-//            const mdSocket = getMdSocket()
-//
-//            await Promise.all([
-//                socket.connect(process.env.WS_URL),
-//                mdSocket.connect(process.env.MD_URL)
-//            ])
-//        }
+    if(maybeReplayString) {
+        const replaySocket = getReplaySocket()
+        await replaySocket.connect(process.env.REPLAY_URL)
+    } else {
+            const socket = getSocket()
+            const mdSocket = getMdSocket()
+
+            await Promise.all([
+                socket.connect(process.env.WS_URL),
+                mdSocket.connect(process.env.MD_URL)
+            ])
+    }
     
         Strategy = await configureRobot(ALL_STRATEGIES, REPLAY_TIMES)
-        Strategy.init()
-
-        const socket = getSocket()
         socket.strategy = Strategy
         socket.strategyProps = Strategy.props
+        Strategy.init()
         
     } catch (error) {
         logger.error({message: error.message, stack: error.stack, error})
