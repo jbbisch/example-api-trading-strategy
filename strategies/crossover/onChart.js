@@ -27,6 +27,10 @@ const onChart = (prevState, {data, props}) => {
 
     const replayMode = !!props.dev_mode
     const replayNow = replayMode ? new Date(data.timestamp) : now
+    const activeNow = replayMode ? replayNow : now
+
+    const chillOut = 4 * 60 * 1000 // 4 minutes pause after placing an order
+    const inChillOut = prevState.lastTradeTime && (activeNow - prevState.lastTradeTime < chillOut)
     
     // Update SMA only at specific intervals
     if (!replayMode) {
@@ -35,9 +39,6 @@ const onChart = (prevState, {data, props}) => {
             //console.log('[onChart] Waiting for next SMA update interval', prevState.lastSMAUpdate);
             return { state: prevState, effects: [] };
         }
-
-        const chillOut = 4 * 60 * 1000 // 4 minutes pause after placing an order
-        const inChillOut = prevState.lastTradeTime && (now - prevState.lastTradeTime < chillOut)
 
         const minutes = now.getMinutes()
         const seconds = now.getSeconds()
