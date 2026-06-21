@@ -15,6 +15,9 @@ const { placeOrder } = require("./endpoints/placeOrder")
 const { startOrderStrategy } = require("./standardMiddleware/startOrderStrategy")
 const { strategy } = require("./strategies/strategy/strategy")
 const { onChart } = require("./strategies/crossover/onChart")
+const { isTokenValid } = require("./utils/isTokenValid")
+const { renewAccessToken } = require("./endpoints/renewAccessToken")
+const { chooseEnvironment } = require("./utils/chooseEnvironment")
 
 
 //ENVIRONMENT VARIABLES ---------------------------------------------------------------------------------------
@@ -46,23 +49,25 @@ const ALL_STRATEGIES = {
 }
 
 //Replay times must be JSON strings!
-// const REPLAY_TIMES = [
-//     {
-//         start: new Date(`2023-10-15T22:30`).toJSON(), //use your local time, .toJSON will transform it to universal
-//         stop: new Date(`2023-10-19T22:31`).toJSON()
-//     },
+const REPLAY_TIMES = [
+    {
+        start: new Date(`2026-01-05T15:00:00.000Z`).toJSON(), //use your local time, .toJSON will transform it to universal
+        stop: new Date(`2026-03-31T22:31:00.000Z`).toJSON()
+    },
 //     {
 //         start: new Date(`2023-10-22T22:31`).toJSON(),
 //         stop: new Date(`2023-10-26T22:32`).toJSON(),
 //    }
-// ]
+]
+
+let Strategy = null
 
 /**
  * Program entry point.
  */
 async function main() {
     try {
-        
+        await chooseEnvironment()
     // // // // // // // // // // // // // // // //
     // Login Section                             //
     // // // // // // // // // // // // // // // //
@@ -73,23 +78,34 @@ async function main() {
     // Configuration Section                     //
     // // // // // // // // // // // // // // // //
 
-    // const maybeReplayString = await askForReplay(REPLAY_TIMES)
+        setInterval(async () => {
+            if (!isTokenValid()) {
+                console.log('[index renewAccessToken] Token is nearing expiration. Renewing...')
+                await renewAccessToken()
+                console.log('[index renewAccessToken] Token successfully renewed.')
+            }
+        }, 1 * 60 * 1000)
+
+    const socket = getSocket()
+    const mdSocket = getMdSocket()
+
+//    const maybeReplayString = await askForReplay(REPLAY_TIMES)
 
     // if(maybeReplayString) {
     //     const replaySocket = getReplaySocket()
     //     await replaySocket.connect(process.env.REPLAY_URL)
     // } else {
-            const socket = getSocket()
-            const mdSocket = getMdSocket()
-
             await Promise.all([
                 socket.connect(process.env.WS_URL),
                 mdSocket.connect(process.env.MD_URL)
             ])
-    // }
+//    }
     
-        const Strategy = await configureRobot(ALL_STRATEGIES)
+        Strategy = await configureRobot(ALL_STRATEGIES, REPLAY_TIMES)
         Strategy.init()
+        socket.strategy = Strategy
+        socket.strategyProps = Strategy.props
+        
     } catch (error) {
         logger.error({message: error.message, stack: error.stack, error})
     }
@@ -130,3 +146,5 @@ async function main() {
 }
 
 main()
+
+module.exports = { Strategy }

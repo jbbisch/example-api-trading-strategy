@@ -1,0 +1,40 @@
+[AutoTrade]: Choose environment:
+
+  > [1.] Live
+    [2.] Demo
+[AutoTrade]: Choose environment:
+
+  > [1.] Live
+    [2.] Demo
+[AutoTrade]: Choose environment:
+
+  > [1.] Live
+    [2.] Demo
+[AutoTrade]: Choose environment:
+
+  > [1.] Live
+    [2.] Demo
+[AutoTrade]: Choose environment:
+
+  > [1.] Live
+    [2.] Demo
+[AutoTrade]: Choose environment:
+
+  > [1.] Live
+    [2.] Demo
+[AutoTrade]: Choose environment:
+
+  > [1.] Live
+    [2.] Demo
+[AutoTrade]: Choose environment:
+
+  > [1.] Live
+    [2.] Demo
+[AutoTrade]: Choose environment:
+
+  > [1.] Live
+    [2.] Demo
+[AutoTrade]: Choose environment:
+
+  > [1.] Live
+    [2.] Demo

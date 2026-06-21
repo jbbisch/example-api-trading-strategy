@@ -1,25 +1,18 @@
 const axios = require("axios")
 const { isTokenValid } = require("../utils/isTokenValid")
 const { renewAccessToken } = require("./renewAccessToken")
-const { requestAccessToken } = require("./requestAccessToken")
 
 async function liquidatePosition({
-    accountId,
     contractId,
-    admin = true,
+    accountId,
     deviceId,
-    action,
     symbol,
-    orderQty,
-    orderType,
-    isAutomated = true,
-    price
 }) {
     console.log('[liquidatePosition ENDPOINT] is being called')
 
     if (!isTokenValid()) {
         console.log('[placeOrder ENDPOINT] Token is not valid. Renewing...')
-        await requestAccessToken()
+        await renewAccessToken()
         console.log('[placeOrder ENDPOINT] Token renewed:', process.env.ACCESS_TOKEN)
     }
     
@@ -36,18 +29,11 @@ async function liquidatePosition({
     console.log('[liquidatePosition endpoint] config:', config)
 
     const order = {
-        //accountSpec: process.env.SPEC,
-        accountId,
-        contractId,
-        admin,
-        //action,
-        //symbol,
-        //orderQty,
-        //orderType,
-        //price,
+        accountId: parseInt(process.env.ID, 10),
+        contractId: 3418615,
+        admin: true,
         deviceId,
-        //timeInForce: 'Day',
-        isAutomated
+        isAutomated: true
     }
     console.log('[liquidatePosition endpoint] order:', order)
 

@@ -7,9 +7,10 @@ function DataBuffer(transformer = null, data = []) {
     this.buffer = [...data]
     let lastTs
     let lastInterval
-    const intervalDuration = 1 * 60 * 1000 // decide minute interval here (replace the current 5)
+    const intervalDuration = 5 * 60 * 1000 // decide minute interval here (replace the current 5)
 
     this.push = tick => {
+        //console.log('Raw Data Incoming Through DataBuffer:', tick)
         let results
         if(transformer && typeof transformer === 'function') {
             results = transformer(tick)

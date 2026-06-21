@@ -1,0 +1,6 @@
+nohup: ignoring input
+[AutoTrade]: Acquiring an Access Token using your credentials...
+[AutoTrade]: Running Operation /auth/accessTokenRequest...
+[AutoTrade]: Device <20507a884778c6da57d66292f3c5be23492091473918333b56b0c9fda469d486> detected.
+Uncaught Exception: EBADF: bad file descriptor, read
+error: Uncaught Exception:

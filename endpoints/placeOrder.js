@@ -49,7 +49,7 @@ async function placeOrder({
         console.log('[placeOrder endpoint] RESPONSE:', response.data)
         return response.data
     } catch (err) {
-        console.error('[placeOrder endpoint] Error in placeOrder ENDPOINT:', err.response)
+        console.error(err)
     }
 }
 module.exports = { placeOrder }

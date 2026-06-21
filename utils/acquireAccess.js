@@ -31,7 +31,7 @@ const acquireAccess = async () => {
     process.env.SPEC = account.name
     process.env.USER_ID = account.userId
 
-    console.clear()
+    //console.clear()
     console.log(account)
     console.log(`\n[AutoTrade]: Welcome, ${process.env.USER}.`)
 

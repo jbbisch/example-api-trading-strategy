@@ -3,15 +3,20 @@ const { ReplaySocket } = require("./ReplaySocket");
 const { TradovateSocket } = require("./TradovateSocket");
 
 const socket = new TradovateSocket()
+global.__tsSocket = socket // DEBUG ONLY
 const mdSocket = new MarketDataSocket()
 const replaySocket = new ReplaySocket()
 
+// FIX #1: wire mdSocket as socket's peer so TradovateSocket.reconnect()
+// can reconnect it too when a full network drop takes both sockets down
+socket._peer = mdSocket
+
 const replaySessionResults = {}
 
-const connectSockets = async () => 
+const connectSockets = () =>
 {
     try{
-        await Promise.all([
+        Promise.all([
             socket.connect(process.env.WS_URL),
             mdSocket.connect(process.env.MD_URL),
             replaySocket.connect(process.env.REPLAY_URL)

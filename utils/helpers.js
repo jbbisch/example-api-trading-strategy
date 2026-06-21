@@ -20,6 +20,10 @@ const calculateSma = (period, data) => {
     return sumBy('close', data.slice(data.length - period))/period
 }
 
+const calculateSmaOpen = (period, data) => {
+    return sumBy('open', data.slice(data.length - period))/period
+}
+
 const sum = data => data.reduce((a, b) => a + b, 0)
 
 const sumBy = (prop, data) => data.reduce((a, b) => {
@@ -64,6 +68,7 @@ module.exports = {
     readline,
     io,
     calculateSma,
+    calculateSmaOpen,
     readFile,
     sum, sumBy,
     writeToLog

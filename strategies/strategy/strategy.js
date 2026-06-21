@@ -207,8 +207,8 @@ class Strategy {
 
     next(prevState, [event, {data, props}]) {
         if(prevState.indicators && prevState.buffer) {
-            for(k of Object.keys(prevState.indicators)) {
-                prevState.indicators[k](prevState, buffer.getData())
+            for(const k of Object.keys(prevState.indicators)) {
+                prevState.indicators[k](prevState, prevState.buffer.getData())
             }
         }
     }

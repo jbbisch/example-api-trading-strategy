@@ -15,7 +15,10 @@ const onProps = (prevState, {data, props}) => {
                     netPos > 0  ? LongShortMode.Long
                 :   netPos < 0  ? LongShortMode.Short
                 :   /*else*/      LongShortMode.Watch,
-                position: entity
+                position: entity,
+                strategyNetPos: netPos,
+                orderInFlight: false,
+                orderInFlightAt: null,
             },
             effects: [
                 {

@@ -1,5 +1,7 @@
 const highLowVariance = require("../../utils/highLowVariance")
 const twoLineCrossover = require("../../utils/twoLineCrossover")
+const preEntryVelocityGate = require("./preEntryVelocityGate")
+const persistenceExit = require("./persistenceExit")
 
 const { DataBuffer, BarsTransformer, TicksTransformer } = require("../../utils/dataBuffer")
 const { Strategy } = require("../strategy/strategy")
@@ -16,34 +18,45 @@ const { TdEvent } = require("../strategy/tdEvent")
 
 /**
  * A Simple Strategy based on two Moving Averages and their interactions.
+ * Config D: bearScore<2 + ATR≥80th pct + preEntryVelocityGate(0.75) + persistenceExit(K=2)
  */
 class CrossoverStrategy extends Strategy {
 
     constructor(props) {
-        super(props)        
+        super(props)
     }
 
     init(props) {
         //console.log('CrossoverStrategy init() called', props)
         const { barType } = props || {};
         this.addMiddleware(drawEffect)
+
+        const tlc_inner = twoLineCrossover(5, 10)
+        const tlc_gated = preEntryVelocityGate(tlc_inner, 0.75)
+        const tlc       = persistenceExit(tlc_gated, { K: 2, threshold: 0, minBars: 2 })
+
         return {
-            mode:       LongShortMode.Watch,
-            buffer:     new DataBuffer(barType === 'MinuteBar' ? BarsTransformer : TicksTransformer),
-            tlc:        twoLineCrossover(5, 10),
-            //hlv:        highLowVariance(20),
-            product:    null,
-            position:   null,
-            realizedPnL: 0
+            mode:           LongShortMode.Watch,
+            buffer:         new DataBuffer(barType === 'MinuteBar' ? BarsTransformer : TicksTransformer),
+            tlc,
+            //hlv:          highLowVariance(20),
+            product:        null,
+            position:       null,
+            realizedPnL:    0,
+            buyDistance:    [],
+            sellDistance:   [],
+            strategyNetPos: 0,
+            orderInFlight:  false,
+            atrHourState:   null,   // rolling hourly ATR percentile state
         }
     }
-    
+
     next(prevState, [event, payload]) {
         //console.log('CrossoverStrategy next() called', event, payload)
 
         switch(event) {
             case TdEvent.Chart: {
-                return onChart(prevState, payload)  
+                return onChart(prevState, payload)
             }
 
             case TdEvent.Props: {
@@ -63,16 +76,16 @@ class CrossoverStrategy extends Strategy {
             }
 
             default: {
-                return this.catchReplaySessionsDefault(prevState, [event, payload]) || { 
+                return this.catchReplaySessionsDefault(prevState, [event, payload]) || {
                     state: prevState,
                     effects: [
-                        { event: 'crossover/draw' }          
+                        { event: 'crossover/draw' }
                     ]
-                }       
+                }
             }
         }
     }
-    
+
     static params = {
         ...super.params,
         longPeriod:     10,

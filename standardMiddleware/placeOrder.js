@@ -27,21 +27,17 @@ const placeOrder = (state, action) => {
             }
             console.log('[liquidatePosition] authorization payload:', process.env.ACCESS_TOKEN)
 
-            const body = {
-                accountId: process.env.ID,
-                contractId: symbol,
-                accountSpec: process.env.SPEC,
-                deviceId: process.env.DEVICE_ID,
-                symbol: symbol,
-                action: "Sell",
-                orderQty: orderQuantity,
-                orderType: "Market",
-                admin: true,
-                //action: action,
-                isAutomated: true
+        const body = {
+            symbol: contract.name,
+            orderQty,
+            accountSpec: process.env.SPEC,
+            accountId: parseInt(process.env.ID, 10),
+            action,
+            price,
+            orderType,
+            isAutomated: true
 
-            }
-            console.log('[liquidatePosition] order request payload:', JSON.stringify(body))
+        }
 
             let dispose = socket.request({
                 url: URL + `/order/placeorder\n4\n\n${JSON.stringify(body)}`,

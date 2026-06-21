@@ -1,3 +1,4 @@
+const { renewAccessToken } = require('../endpoints/renewAccessToken')
 const { BarsTransformer } = require('../utils/dataBuffer')
 const { TicksTransformer } = require('../utils/dataBuffer')
 const { TradovateSocket } = require('./TradovateSocket')
@@ -37,6 +38,7 @@ MarketDataSocket.prototype.subscribeQuote = function({symbol, contractId: cid, c
             item.d.quotes
                 .filter(({contractId}) => contractId === cid)
                 .forEach(callback)
+                //console.log(`Received data for symbol: ${symbol}`, item.d)
 
         },
         disposer: () => {
@@ -135,27 +137,41 @@ MarketDataSocket.prototype.getChart = function({symbol, chartDescription, timeRa
             },
             timeRange
         },
-        callback: (id, item) => {
+         callback: (id, item) => {
 
             if(item.i === id) {
-                realtimeId = item.d.realtimeId
-                historicalId = item.d.historicalId
+                console.log('[getChart] init response:', JSON.stringify(item.d).slice(0, 300))
+                realtimeId = item.d?.realtimeId
+                historicalId = item.d?.historicalId
             }
-            
+
             if(!isChart(item)) return
 
-            item.d.charts
-                .filter(({id}) => id === realtimeId || id === historicalId)
-                .forEach(callback)            
+            const charts = item.d?.charts
+            if (!charts || !Array.isArray(charts)) {
+                console.log('[getChart] chart event has no charts array. item.d keys:', Object.keys(item.d || {}), 'item.d:', JSON.stringify(item.d).slice(0, 200))
+                return
+            }
+
+            console.log('[getChart] chart event:', charts.map(c => ({id: c.id, bars: c.bars?.length, eoh: c.eoh})), 'realtimeId:', realtimeId, 'historicalId:', historicalId)
+
+            charts
+                .filter(({id: chartId}) => {
+                    if (realtimeId === undefined && historicalId === undefined) return true
+                    return chartId === realtimeId || chartId === historicalId
+                })
+                .forEach(callback)
         },
         disposer: () => {
-            let d = this.request({
+            const cancel = (subscriptionId) => this.request({
                 url: 'md/cancelChart',
                 body: {
-                    subscriptionId: historicalId
+                    subscriptionId
                 },
-                callback: () => d()
+                callback: () => {}
             })
+            if (realtimeId) cancel(realtimeId)
+            if (historicalId) cancel(historicalId)
         }
     })
     this.subscriptions.push({symbol, subscription})
@@ -167,11 +183,6 @@ MarketDataSocket.prototype.disconnect = function() {
     this.subscriptions.forEach(({subscription}) => subscription())
     this.subscriptions = []
     TradovateSocket.prototype.disconnect.call(this)
-}
-
-Array.prototype.tap = function(fn) {
-    this.forEach(fn)
-    return this
 }
 
 module.exports = { MarketDataSocket } 
