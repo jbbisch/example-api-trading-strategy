@@ -4,7 +4,7 @@ const { liquidatePosition } = require("../../endpoints/liquidatePosition")
 const { TradeExcelLogger } = require("../../utils/tradingExcelLogger")
 const { getFillsByOrderId, computeAvgFillPrice, extractFillTimestamp } = require("../../utils/tradovateFills")
 const { appendReplayRow } = require("../../utils/replayCsvLogger")
-const { calculateAmplitude } = require("../../research/tradeEfficiency")
+const { calculateAmplitude } = require("./tradeEfficiency")
 const fs = require('fs')
 
 const WARMUP_STATE_PATH = './data/warmupState.json'
