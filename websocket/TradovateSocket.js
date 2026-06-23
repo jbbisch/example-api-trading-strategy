@@ -478,6 +478,7 @@ TradovateSocket.prototype.reconnect = async function (reason = 'unknown') {
         // Reinitialize strategy
         if (this.strategy) {
           this.subscriptions = []
+          this.strategy._shouldRun = false
         
           const strategyProps = this.strategy.props
           this.strategy = new this.strategy.constructor(strategyProps)
